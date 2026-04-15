@@ -6,14 +6,14 @@ import (
 )
 
 type CreateUserUsecase struct {
-	users    UserProvisioner
-	projects ProjectProvisioner
+	users           UserProvisioner
+	createProjectUC *CreateProjectUsecase
 }
 
-func NewCreateUserUsecase(users UserProvisioner, projects ProjectProvisioner) *CreateUserUsecase {
+func NewCreateUserUsecase(users UserProvisioner, createProjectUC *CreateProjectUsecase) *CreateUserUsecase {
 	return &CreateUserUsecase{
-		users:    users,
-		projects: projects,
+		users:           users,
+		createProjectUC: createProjectUC,
 	}
 }
 
@@ -27,7 +27,7 @@ func (s *CreateUserUsecase) CreateUser(ctx context.Context, id string, firstName
 		return nil, nil, err
 	}
 
-	project, err := s.projects.CreateProject(ctx, user, "Default Project")
+	project, err := s.createProjectUC.CreateProject(ctx, user, "Default Project")
 	if err != nil {
 		return nil, nil, err
 	}

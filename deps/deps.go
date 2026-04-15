@@ -39,7 +39,8 @@ func New(db *gorm.DB, cfg *config.Config) *Dependencies {
 	userService := service.NewUserService(userRepo)
 	clerkService := service.NewClerkService(cfg)
 
-	createUserUsecase := usecase.NewCreateUserUsecase(userService, projectService)
+	createProjectUsecase := usecase.NewCreateProjectUsecase(projectService)
+	createUserUsecase := usecase.NewCreateUserUsecase(userService, createProjectUsecase)
 	updateUserUsecase := usecase.NewUpdateUserUsecase(userService)
 	deleteUserUsecase := usecase.NewDeleteUserUsecase(userService)
 	getUserUsecase := usecase.NewGetUserUsecase(userService)
