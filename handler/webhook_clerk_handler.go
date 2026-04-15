@@ -9,6 +9,7 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/google/uuid"
 )
 
 type WebhookClerkHandler struct {
@@ -104,7 +105,12 @@ func (h *WebhookClerkHandler) CreateUser(c fiber.Ctx, data dto.ClerkUserCreated)
 		return err
 	}
 
-	user.ActiveProjectID = &project.ID
+	projectID, err := uuid.Parse(project.ID)
+	if err != nil {
+		return errors.ErrProjectFailedToCreate
+	}
+
+	user.ActiveProjectID = &projectID
 	if err := h.userRepository.Update(user); err != nil {
 		return err
 	}

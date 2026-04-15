@@ -9,6 +9,7 @@ import (
 	"forgeflow-api/repository"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/google/uuid"
 )
 
 type AuthenticateMiddleware struct {
@@ -94,7 +95,14 @@ func (m *AuthenticateMiddleware) Protected() fiber.Handler {
 				})
 			}
 
-			user.ActiveProjectID = &project.ID
+			projectID, err := uuid.Parse(project.ID)
+			if err != nil {
+				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+					"message": errors.ErrProjectFailedToCreate,
+				})
+			}
+
+			user.ActiveProjectID = &projectID
 			if err := m.userRepo.Update(user); err != nil {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 					"message": errors.ErrUserFailedToCreate,

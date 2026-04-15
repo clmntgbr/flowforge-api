@@ -22,10 +22,9 @@ func NewProjectService(projectRepository *repository.ProjectRepository, projectR
 	}
 }
 
-func (s *ProjectService) CreateProject(c fiber.Ctx, user *domain.User, name string) (*domain.Project, error) {
-
+func (s *ProjectService) CreateProject(c fiber.Ctx, user *domain.User, name string) (dto.ProjectOutput, error) {
 	if err := s.projectRules.MaxProjectsPerUser(c.Context(), user.ID); err != nil {
-		return nil, err
+		return dto.ProjectOutput{}, err
 	}
 
 	project := &domain.Project{
@@ -38,10 +37,18 @@ func (s *ProjectService) CreateProject(c fiber.Ctx, user *domain.User, name stri
 	}
 
 	if err := s.projectRepository.Create(project); err != nil {
-		return nil, err
+		return dto.ProjectOutput{}, err
 	}
 
-	return project, nil
+	activeID := uuid.Nil
+	if user.ActiveProjectID != nil {
+		activeID = *user.ActiveProjectID
+	} else {
+		// First project: user has no active yet; caller will set active to this project.
+		activeID = project.ID
+	}
+
+	return dto.NewProjectOutput(*project, activeID), nil
 }
 
 func (s *ProjectService) GetProjects(c fiber.Ctx, user *domain.User, activeProjectID uuid.UUID) ([]dto.ProjectOutput, error) {
