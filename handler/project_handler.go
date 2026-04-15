@@ -2,6 +2,7 @@ package handler
 
 import (
 	"forgeflow-api/ctxutil"
+	"forgeflow-api/dto"
 	"forgeflow-api/errors"
 	"forgeflow-api/service"
 
@@ -55,4 +56,23 @@ func (h *ProjectHandler) GetProjectByID(c fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(project)
+}
+
+func (h *ProjectHandler) CreateProject(c fiber.Ctx) error {
+	user, err := ctxutil.GetUser(c)
+	if err != nil {
+		return h.sendUnauthorized(c)
+	}
+
+	var req dto.CreateProjectInput
+	if err := h.bindAndValidate(c, &req); err != nil {
+		return nil
+	}
+
+	project, err := h.projectService.CreateProject(c, user, req.Name)
+	if err != nil {
+		return h.sendInternalError(c, err)
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(project)
 }
