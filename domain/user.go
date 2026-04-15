@@ -14,6 +14,7 @@ type User struct {
 	Banned    bool      `gorm:"default:false" json:"banned"`
 
 	Projects        []Project `gorm:"many2many:user_projects" json:"projects,omitempty"`
+	ActiveProject   Project   `gorm:"foreignKey:ActiveProjectID" json:"active_project,omitempty"`
 	ActiveProjectID uuid.UUID `gorm:"type:uuid" json:"active_project_id"`
 
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`

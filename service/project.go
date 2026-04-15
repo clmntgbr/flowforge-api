@@ -2,7 +2,6 @@ package service
 
 import (
 	"forgeflow-api/domain"
-	"forgeflow-api/dto"
 	"forgeflow-api/repository"
 	"forgeflow-api/rules"
 
@@ -21,10 +20,10 @@ func NewProjectService(projectRepository *repository.ProjectRepository, projectR
 	}
 }
 
-func (s *ProjectService) CreateProject(c fiber.Ctx, user *domain.User, name string) (dto.ProjectOutput, error) {
+func (s *ProjectService) CreateProject(c fiber.Ctx, user *domain.User, name string) (*domain.Project, error) {
 
 	if err := s.projectRules.MaxProjectsPerUser(c.Context(), user.ID); err != nil {
-		return dto.ProjectOutput{}, err
+		return nil, err
 	}
 
 	project := &domain.Project{
@@ -37,8 +36,8 @@ func (s *ProjectService) CreateProject(c fiber.Ctx, user *domain.User, name stri
 	}
 
 	if err := s.projectRepository.Create(project); err != nil {
-		return dto.ProjectOutput{}, err
+		return nil, err
 	}
 
-	return dto.NewProjectOutput(*project, user.ID), nil
+	return project, nil
 }

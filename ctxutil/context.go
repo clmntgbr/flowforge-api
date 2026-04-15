@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	UserKey = "user"
+	UserKey    = "user"
+	ProjectKey = "project"
 )
 
 func GetUser(c fiber.Ctx) (*domain.User, error) {
@@ -21,4 +22,8 @@ func GetUser(c fiber.Ctx) (*domain.User, error) {
 
 func SetUser(c fiber.Ctx, user domain.User) {
 	c.Locals(UserKey, &user)
+}
+
+func SetProject(c fiber.Ctx, project domain.Project) {
+	c.Locals(ProjectKey, &project)
 }
