@@ -1,0 +1,58 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: api
+    ports:
+      - "4000:3000"
+    volumes:
+      - .:/app
+      - /app/tmp
+      - go-modules:/go/pkg/mod
+    env_file:
+      - .env
+    networks:
+      - uplink
+    restart: unless-stopped
+
+  database:
+    container_name: datastore
+    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-app}"]
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    ports:
+      - "9543:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-!ChangeMe!}
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+    volumes:
+      - database_data:/var/lib/postgresql/data:rw
+    networks:
+      - uplink
+    restart: unless-stopped
+
+  ngrok:
+    container_name: ngrok
+    image: ngrok/ngrok:latest
+    command: http --url=choice-pretty-leech.ngrok-free.app --host-header=choice-pretty-leech.ngrok-free.app http://api:3000
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+    ports:
+      - "4040:4040"
+    networks:
+      - uplink
+    restart: unless-stopped
+
+volumes:
+  go-modules:
+  database_data:
+
+networks:
+  uplink:
+    driver: bridge
