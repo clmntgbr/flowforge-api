@@ -52,3 +52,12 @@ func (s *ProjectService) GetProjects(c fiber.Ctx, user *domain.User, activeProje
 
 	return dto.NewProjectsOutput(projects, activeProjectID), nil
 }
+
+func (s *ProjectService) GetProjectByID(c fiber.Ctx, user *domain.User, projectUUID uuid.UUID) (dto.ProjectOutput, error) {
+	project, err := s.projectRepository.FindByUserIDAndProjectID(c.Context(), projectUUID, user.ID)
+	if err != nil {
+		return dto.ProjectOutput{}, err
+	}
+
+	return dto.NewProjectOutput(*project, project.ID), nil
+}

@@ -16,5 +16,6 @@ var (
 	ErrUserFailedToCreate      = errors.New("user failed to create")
 	ErrUserBanned              = errors.New("user banned")
 	ErrMaxProjectsReached      = errors.New("max projects reached")
+	ErrInvalidProjectID        = errors.New("invalid project UUID")
 	ErrProjectFailedToCreate   = errors.New("project failed to create")
 )
