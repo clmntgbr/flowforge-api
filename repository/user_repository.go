@@ -28,7 +28,7 @@ func (r *UserRepository) Delete(user *domain.User) error {
 
 func (r *UserRepository) FindByClerkID(clerkID string) *domain.User {
 	var user domain.User
-	err := r.db.Where("clerk_id = ?", clerkID).First(&user).Error
+	err := r.db.Preload("ActiveProject").Where("clerk_id = ?", clerkID).First(&user).Error
 	if err != nil {
 		return nil
 	}

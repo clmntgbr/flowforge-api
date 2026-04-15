@@ -3,10 +3,10 @@ package middleware
 import (
 	"forgeflow-api/ctxutil"
 	"forgeflow-api/errors"
-	"forgeflow-api/service"
-	"strings"
-
 	"forgeflow-api/repository"
+	"forgeflow-api/service"
+	"forgeflow-api/usecase"
+	"strings"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -14,17 +14,15 @@ import (
 type AuthenticateMiddleware struct {
 	authenticateService *service.AuthenticateService
 	clerkService        *service.ClerkService
-	userService         *service.UserService
-	projectService      *service.ProjectService
+	createUserUsecase   *usecase.CreateUserUsecase
 	userRepo            *repository.UserRepository
 }
 
-func NewAuthenticateMiddleware(authService *service.AuthenticateService, clerkService *service.ClerkService, userService *service.UserService, projectService *service.ProjectService, userRepo *repository.UserRepository) *AuthenticateMiddleware {
+func NewAuthenticateMiddleware(authService *service.AuthenticateService, clerkService *service.ClerkService, createUserUsecase *usecase.CreateUserUsecase, userRepo *repository.UserRepository) *AuthenticateMiddleware {
 	return &AuthenticateMiddleware{
 		authenticateService: authService,
 		clerkService:        clerkService,
-		userService:         userService,
-		projectService:      projectService,
+		createUserUsecase:   createUserUsecase,
 		userRepo:            userRepo,
 	}
 }
@@ -75,22 +73,8 @@ func (m *AuthenticateMiddleware) Protected() fiber.Handler {
 				})
 			}
 
-			user, err = m.userService.CreateUser(c, claims.Subject, clerkUser.FirstName, clerkUser.LastName, clerkUser.Banned)
+			user, _, err = m.createUserUsecase.CreateUser(c.Context(), claims.Subject, clerkUser.FirstName, clerkUser.LastName, clerkUser.Banned)
 			if err != nil {
-				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-					"message": errors.ErrUserFailedToCreate,
-				})
-			}
-
-			project, err := m.projectService.CreateProject(c, user, "Default Project")
-			if err != nil {
-				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-					"message": errors.ErrProjectFailedToCreate,
-				})
-			}
-
-			user.ActiveProjectID = &project.ID
-			if err := m.userRepo.Update(user); err != nil {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 					"message": errors.ErrUserFailedToCreate,
 				})

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"forgeflow-api/dto"
 	"forgeflow-api/errors"
-	"forgeflow-api/service"
+	"forgeflow-api/usecase"
 	"log"
 
 	"github.com/gofiber/fiber/v3"
@@ -12,12 +12,20 @@ import (
 
 type WebhookClerkHandler struct {
 	BaseHandler
-	webhookClerkService *service.WebhookClerkService
+	createUserUsecase *usecase.CreateUserUsecase
+	updateUserUsecase *usecase.UpdateUserUsecase
+	deleteUserUsecase *usecase.DeleteUserUsecase
 }
 
-func NewWebhookClerkHandler(webhookClerkService *service.WebhookClerkService) *WebhookClerkHandler {
+func NewWebhookClerkHandler(
+	createUserUsecase *usecase.CreateUserUsecase,
+	updateUserUsecase *usecase.UpdateUserUsecase,
+	deleteUserUsecase *usecase.DeleteUserUsecase,
+) *WebhookClerkHandler {
 	return &WebhookClerkHandler{
-		webhookClerkService: webhookClerkService,
+		createUserUsecase: createUserUsecase,
+		updateUserUsecase: updateUserUsecase,
+		deleteUserUsecase: deleteUserUsecase,
 	}
 }
 
@@ -35,7 +43,7 @@ func (h *WebhookClerkHandler) Handle(c fiber.Ctx) error {
 			return err
 		}
 
-		if err := h.webhookClerkService.CreateUser(c, data); err != nil {
+		if _, _, err := h.createUserUsecase.CreateUser(c.Context(), data.ID, data.FirstName, data.LastName, *data.Banned); err != nil {
 			return h.sendInternalError(c, err)
 		}
 
@@ -51,7 +59,7 @@ func (h *WebhookClerkHandler) Handle(c fiber.Ctx) error {
 			return err
 		}
 
-		if err := h.webhookClerkService.UpdateUser(c, data); err != nil {
+		if err := h.updateUserUsecase.UpdateUser(c.Context(), data.ID, data.FirstName, data.LastName, *data.Banned); err != nil {
 			return h.sendInternalError(c, err)
 		}
 
@@ -67,7 +75,7 @@ func (h *WebhookClerkHandler) Handle(c fiber.Ctx) error {
 			return err
 		}
 
-		if err := h.webhookClerkService.DeleteUser(c, data); err != nil {
+		if err := h.deleteUserUsecase.DeleteUser(c.Context(), data.ID); err != nil {
 			return h.sendInternalError(c, err)
 		}
 

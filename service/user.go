@@ -6,7 +6,6 @@ import (
 	"forgeflow-api/repository"
 	"time"
 
-	"github.com/gofiber/fiber/v3"
 )
 
 type UserService struct {
@@ -19,7 +18,11 @@ func NewUserService(userRepository *repository.UserRepository) *UserService {
 	}
 }
 
-func (s *UserService) CreateUser(c fiber.Ctx, id string, firstName string, lastName string, banned bool) (*domain.User, error) {
+func (s *UserService) FindByClerkID(clerkID string) *domain.User {
+	return s.userRepository.FindByClerkID(clerkID)
+}
+
+func (s *UserService) CreateUser(id string, firstName string, lastName string, banned bool) (*domain.User, error) {
 	user := &domain.User{
 		ClerkID:   id,
 		FirstName: firstName,
@@ -36,7 +39,7 @@ func (s *UserService) CreateUser(c fiber.Ctx, id string, firstName string, lastN
 	return user, nil
 }
 
-func (s *UserService) UpdateUser(c fiber.Ctx, id string, firstName string, lastName string, banned bool) error {
+func (s *UserService) UpdateUser(id string, firstName string, lastName string, banned bool) error {
 	user := s.userRepository.FindByClerkID(id)
 
 	if user == nil {
@@ -50,7 +53,7 @@ func (s *UserService) UpdateUser(c fiber.Ctx, id string, firstName string, lastN
 	return s.userRepository.Update(user)
 }
 
-func (s *UserService) DeleteUser(c fiber.Ctx, id string) error {
+func (s *UserService) DeleteUser(id string) error {
 	user := s.userRepository.FindByClerkID(id)
 
 	if user == nil {

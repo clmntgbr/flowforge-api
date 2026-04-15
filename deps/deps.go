@@ -8,6 +8,7 @@ import (
 	"forgeflow-api/repository"
 	"forgeflow-api/rules"
 	"forgeflow-api/service"
+	"forgeflow-api/usecase"
 
 	"gorm.io/gorm"
 )
@@ -16,7 +17,6 @@ type Dependencies struct {
 	UserRepo *repository.UserRepository
 
 	AuthenticateService *service.AuthenticateService
-	WebhookClerkService *service.WebhookClerkService
 	ClerkService        *service.ClerkService
 	UserService         *service.UserService
 	ProjectService      *service.ProjectService
@@ -37,19 +37,21 @@ func New(db *gorm.DB, cfg *config.Config) *Dependencies {
 	projectService := service.NewProjectService(projectRepo, projectRules)
 	authenticateService := service.NewAuthenticateService(userRepo, cfg)
 	userService := service.NewUserService(userRepo)
-	webhookClerkService := service.NewWebhookClerkService(userRepo, userService, projectService)
 	clerkService := service.NewClerkService(cfg)
 
-	webhookClerkHandler := handler.NewWebhookClerkHandler(webhookClerkService)
+	createUserUsecase := usecase.NewCreateUserUsecase(userService, projectService)
+	updateUserUsecase := usecase.NewUpdateUserUsecase(userService)
+	deleteUserUsecase := usecase.NewDeleteUserUsecase(userService)
+
+	webhookClerkHandler := handler.NewWebhookClerkHandler(createUserUsecase, updateUserUsecase, deleteUserUsecase)
 	userHandler := handler.NewUserHandler(userService)
 
 	clerkWebhookMiddleware := middleware.NewClerkWebhookMiddleware(cfg.ClerkWebhookSecret)
-	authenticateMiddleware := middleware.NewAuthenticateMiddleware(authenticateService, clerkService, userService, projectService, userRepo)
+	authenticateMiddleware := middleware.NewAuthenticateMiddleware(authenticateService, clerkService, createUserUsecase, userRepo)
 
 	return &Dependencies{
 		UserRepo:               userRepo,
 		AuthenticateService:    authenticateService,
-		WebhookClerkService:    webhookClerkService,
 		UserService:            userService,
 		ProjectService:         projectService,
 		WebhookClerkHandler:    webhookClerkHandler,

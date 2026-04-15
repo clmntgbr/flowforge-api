@@ -1,11 +1,10 @@
 package service
 
 import (
+	"context"
 	"forgeflow-api/domain"
 	"forgeflow-api/repository"
 	"forgeflow-api/rules"
-
-	"github.com/gofiber/fiber/v3"
 )
 
 type ProjectService struct {
@@ -20,9 +19,9 @@ func NewProjectService(projectRepository *repository.ProjectRepository, projectR
 	}
 }
 
-func (s *ProjectService) CreateProject(c fiber.Ctx, user *domain.User, name string) (*domain.Project, error) {
+func (s *ProjectService) CreateProject(ctx context.Context, user *domain.User, name string) (*domain.Project, error) {
 
-	if err := s.projectRules.MaxProjectsPerUser(c.Context(), user.ID); err != nil {
+	if err := s.projectRules.MaxProjectsPerUser(ctx, user.ID); err != nil {
 		return nil, err
 	}
 
