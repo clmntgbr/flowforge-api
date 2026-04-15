@@ -41,11 +41,10 @@ func (s *ProjectService) CreateProject(c fiber.Ctx, user *domain.User, name stri
 	}
 
 	activeID := uuid.Nil
+	activeID = project.ID
+
 	if user.ActiveProjectID != nil {
 		activeID = *user.ActiveProjectID
-	} else {
-		// First project: user has no active yet; caller will set active to this project.
-		activeID = project.ID
 	}
 
 	return dto.NewProjectOutput(*project, activeID), nil
@@ -63,6 +62,20 @@ func (s *ProjectService) GetProjects(c fiber.Ctx, user *domain.User, activeProje
 func (s *ProjectService) GetProjectByID(c fiber.Ctx, user *domain.User, projectUUID uuid.UUID) (dto.ProjectOutput, error) {
 	project, err := s.projectRepository.FindByUserIDAndProjectID(c.Context(), projectUUID, user.ID)
 	if err != nil {
+		return dto.ProjectOutput{}, err
+	}
+
+	return dto.NewProjectOutput(*project, project.ID), nil
+}
+
+func (s *ProjectService) UpdateProject(c fiber.Ctx, user *domain.User, projectUUID uuid.UUID, req dto.UpdateProjectInput) (dto.ProjectOutput, error) {
+	project, err := s.projectRepository.FindByUserIDAndProjectID(c.Context(), projectUUID, user.ID)
+	if err != nil {
+		return dto.ProjectOutput{}, err
+	}
+
+	project.Name = req.Name
+	if err := s.projectRepository.Update(project); err != nil {
 		return dto.ProjectOutput{}, err
 	}
 

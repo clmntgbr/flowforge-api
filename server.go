@@ -65,6 +65,7 @@ func setupProjectsRoutes(api fiber.Router, deps *deps.Dependencies) {
 	api.Get("/projects", deps.ProjectHandler.GetProjects)
 	api.Get("/projects/:id", deps.ProjectHandler.GetProjectByID)
 	api.Post("/projects", deps.ProjectHandler.CreateProject)
+	api.Put("/projects/:id", deps.ProjectHandler.UpdateProject)
 }
 
 func setupUsersRoutes(api fiber.Router, deps *deps.Dependencies) {
