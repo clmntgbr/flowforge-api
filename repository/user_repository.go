@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"forgeflow-api/domain"
 
 	"gorm.io/gorm"
@@ -26,11 +27,14 @@ func (r *UserRepository) Delete(user *domain.User) error {
 	return r.db.Delete(user).Error
 }
 
-func (r *UserRepository) FindByClerkID(clerkID string) *domain.User {
+func (r *UserRepository) FindByClerkID(clerkID string) (*domain.User, error) {
 	var user domain.User
 	err := r.db.Where("clerk_id = ?", clerkID).First(&user).Error
 	if err != nil {
-		return nil
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
 	}
-	return &user
+	return &user, nil
 }

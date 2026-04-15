@@ -16,7 +16,6 @@ type Dependencies struct {
 	UserRepo *repository.UserRepository
 
 	AuthenticateService *service.AuthenticateService
-	WebhookClerkService *service.WebhookClerkService
 	ClerkService        *service.ClerkService
 	UserService         *service.UserService
 	ProjectService      *service.ProjectService
@@ -37,10 +36,9 @@ func New(db *gorm.DB, cfg *config.Config) *Dependencies {
 	projectService := service.NewProjectService(projectRepo, projectRules)
 	authenticateService := service.NewAuthenticateService(userRepo, cfg)
 	userService := service.NewUserService(userRepo)
-	webhookClerkService := service.NewWebhookClerkService(userRepo, userService, projectService)
 	clerkService := service.NewClerkService(cfg)
 
-	webhookClerkHandler := handler.NewWebhookClerkHandler(webhookClerkService)
+	webhookClerkHandler := handler.NewWebhookClerkHandler(userService, projectService, userRepo)
 	userHandler := handler.NewUserHandler(userService)
 
 	clerkWebhookMiddleware := middleware.NewClerkWebhookMiddleware(cfg.ClerkWebhookSecret)
@@ -49,7 +47,6 @@ func New(db *gorm.DB, cfg *config.Config) *Dependencies {
 	return &Dependencies{
 		UserRepo:               userRepo,
 		AuthenticateService:    authenticateService,
-		WebhookClerkService:    webhookClerkService,
 		UserService:            userService,
 		ProjectService:         projectService,
 		WebhookClerkHandler:    webhookClerkHandler,

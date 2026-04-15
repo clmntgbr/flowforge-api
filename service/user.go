@@ -3,6 +3,7 @@ package service
 import (
 	"forgeflow-api/domain"
 	"forgeflow-api/dto"
+	"forgeflow-api/errors"
 	"forgeflow-api/repository"
 	"time"
 
@@ -37,10 +38,13 @@ func (s *UserService) CreateUser(c fiber.Ctx, id string, firstName string, lastN
 }
 
 func (s *UserService) UpdateUser(c fiber.Ctx, id string, firstName string, lastName string, banned bool) error {
-	user := s.userRepository.FindByClerkID(id)
+	user, err := s.userRepository.FindByClerkID(id)
+	if err != nil {
+		return err
+	}
 
 	if user == nil {
-		return nil
+		return errors.ErrUserNotFound
 	}
 
 	user.FirstName = firstName
@@ -51,10 +55,13 @@ func (s *UserService) UpdateUser(c fiber.Ctx, id string, firstName string, lastN
 }
 
 func (s *UserService) DeleteUser(c fiber.Ctx, id string) error {
-	user := s.userRepository.FindByClerkID(id)
+	user, err := s.userRepository.FindByClerkID(id)
+	if err != nil {
+		return err
+	}
 
 	if user == nil {
-		return nil
+		return errors.ErrUserNotFound
 	}
 
 	return s.userRepository.Delete(user)

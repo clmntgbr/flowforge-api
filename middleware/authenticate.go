@@ -65,7 +65,12 @@ func (m *AuthenticateMiddleware) Protected() fiber.Handler {
 			})
 		}
 
-		user := m.userRepo.FindByClerkID(claims.Subject)
+		user, err := m.userRepo.FindByClerkID(claims.Subject)
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"message": errors.ErrUserNotFound,
+			})
+		}
 
 		if user == nil {
 			clerkUser, err := m.clerkService.GetUser(claims.Subject)
@@ -104,6 +109,7 @@ func (m *AuthenticateMiddleware) Protected() fiber.Handler {
 		}
 
 		ctxutil.SetUser(c, *user)
+		ctxutil.SetProjectID(c, *user.ActiveProjectID)
 
 		return c.Next()
 	}

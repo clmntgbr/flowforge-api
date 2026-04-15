@@ -2,8 +2,10 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"forgeflow-api/dto"
 	"forgeflow-api/errors"
+	"forgeflow-api/repository"
 	"forgeflow-api/service"
 	"log"
 
@@ -12,12 +14,16 @@ import (
 
 type WebhookClerkHandler struct {
 	BaseHandler
-	webhookClerkService *service.WebhookClerkService
+	userService    *service.UserService
+	projectService *service.ProjectService
+	userRepository *repository.UserRepository
 }
 
-func NewWebhookClerkHandler(webhookClerkService *service.WebhookClerkService) *WebhookClerkHandler {
+func NewWebhookClerkHandler(userService *service.UserService, projectService *service.ProjectService, userRepository *repository.UserRepository) *WebhookClerkHandler {
 	return &WebhookClerkHandler{
-		webhookClerkService: webhookClerkService,
+		userService:    userService,
+		projectService: projectService,
+		userRepository: userRepository,
 	}
 }
 
@@ -35,7 +41,7 @@ func (h *WebhookClerkHandler) Handle(c fiber.Ctx) error {
 			return err
 		}
 
-		if err := h.webhookClerkService.CreateUser(c, data); err != nil {
+		if err := h.CreateUser(c, data); err != nil {
 			return h.sendInternalError(c, err)
 		}
 
@@ -51,7 +57,7 @@ func (h *WebhookClerkHandler) Handle(c fiber.Ctx) error {
 			return err
 		}
 
-		if err := h.webhookClerkService.UpdateUser(c, data); err != nil {
+		if err := h.UpdateUser(c, data); err != nil {
 			return h.sendInternalError(c, err)
 		}
 
@@ -67,7 +73,7 @@ func (h *WebhookClerkHandler) Handle(c fiber.Ctx) error {
 			return err
 		}
 
-		if err := h.webhookClerkService.DeleteUser(c, data); err != nil {
+		if err := h.DeleteUser(c, data); err != nil {
 			return h.sendInternalError(c, err)
 		}
 
@@ -77,4 +83,54 @@ func (h *WebhookClerkHandler) Handle(c fiber.Ctx) error {
 		log.Printf("Unhandled event type: %s", clerkEvent.Type)
 		return c.SendStatus(fiber.StatusOK)
 	}
+}
+
+func (h *WebhookClerkHandler) CreateUser(c fiber.Ctx, data dto.ClerkUserCreated) error {
+	user, err := h.userRepository.FindByClerkID(data.ID)
+	if err != nil {
+		fmt.Println("Error finding user", err)
+		return err
+	}
+
+	if user != nil {
+		fmt.Println("User already exists")
+		return nil
+	}
+
+	user, err = h.userService.CreateUser(c, data.ID, data.FirstName, data.LastName, *data.Banned)
+	if err != nil {
+		fmt.Println("Error creating user", err)
+		return err
+	}
+
+	project, err := h.projectService.CreateProject(c, user, "Default Project")
+	if err != nil {
+		fmt.Println("Error creating project", err)
+		return err
+	}
+
+	user.ActiveProjectID = &project.ID
+	if err := h.userRepository.Update(user); err != nil {
+		fmt.Println("Error updating user", err)
+		return err
+	}
+
+	return nil
+}
+
+func (h *WebhookClerkHandler) UpdateUser(c fiber.Ctx, data dto.ClerkUserUpdated) error {
+	user, err := h.userRepository.FindByClerkID(data.ID)
+	if err != nil {
+		return err
+	}
+
+	if user == nil {
+		return errors.ErrUserNotFound
+	}
+
+	return h.userService.UpdateUser(c, data.ID, data.FirstName, data.LastName, *data.Banned)
+}
+
+func (h *WebhookClerkHandler) DeleteUser(c fiber.Ctx, data dto.ClerkUserDeleted) error {
+	return h.userService.DeleteUser(c, data.ID)
 }
