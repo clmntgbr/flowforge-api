@@ -2,23 +2,32 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"forgeflow-api/domain"
+	apperrors "forgeflow-api/errors"
+	"forgeflow-api/repository"
 )
 
 type CreateUserUsecase struct {
 	users                UserProvisioner
 	createProjectUsecase *CreateProjectUsecase
+	userRepo             *repository.UserRepository
 }
 
-func NewCreateUserUsecase(users UserProvisioner, createProjectUsecase *CreateProjectUsecase) *CreateUserUsecase {
+func NewCreateUserUsecase(users UserProvisioner, createProjectUsecase *CreateProjectUsecase, userRepo *repository.UserRepository) *CreateUserUsecase {
 	return &CreateUserUsecase{
 		users:                users,
 		createProjectUsecase: createProjectUsecase,
+		userRepo:             userRepo,
 	}
 }
 
 func (s *CreateUserUsecase) CreateUser(ctx context.Context, id string, firstName string, lastName string, banned bool) (*domain.User, *domain.Project, error) {
-	if s.users.FindByClerkID(id) != nil {
+	existing, err := s.users.FindByClerkID(id)
+	if err != nil && !errors.Is(err, apperrors.ErrUserNotFound) {
+		return nil, nil, err
+	}
+	if existing != nil {
 		return nil, nil, nil
 	}
 
@@ -28,6 +37,14 @@ func (s *CreateUserUsecase) CreateUser(ctx context.Context, id string, firstName
 	}
 
 	project, err := s.createProjectUsecase.CreateProject(ctx, user, "Default Project")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	user.ActiveProject = project
+	user.ActiveProjectID = &project.ID
+
+	err = s.userRepo.Update(user)
 	if err != nil {
 		return nil, nil, err
 	}

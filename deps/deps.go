@@ -23,6 +23,7 @@ type Dependencies struct {
 
 	WebhookClerkHandler *handler.WebhookClerkHandler
 	UserHandler         *handler.UserHandler
+	ProjectHandler      *handler.ProjectHandler
 
 	AuthenticateMiddleware *middleware.AuthenticateMiddleware
 	ClerkWebhookMiddleware *middleware.ClerkWebhookMiddleware
@@ -40,13 +41,15 @@ func New(db *gorm.DB, cfg *config.Config) *Dependencies {
 	clerkService := service.NewClerkService(cfg)
 
 	createProjectUsecase := usecase.NewCreateProjectUsecase(projectService)
-	createUserUsecase := usecase.NewCreateUserUsecase(userService, createProjectUsecase)
+	createUserUsecase := usecase.NewCreateUserUsecase(userService, createProjectUsecase, userRepo)
 	updateUserUsecase := usecase.NewUpdateUserUsecase(userService)
 	deleteUserUsecase := usecase.NewDeleteUserUsecase(userService)
 	getUserUsecase := usecase.NewGetUserUsecase(userService)
+	getProjectsUsecase := usecase.NewGetProjectsUsecase(projectService)
 
 	webhookClerkHandler := handler.NewWebhookClerkHandler(createUserUsecase, updateUserUsecase, deleteUserUsecase)
 	userHandler := handler.NewUserHandler(getUserUsecase)
+	projectHandler := handler.NewProjectHandler(getProjectsUsecase)
 
 	clerkWebhookMiddleware := middleware.NewClerkWebhookMiddleware(cfg.ClerkWebhookSecret)
 	authenticateMiddleware := middleware.NewAuthenticateMiddleware(authenticateService, clerkService, createUserUsecase, userRepo)
@@ -58,6 +61,7 @@ func New(db *gorm.DB, cfg *config.Config) *Dependencies {
 		ProjectService:         projectService,
 		WebhookClerkHandler:    webhookClerkHandler,
 		UserHandler:            userHandler,
+		ProjectHandler:         projectHandler,
 		AuthenticateMiddleware: authenticateMiddleware,
 		ClerkWebhookMiddleware: clerkWebhookMiddleware,
 		ClerkService:           clerkService,

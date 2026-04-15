@@ -14,5 +14,10 @@ func NewCreateProjectUsecase(projects ProjectProvisioner) *CreateProjectUsecase 
 }
 
 func (u *CreateProjectUsecase) CreateProject(ctx context.Context, user *domain.User, name string) (*domain.Project, error) {
-	return u.projects.CreateProject(ctx, user, name)
+	project, err := u.projects.CreateProject(ctx, user, name)
+	if err != nil {
+		return nil, err
+	}
+
+	return project, nil
 }

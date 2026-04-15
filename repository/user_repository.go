@@ -1,8 +1,10 @@
 package repository
 
 import (
+	"errors"
 	"forgeflow-api/domain"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -26,9 +28,27 @@ func (r *UserRepository) Delete(user *domain.User) error {
 	return r.db.Delete(user).Error
 }
 
-func (r *UserRepository) FindByClerkID(clerkID string) *domain.User {
+func (r *UserRepository) FindByClerkID(clerkID string) (*domain.User, error) {
 	var user domain.User
-	err := r.db.Preload("ActiveProject").Where("clerk_id = ?", clerkID).First(&user).Error
+
+	err := r.db.
+		Preload("ActiveProject").
+		Where("clerk_id = ?", clerkID).
+		First(&user).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (r *UserRepository) FindByID(id uuid.UUID) *domain.User {
+	var user domain.User
+	err := r.db.Preload("ActiveProject").Where("id = ?", id).First(&user).Error
 	if err != nil {
 		return nil
 	}

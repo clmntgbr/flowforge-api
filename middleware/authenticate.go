@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"forgeflow-api/ctxutil"
 	"forgeflow-api/errors"
 	"forgeflow-api/repository"
@@ -63,7 +64,12 @@ func (m *AuthenticateMiddleware) Protected() fiber.Handler {
 			})
 		}
 
-		user := m.userRepo.FindByClerkID(claims.Subject)
+		user, err := m.userRepo.FindByClerkID(claims.Subject)
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"message": errors.ErrUserNotFound,
+			})
+		}
 
 		if user == nil {
 			clerkUser, err := m.clerkService.GetUser(claims.Subject)
@@ -81,6 +87,10 @@ func (m *AuthenticateMiddleware) Protected() fiber.Handler {
 			}
 		}
 
+		fmt.Println("user", user)
+		fmt.Println("user.ActiveProject", user.ActiveProject)
+		fmt.Println("user.ActiveProjectID", user.ActiveProjectID)
+
 		if user.Banned {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"message": errors.ErrUserBanned,
@@ -88,6 +98,7 @@ func (m *AuthenticateMiddleware) Protected() fiber.Handler {
 		}
 
 		ctxutil.SetUser(c, *user)
+		ctxutil.SetProject(c, *user.ActiveProject)
 
 		return c.Next()
 	}

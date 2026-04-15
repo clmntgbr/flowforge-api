@@ -3,9 +3,9 @@ package service
 import (
 	"forgeflow-api/domain"
 	"forgeflow-api/dto"
+	"forgeflow-api/errors"
 	"forgeflow-api/repository"
 	"time"
-
 )
 
 type UserService struct {
@@ -18,8 +18,17 @@ func NewUserService(userRepository *repository.UserRepository) *UserService {
 	}
 }
 
-func (s *UserService) FindByClerkID(clerkID string) *domain.User {
-	return s.userRepository.FindByClerkID(clerkID)
+func (s *UserService) FindByClerkID(clerkID string) (*domain.User, error) {
+	user, err := s.userRepository.FindByClerkID(clerkID)
+	if err != nil {
+		return nil, err
+	}
+
+	if user == nil {
+		return nil, errors.ErrUserNotFound
+	}
+
+	return user, nil
 }
 
 func (s *UserService) CreateUser(id string, firstName string, lastName string, banned bool) (*domain.User, error) {
@@ -40,7 +49,10 @@ func (s *UserService) CreateUser(id string, firstName string, lastName string, b
 }
 
 func (s *UserService) UpdateUser(id string, firstName string, lastName string, banned bool) error {
-	user := s.userRepository.FindByClerkID(id)
+	user, err := s.userRepository.FindByClerkID(id)
+	if err != nil {
+		return err
+	}
 
 	if user == nil {
 		return nil
@@ -54,7 +66,10 @@ func (s *UserService) UpdateUser(id string, firstName string, lastName string, b
 }
 
 func (s *UserService) DeleteUser(id string) error {
-	user := s.userRepository.FindByClerkID(id)
+	user, err := s.userRepository.FindByClerkID(id)
+	if err != nil {
+		return err
+	}
 
 	if user == nil {
 		return nil
