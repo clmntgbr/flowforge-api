@@ -58,10 +58,13 @@ func setupAPIRoutes(app *fiber.App, deps *deps.Dependencies) {
 
 	api.Use(deps.AuthenticateMiddleware.Protected())
 	setupUsersRoutes(api, deps)
+	setupProjectsRoutes(api, deps)
+}
+
+func setupProjectsRoutes(api fiber.Router, deps *deps.Dependencies) {
+	api.Get("/projects", deps.ProjectHandler.GetProjects)
 }
 
 func setupUsersRoutes(api fiber.Router, deps *deps.Dependencies) {
-	users := api.Group("/users")
-
-	users.Get("/me", deps.UserHandler.GetUser)
+	api.Get("/users/me", deps.UserHandler.GetUser)
 }

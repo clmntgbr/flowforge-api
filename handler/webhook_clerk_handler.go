@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"forgeflow-api/dto"
 	"forgeflow-api/errors"
 	"forgeflow-api/repository"
@@ -88,30 +87,25 @@ func (h *WebhookClerkHandler) Handle(c fiber.Ctx) error {
 func (h *WebhookClerkHandler) CreateUser(c fiber.Ctx, data dto.ClerkUserCreated) error {
 	user, err := h.userRepository.FindByClerkID(data.ID)
 	if err != nil {
-		fmt.Println("Error finding user", err)
 		return err
 	}
 
 	if user != nil {
-		fmt.Println("User already exists")
 		return nil
 	}
 
 	user, err = h.userService.CreateUser(c, data.ID, data.FirstName, data.LastName, *data.Banned)
 	if err != nil {
-		fmt.Println("Error creating user", err)
 		return err
 	}
 
 	project, err := h.projectService.CreateProject(c, user, "Default Project")
 	if err != nil {
-		fmt.Println("Error creating project", err)
 		return err
 	}
 
 	user.ActiveProjectID = &project.ID
 	if err := h.userRepository.Update(user); err != nil {
-		fmt.Println("Error updating user", err)
 		return err
 	}
 

@@ -2,10 +2,12 @@ package service
 
 import (
 	"forgeflow-api/domain"
+	"forgeflow-api/dto"
 	"forgeflow-api/repository"
 	"forgeflow-api/rules"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/google/uuid"
 )
 
 type ProjectService struct {
@@ -40,4 +42,13 @@ func (s *ProjectService) CreateProject(c fiber.Ctx, user *domain.User, name stri
 	}
 
 	return project, nil
+}
+
+func (s *ProjectService) GetProjects(c fiber.Ctx, user *domain.User, activeProjectID uuid.UUID) ([]dto.ProjectOutput, error) {
+	projects, err := s.projectRepository.FindAllByUserID(c.Context(), user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return dto.NewProjectsOutput(projects, activeProjectID), nil
 }

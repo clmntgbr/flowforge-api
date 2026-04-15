@@ -39,3 +39,19 @@ func (r *ProjectRepository) CountProjectsByUserID(ctx context.Context, userID uu
 	}
 	return count, nil
 }
+
+func (r *ProjectRepository) FindAllByUserID(ctx context.Context, userID uuid.UUID) ([]domain.Project, error) {
+	var projects []domain.Project
+
+	db := r.db.WithContext(ctx).
+		Model(&domain.Project{}).
+		Joins("JOIN user_projects ON user_projects.project_id = projects.id").
+		Where("user_projects.user_id = ?", userID)
+
+	err := db.Find(&projects).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return projects, nil
+}
