@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"forgeflow-api/dto"
 	"forgeflow-api/errors"
 	"forgeflow-api/repository"
@@ -29,6 +30,8 @@ func NewWebhookClerkHandler(userService *service.UserService, projectService *se
 
 func (h *WebhookClerkHandler) Handle(c fiber.Ctx) error {
 	clerkEvent := c.Locals("payload").(dto.ClerkEvent)
+
+	fmt.Println("Clerk event type", clerkEvent.Type)
 
 	switch clerkEvent.Type {
 	case "user.created":
