@@ -42,9 +42,10 @@ func New(db *gorm.DB, cfg *config.Config) *Dependencies {
 	createUserUsecase := usecase.NewCreateUserUsecase(userService, projectService)
 	updateUserUsecase := usecase.NewUpdateUserUsecase(userService)
 	deleteUserUsecase := usecase.NewDeleteUserUsecase(userService)
+	getUserUsecase := usecase.NewGetUserUsecase(userService)
 
 	webhookClerkHandler := handler.NewWebhookClerkHandler(createUserUsecase, updateUserUsecase, deleteUserUsecase)
-	userHandler := handler.NewUserHandler(userService)
+	userHandler := handler.NewUserHandler(getUserUsecase)
 
 	clerkWebhookMiddleware := middleware.NewClerkWebhookMiddleware(cfg.ClerkWebhookSecret)
 	authenticateMiddleware := middleware.NewAuthenticateMiddleware(authenticateService, clerkService, createUserUsecase, userRepo)

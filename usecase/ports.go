@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"forgeflow-api/domain"
+	"forgeflow-api/dto"
 )
 
 type UserProvisioner interface {
@@ -20,4 +21,8 @@ type UserUpdater interface {
 
 type UserDeleter interface {
 	DeleteUser(id string) error
+}
+
+type UserPresenter interface {
+	GetUser(user *domain.User) (*dto.UserOutput, error)
 }

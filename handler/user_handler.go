@@ -2,19 +2,19 @@ package handler
 
 import (
 	"forgeflow-api/ctxutil"
-	"forgeflow-api/service"
+	"forgeflow-api/usecase"
 
 	"github.com/gofiber/fiber/v3"
 )
 
 type UserHandler struct {
 	BaseHandler
-	userService *service.UserService
+	getUserUsecase *usecase.GetUserUsecase
 }
 
-func NewUserHandler(userService *service.UserService) *UserHandler {
+func NewUserHandler(getUserUsecase *usecase.GetUserUsecase) *UserHandler {
 	return &UserHandler{
-		userService: userService,
+		getUserUsecase: getUserUsecase,
 	}
 }
 
@@ -24,7 +24,7 @@ func (h *UserHandler) GetUser(c fiber.Ctx) error {
 		return h.sendUnauthorized(c)
 	}
 
-	output, err := h.userService.GetUser(user)
+	output, err := h.getUserUsecase.GetUser(user)
 	if err != nil {
 		return h.sendInternalError(c, err)
 	}
