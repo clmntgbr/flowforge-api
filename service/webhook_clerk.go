@@ -1,8 +1,8 @@
 package service
 
 import (
-	"go-api/dto"
-	"go-api/repository"
+	"forgeflow-api/dto"
+	"forgeflow-api/repository"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -10,12 +10,14 @@ import (
 type WebhookClerkService struct {
 	userRepository *repository.UserRepository
 	userService    *UserService
+	projectService *ProjectService
 }
 
-func NewWebhookClerkService(userRepository *repository.UserRepository, userService *UserService) *WebhookClerkService {
+func NewWebhookClerkService(userRepository *repository.UserRepository, userService *UserService, projectService *ProjectService) *WebhookClerkService {
 	return &WebhookClerkService{
 		userRepository: userRepository,
 		userService:    userService,
+		projectService: projectService,
 	}
 }
 
@@ -26,10 +28,16 @@ func (s *WebhookClerkService) CreateUser(c fiber.Ctx, data dto.ClerkUserCreated)
 		return nil
 	}
 
-	_, err := s.userService.CreateUser(c, data.ID, data.FirstName, data.LastName, *data.Banned)
+	user, err := s.userService.CreateUser(c, data.ID, data.FirstName, data.LastName, *data.Banned)
 	if err != nil {
 		return err
 	}
+
+	_, err = s.projectService.CreateProject(c, user, "Default Project")
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

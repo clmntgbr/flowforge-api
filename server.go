@@ -1,9 +1,9 @@
 package main
 
 import (
-	"go-api/config"
-	"go-api/deps"
 	"fmt"
+	"forgeflow-api/config"
+	"forgeflow-api/deps"
 	"log"
 
 	"github.com/gofiber/fiber/v3"

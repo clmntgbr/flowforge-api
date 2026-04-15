@@ -12,4 +12,6 @@ var (
 	ErrInvalidToken            = errors.New("invalid token")
 	ErrUserNotFound            = errors.New("user not found")
 	ErrUserBanned              = errors.New("user banned")
+	ErrMaxProjectsReached      = errors.New("max projects reached")
+	ErrProjectNotFound         = errors.New("project not found")
 )

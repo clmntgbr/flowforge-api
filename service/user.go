@@ -1,9 +1,9 @@
 package service
 
 import (
-	"go-api/domain"
-	"go-api/dto"
-	"go-api/repository"
+	"forgeflow-api/domain"
+	"forgeflow-api/dto"
+	"forgeflow-api/repository"
 	"time"
 
 	"github.com/gofiber/fiber/v3"

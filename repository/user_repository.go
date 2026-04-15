@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"go-api/domain"
+	"forgeflow-api/domain"
 
 	"gorm.io/gorm"
 )

@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
-	"go-api/config"
-	"go-api/dto"
-	"go-api/errors"
+	"forgeflow-api/config"
+	"forgeflow-api/dto"
+	"forgeflow-api/errors"
 
 	"github.com/clerk/clerk-sdk-go/v2"
 	clerkuser "github.com/clerk/clerk-sdk-go/v2/user"

@@ -2,9 +2,9 @@ package handler
 
 import (
 	"encoding/json"
-	"go-api/dto"
-	"go-api/errors"
-	"go-api/service"
+	"forgeflow-api/dto"
+	"forgeflow-api/errors"
+	"forgeflow-api/service"
 	"log"
 
 	"github.com/gofiber/fiber/v3"

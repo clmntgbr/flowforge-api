@@ -1,10 +1,10 @@
 package service
 
 import (
-	"go-api/config"
-	"go-api/errors"
-	"go-api/repository"
 	"fmt"
+	"forgeflow-api/config"
+	"forgeflow-api/errors"
+	"forgeflow-api/repository"
 	"time"
 
 	"github.com/MicahParks/keyfunc/v2"

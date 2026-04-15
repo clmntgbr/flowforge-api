@@ -1,12 +1,12 @@
 package middleware
 
 import (
-	"go-api/ctxutil"
-	"go-api/errors"
-	"go-api/service"
+	"forgeflow-api/ctxutil"
+	"forgeflow-api/errors"
+	"forgeflow-api/service"
 	"strings"
 
-	"go-api/repository"
+	"forgeflow-api/repository"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -15,14 +15,16 @@ type AuthenticateMiddleware struct {
 	authenticateService *service.AuthenticateService
 	clerkService        *service.ClerkService
 	userService         *service.UserService
+	projectService      *service.ProjectService
 	userRepo            *repository.UserRepository
 }
 
-func NewAuthenticateMiddleware(authService *service.AuthenticateService, clerkService *service.ClerkService, userService *service.UserService, userRepo *repository.UserRepository) *AuthenticateMiddleware {
+func NewAuthenticateMiddleware(authService *service.AuthenticateService, clerkService *service.ClerkService, userService *service.UserService, projectService *service.ProjectService, userRepo *repository.UserRepository) *AuthenticateMiddleware {
 	return &AuthenticateMiddleware{
 		authenticateService: authService,
 		clerkService:        clerkService,
 		userService:         userService,
+		projectService:      projectService,
 		userRepo:            userRepo,
 	}
 }
@@ -77,6 +79,13 @@ func (m *AuthenticateMiddleware) Protected() fiber.Handler {
 			if err != nil {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 					"message": errors.ErrUserNotFound,
+				})
+			}
+
+			_, err = m.projectService.CreateProject(c, user, "Default Project")
+			if err != nil {
+				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+					"message": errors.ErrProjectNotFound,
 				})
 			}
 		}

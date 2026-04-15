@@ -1,0 +1,41 @@
+package repository
+
+import (
+	"context"
+	"forgeflow-api/domain"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
+
+type ProjectRepository struct {
+	db *gorm.DB
+}
+
+func NewProjectRepository(db *gorm.DB) *ProjectRepository {
+	return &ProjectRepository{db: db}
+}
+
+func (r *ProjectRepository) Create(project *domain.Project) error {
+	return r.db.Create(project).Error
+}
+
+func (r *ProjectRepository) Update(project *domain.Project) error {
+	return r.db.Save(project).Error
+}
+
+func (r *ProjectRepository) Delete(project *domain.Project) error {
+	return r.db.Delete(project).Error
+}
+
+func (r *ProjectRepository) CountProjectsByUserID(ctx context.Context, userID uuid.UUID) (int64, error) {
+	var count int64
+	err := r.db.WithContext(ctx).Model(&domain.Project{}).
+		Joins("JOIN user_projects ON user_projects.project_id = projects.id").
+		Where("user_projects.user_id = ?", userID).
+		Count(&count).Error
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}

@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"go-api/ctxutil"
-	"go-api/service"
+	"forgeflow-api/ctxutil"
+	"forgeflow-api/service"
 
 	"github.com/gofiber/fiber/v3"
 )

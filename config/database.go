@@ -3,7 +3,7 @@ package config
 import (
 	"log"
 
-	"go-api/domain"
+	"forgeflow-api/domain"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -29,6 +29,7 @@ func ConnectDatabase(cfg *Config) *gorm.DB {
 func AutoMigrate(db *gorm.DB) {
 	err := db.AutoMigrate(
 		&domain.User{},
+		&domain.Project{},
 	)
 
 	if err != nil {

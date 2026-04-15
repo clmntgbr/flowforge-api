@@ -1,7 +1,7 @@
 package dto
 
 import (
-	"go-api/domain"
+	"forgeflow-api/domain"
 	"time"
 )
 
