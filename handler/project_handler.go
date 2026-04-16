@@ -100,3 +100,22 @@ func (h *ProjectHandler) UpdateProject(c fiber.Ctx) error {
 
 	return c.Status(fiber.StatusCreated).JSON(project)
 }
+
+func (h *ProjectHandler) ActivateProject(c fiber.Ctx) error {
+	user, err := ctxutil.GetUser(c)
+	if err != nil {
+		return h.sendUnauthorized(c)
+	}
+
+	projectUUID, err := h.parseUUIDParam(c, "id", errors.ErrInvalidProjectID)
+	if err != nil {
+		return err
+	}
+
+	project, err := h.projectService.ActivateProject(c, user.ID, projectUUID)
+	if err != nil {
+		return h.sendInternalError(c, err)
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(project)
+}

@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"forgeflow-api/domain"
+	"forgeflow-api/errors"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -67,5 +68,28 @@ func (r *ProjectRepository) FindByUserIDAndProjectID(ctx context.Context, projec
 	if err != nil {
 		return nil, err
 	}
+	return &project, nil
+}
+
+func (r *ProjectRepository) ActivateProject(ctx context.Context, userID uuid.UUID, projectID uuid.UUID) (*domain.Project, error) {
+	var project domain.Project
+	err := r.db.WithContext(ctx).
+		Joins("JOIN user_projects ON user_projects.project_id = projects.id").
+		Where("projects.id = ? AND user_projects.user_id = ?", projectID, userID).
+		First(&project).Error
+
+	if err != nil {
+		return nil, errors.ErrProjectNotFound
+	}
+
+	err = r.db.WithContext(ctx).
+		Model(&domain.User{}).
+		Where("id = ?", userID).
+		Update("active_project_id", projectID).Error
+
+	if err != nil {
+		return nil, err
+	}
+
 	return &project, nil
 }

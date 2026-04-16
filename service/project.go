@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"forgeflow-api/domain"
 	"forgeflow-api/dto"
 	"forgeflow-api/repository"
@@ -76,6 +77,15 @@ func (s *ProjectService) UpdateProject(c fiber.Ctx, user *domain.User, projectUU
 
 	project.Name = req.Name
 	if err := s.projectRepository.Update(project); err != nil {
+		return dto.ProjectOutput{}, err
+	}
+
+	return dto.NewProjectOutput(*project, project.ID), nil
+}
+
+func (s *ProjectService) ActivateProject(ctx context.Context, userID uuid.UUID, projectID uuid.UUID) (dto.ProjectOutput, error) {
+	project, err := s.projectRepository.ActivateProject(ctx, userID, projectID)
+	if err != nil {
 		return dto.ProjectOutput{}, err
 	}
 
