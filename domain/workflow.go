@@ -11,7 +11,9 @@ type Workflow struct {
 	Name        string    `gorm:"not null" json:"name"`
 	Description string    `gorm:"null" json:"description"`
 
-	OrganizationID uuid.UUID `gorm:"type:uuid;not null" json:"organization_id"`
+	Steps          []Step      `gorm:"foreignKey:WorkflowID" json:"steps"`
+	Connexions     []Connexion `gorm:"foreignKey:WorkflowID" json:"connexions"`
+	OrganizationID uuid.UUID   `gorm:"type:uuid;not null" json:"organization_id"`
 
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
