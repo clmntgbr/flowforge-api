@@ -26,7 +26,7 @@ func (s *EndpointService) GetEndpoints(c fiber.Ctx, organizationID uuid.UUID, qu
 		return dto.PaginateResponse{}, errors.ErrEndpointsNotFound
 	}
 
-	outputs := dto.NewEndpointsOutput(endpoints)
+	outputs := dto.NewMinimalEndpointsOutput(endpoints)
 	return dto.NewPaginateResponse(outputs, int(total), query), nil
 }
 

@@ -51,13 +51,13 @@ func (s *OrganizationService) CreateOrganization(c fiber.Ctx, user *domain.User,
 	return dto.NewOrganizationOutput(*organization, activeID), nil
 }
 
-func (s *OrganizationService) GetOrganizations(c fiber.Ctx, user *domain.User, activeOrganizationID uuid.UUID) ([]dto.OrganizationOutput, error) {
+func (s *OrganizationService) GetOrganizations(c fiber.Ctx, user *domain.User, activeOrganizationID uuid.UUID) ([]dto.MinimalOrganizationOutput, error) {
 	organizations, err := s.organizationRepository.FindAllByUserID(c.Context(), user.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	return dto.NewOrganizationsOutput(organizations, activeOrganizationID), nil
+	return dto.NewMinimalOrganizationsOutput(organizations, activeOrganizationID), nil
 }
 
 func (s *OrganizationService) GetOrganizationByID(c fiber.Ctx, user *domain.User, organizationUUID uuid.UUID) (dto.OrganizationOutput, error) {

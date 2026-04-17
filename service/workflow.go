@@ -1,6 +1,7 @@
 package service
 
 import (
+	"forgeflow-api/domain"
 	"forgeflow-api/dto"
 	"forgeflow-api/errors"
 	"forgeflow-api/repository"
@@ -25,6 +26,20 @@ func (s *WorkflowService) GetWorkflows(c fiber.Ctx, organizationID uuid.UUID, qu
 		return dto.PaginateResponse{}, errors.ErrWorkflowsNotFound
 	}
 
-	outputs := dto.NewWorkflowsOutput(workflows)
+	outputs := dto.NewMinimalWorkflowsOutput(workflows)
 	return dto.NewPaginateResponse(outputs, int(total), query), nil
+}
+
+func (s *WorkflowService) CreateWorkflow(c fiber.Ctx, organizationID uuid.UUID, req dto.CreateWorkflowInput) (dto.WorkflowOutput, error) {
+	workflow := &domain.Workflow{
+		Name:           req.Name,
+		OrganizationID: organizationID,
+		Description:    req.Description,
+	}
+
+	err := s.workflowRepository.Create(workflow)
+	if err != nil {
+		return dto.WorkflowOutput{}, err
+	}
+	return dto.NewWorkflowOutput(*workflow), nil
 }

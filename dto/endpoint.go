@@ -6,12 +6,18 @@ import (
 )
 
 type EndpointOutput struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
+	MinimalEndpointOutput
 	BaseURI   string    `json:"baseUri"`
 	Path      string    `json:"path"`
 	Method    string    `json:"method"`
 	Timeout   int       `json:"timeout"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+type MinimalEndpointOutput struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
@@ -32,23 +38,29 @@ type UpdateEndpointInput struct {
 	Timeout int    `json:"timeout" validate:"required,min=1,max=300000,number"`
 }
 
-func NewEndpointOutput(endpoint domain.Endpoint) EndpointOutput {
-	return EndpointOutput{
+func NewMinimalEndpointOutput(endpoint domain.Endpoint) MinimalEndpointOutput {
+	return MinimalEndpointOutput{
 		ID:        endpoint.ID.String(),
 		Name:      endpoint.Name,
-		BaseURI:   endpoint.BaseURI,
-		Path:      endpoint.Path,
-		Method:    endpoint.Method,
-		Timeout:   endpoint.Timeout,
 		CreatedAt: endpoint.CreatedAt,
 		UpdatedAt: endpoint.UpdatedAt,
 	}
 }
 
-func NewEndpointsOutput(endpoints []domain.Endpoint) []EndpointOutput {
-	outputs := make([]EndpointOutput, len(endpoints))
+func NewEndpointOutput(endpoint domain.Endpoint) EndpointOutput {
+	return EndpointOutput{
+		MinimalEndpointOutput: NewMinimalEndpointOutput(endpoint),
+		BaseURI:               endpoint.BaseURI,
+		Path:                  endpoint.Path,
+		Method:                endpoint.Method,
+		Timeout:               endpoint.Timeout,
+	}
+}
+
+func NewMinimalEndpointsOutput(endpoints []domain.Endpoint) []MinimalEndpointOutput {
+	outputs := make([]MinimalEndpointOutput, len(endpoints))
 	for i, endpoint := range endpoints {
-		outputs[i] = NewEndpointOutput(endpoint)
+		outputs[i] = NewMinimalEndpointOutput(endpoint)
 	}
 	return outputs
 }

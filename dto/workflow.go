@@ -5,12 +5,16 @@ import (
 	"time"
 )
 
+type MinimalWorkflowOutput struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
 type WorkflowOutput struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
+	MinimalWorkflowOutput
+	Description string `json:"description"`
 }
 
 type CreateWorkflowInput struct {
@@ -18,20 +22,26 @@ type CreateWorkflowInput struct {
 	Description string `json:"description" validate:"omitempty,min=2,max=255"`
 }
 
-func NewWorkflowOutput(workflow domain.Workflow) WorkflowOutput {
-	return WorkflowOutput{
-		ID:          workflow.ID.String(),
-		Name:        workflow.Name,
-		Description: workflow.Description,
-		CreatedAt:   workflow.CreatedAt,
-		UpdatedAt:   workflow.UpdatedAt,
+func NewMinimalWorkflowOutput(workflow domain.Workflow) MinimalWorkflowOutput {
+	return MinimalWorkflowOutput{
+		ID:        workflow.ID.String(),
+		Name:      workflow.Name,
+		CreatedAt: workflow.CreatedAt,
+		UpdatedAt: workflow.UpdatedAt,
 	}
 }
 
-func NewWorkflowsOutput(workflows []domain.Workflow) []WorkflowOutput {
-	outputs := make([]WorkflowOutput, len(workflows))
+func NewWorkflowOutput(workflow domain.Workflow) WorkflowOutput {
+	return WorkflowOutput{
+		MinimalWorkflowOutput: NewMinimalWorkflowOutput(workflow),
+		Description:           workflow.Description,
+	}
+}
+
+func NewMinimalWorkflowsOutput(workflows []domain.Workflow) []MinimalWorkflowOutput {
+	outputs := make([]MinimalWorkflowOutput, len(workflows))
 	for i, workflow := range workflows {
-		outputs[i] = NewWorkflowOutput(workflow)
+		outputs[i] = NewMinimalWorkflowOutput(workflow)
 	}
 	return outputs
 }
