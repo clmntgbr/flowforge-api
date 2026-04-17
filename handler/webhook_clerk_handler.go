@@ -15,16 +15,16 @@ import (
 
 type WebhookClerkHandler struct {
 	BaseHandler
-	userService    *service.UserService
-	projectService *service.ProjectService
-	userRepository *repository.UserRepository
+	userService         *service.UserService
+	organizationService *service.OrganizationService
+	userRepository      *repository.UserRepository
 }
 
-func NewWebhookClerkHandler(userService *service.UserService, projectService *service.ProjectService, userRepository *repository.UserRepository) *WebhookClerkHandler {
+func NewWebhookClerkHandler(userService *service.UserService, organizationService *service.OrganizationService, userRepository *repository.UserRepository) *WebhookClerkHandler {
 	return &WebhookClerkHandler{
-		userService:    userService,
-		projectService: projectService,
-		userRepository: userRepository,
+		userService:         userService,
+		organizationService: organizationService,
+		userRepository:      userRepository,
 	}
 }
 
@@ -103,17 +103,17 @@ func (h *WebhookClerkHandler) CreateUser(c fiber.Ctx, data dto.ClerkUserCreated)
 		return err
 	}
 
-	project, err := h.projectService.CreateProject(c, user, "Default Project")
+	organization, err := h.organizationService.CreateOrganization(c, user, "Default Organization")
 	if err != nil {
 		return err
 	}
 
-	projectID, err := uuid.Parse(project.ID)
+	organizationID, err := uuid.Parse(organization.ID)
 	if err != nil {
-		return errors.ErrProjectFailedToCreate
+		return errors.ErrOrganizationFailedToCreate
 	}
 
-	user.ActiveProjectID = &projectID
+	user.ActiveOrganizationID = &organizationID
 	if err := h.userRepository.Update(user); err != nil {
 		return err
 	}

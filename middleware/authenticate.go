@@ -16,16 +16,16 @@ type AuthenticateMiddleware struct {
 	authenticateService *service.AuthenticateService
 	clerkService        *service.ClerkService
 	userService         *service.UserService
-	projectService      *service.ProjectService
+	organizationService *service.OrganizationService
 	userRepo            *repository.UserRepository
 }
 
-func NewAuthenticateMiddleware(authService *service.AuthenticateService, clerkService *service.ClerkService, userService *service.UserService, projectService *service.ProjectService, userRepo *repository.UserRepository) *AuthenticateMiddleware {
+func NewAuthenticateMiddleware(authService *service.AuthenticateService, clerkService *service.ClerkService, userService *service.UserService, organizationService *service.OrganizationService, userRepo *repository.UserRepository) *AuthenticateMiddleware {
 	return &AuthenticateMiddleware{
 		authenticateService: authService,
 		clerkService:        clerkService,
 		userService:         userService,
-		projectService:      projectService,
+		organizationService: organizationService,
 		userRepo:            userRepo,
 	}
 }
@@ -88,21 +88,21 @@ func (m *AuthenticateMiddleware) Protected() fiber.Handler {
 				})
 			}
 
-			project, err := m.projectService.CreateProject(c, user, "Default Project")
+			organization, err := m.organizationService.CreateOrganization(c, user, "Default Organization")
 			if err != nil {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-					"message": errors.ErrProjectFailedToCreate,
+					"message": errors.ErrOrganizationFailedToCreate,
 				})
 			}
 
-			projectID, err := uuid.Parse(project.ID)
+			organizationID, err := uuid.Parse(organization.ID)
 			if err != nil {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-					"message": errors.ErrProjectFailedToCreate,
+					"message": errors.ErrOrganizationFailedToCreate,
 				})
 			}
 
-			user.ActiveProjectID = &projectID
+			user.ActiveOrganizationID = &organizationID
 			if err := m.userRepo.Update(user); err != nil {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 					"message": errors.ErrUserFailedToCreate,
@@ -117,7 +117,7 @@ func (m *AuthenticateMiddleware) Protected() fiber.Handler {
 		}
 
 		ctxutil.SetUser(c, *user)
-		ctxutil.SetProjectID(c, *user.ActiveProjectID)
+		ctxutil.SetOrganizationID(c, *user.ActiveOrganizationID)
 
 		return c.Next()
 	}

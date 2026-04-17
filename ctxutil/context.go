@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	UserKey      = "user"
-	ProjectIDKey = "project_id"
+	UserKey           = "user"
+	OrganizationIDKey = "organization_id"
 )
 
 func GetUser(c fiber.Ctx) (*domain.User, error) {
@@ -21,18 +21,18 @@ func GetUser(c fiber.Ctx) (*domain.User, error) {
 	return user, nil
 }
 
-func GetProjectID(c fiber.Ctx) (uuid.UUID, error) {
-	projectID, ok := c.Locals(ProjectIDKey).(uuid.UUID)
+func GetOrganizationID(c fiber.Ctx) (uuid.UUID, error) {
+	organizationID, ok := c.Locals(OrganizationIDKey).(uuid.UUID)
 	if !ok {
-		return uuid.UUID{}, errors.ErrProjectNotFound
+		return uuid.UUID{}, errors.ErrOrganizationNotFound
 	}
-	return projectID, nil
+	return organizationID, nil
 }
 
 func SetUser(c fiber.Ctx, user domain.User) {
 	c.Locals(UserKey, &user)
 }
 
-func SetProjectID(c fiber.Ctx, projectID uuid.UUID) {
-	c.Locals(ProjectIDKey, projectID)
+func SetOrganizationID(c fiber.Ctx, organizationID uuid.UUID) {
+	c.Locals(OrganizationIDKey, organizationID)
 }

@@ -58,15 +58,15 @@ func setupAPIRoutes(app *fiber.App, deps *deps.Dependencies) {
 
 	api.Use(deps.AuthenticateMiddleware.Protected())
 	setupUsersRoutes(api, deps)
-	setupProjectsRoutes(api, deps)
+	setupOrganizationsRoutes(api, deps)
 }
 
-func setupProjectsRoutes(api fiber.Router, deps *deps.Dependencies) {
-	api.Get("/projects", deps.ProjectHandler.GetProjects)
-	api.Get("/projects/:id", deps.ProjectHandler.GetProjectByID)
-	api.Post("/projects", deps.ProjectHandler.CreateProject)
-	api.Put("/projects/:id", deps.ProjectHandler.UpdateProject)
-	api.Put("/projects/:id/activate", deps.ProjectHandler.ActivateProject)
+func setupOrganizationsRoutes(api fiber.Router, deps *deps.Dependencies) {
+	api.Get("/organizations", deps.OrganizationHandler.GetOrganizations)
+	api.Get("/organizations/:id", deps.OrganizationHandler.GetOrganizationByID)
+	api.Post("/organizations", deps.OrganizationHandler.CreateOrganization)
+	api.Put("/organizations/:id", deps.OrganizationHandler.UpdateOrganization)
+	api.Put("/organizations/:id/activate", deps.OrganizationHandler.ActivateOrganization)
 }
 
 func setupUsersRoutes(api fiber.Router, deps *deps.Dependencies) {

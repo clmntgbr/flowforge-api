@@ -18,11 +18,11 @@ type Dependencies struct {
 	AuthenticateService *service.AuthenticateService
 	ClerkService        *service.ClerkService
 	UserService         *service.UserService
-	ProjectService      *service.ProjectService
+	OrganizationService *service.OrganizationService
 
 	WebhookClerkHandler *handler.WebhookClerkHandler
 	UserHandler         *handler.UserHandler
-	ProjectHandler      *handler.ProjectHandler
+	OrganizationHandler *handler.OrganizationHandler
 
 	AuthenticateMiddleware *middleware.AuthenticateMiddleware
 	ClerkWebhookMiddleware *middleware.ClerkWebhookMiddleware
@@ -30,30 +30,30 @@ type Dependencies struct {
 
 func New(db *gorm.DB, cfg *config.Config) *Dependencies {
 	userRepo := repository.NewUserRepository(db)
-	projectRepo := repository.NewProjectRepository(db)
+	organizationRepo := repository.NewOrganizationRepository(db)
 
-	projectRules := rules.NewProjectRules(projectRepo)
+	organizationRules := rules.NewOrganizationRules(organizationRepo)
 
-	projectService := service.NewProjectService(projectRepo, projectRules)
+	organizationService := service.NewOrganizationService(organizationRepo, organizationRules)
 	authenticateService := service.NewAuthenticateService(userRepo, cfg)
 	userService := service.NewUserService(userRepo)
 	clerkService := service.NewClerkService(cfg)
 
-	webhookClerkHandler := handler.NewWebhookClerkHandler(userService, projectService, userRepo)
+	webhookClerkHandler := handler.NewWebhookClerkHandler(userService, organizationService, userRepo)
 	userHandler := handler.NewUserHandler(userService)
-	projectHandler := handler.NewProjectHandler(projectService)
+	organizationHandler := handler.NewOrganizationHandler(organizationService)
 
 	clerkWebhookMiddleware := middleware.NewClerkWebhookMiddleware(cfg.ClerkWebhookSecret)
-	authenticateMiddleware := middleware.NewAuthenticateMiddleware(authenticateService, clerkService, userService, projectService, userRepo)
+	authenticateMiddleware := middleware.NewAuthenticateMiddleware(authenticateService, clerkService, userService, organizationService, userRepo)
 
 	return &Dependencies{
 		UserRepo:               userRepo,
 		AuthenticateService:    authenticateService,
 		UserService:            userService,
-		ProjectService:         projectService,
+		OrganizationService:    organizationService,
 		WebhookClerkHandler:    webhookClerkHandler,
 		UserHandler:            userHandler,
-		ProjectHandler:         projectHandler,
+		OrganizationHandler:    organizationHandler,
 		AuthenticateMiddleware: authenticateMiddleware,
 		ClerkWebhookMiddleware: clerkWebhookMiddleware,
 		ClerkService:           clerkService,

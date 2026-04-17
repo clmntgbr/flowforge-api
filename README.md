@@ -1,6 +1,6 @@
 # Go API Template (Fiber + Clerk + PostgreSQL)
 
-This project is a Go API starter built with Fiber, GORM, PostgreSQL, and Clerk authentication.
+This organization is a Go API starter built with Fiber, GORM, PostgreSQL, and Clerk authentication.
 It includes:
 
 - JWT authentication with Clerk JWKS validation
@@ -18,7 +18,7 @@ It includes:
 - Svix webhook signature verification
 - Docker / Docker Compose
 
-## Project Structure
+## Organization Structure
 
 - `server.go`: application entry point and route registration
 - `config/`: environment and database configuration

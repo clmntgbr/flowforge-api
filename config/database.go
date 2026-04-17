@@ -29,7 +29,7 @@ func ConnectDatabase(cfg *Config) *gorm.DB {
 func AutoMigrate(db *gorm.DB) {
 	err := db.AutoMigrate(
 		&domain.User{},
-		&domain.Project{},
+		&domain.Organization{},
 	)
 
 	if err != nil {

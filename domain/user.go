@@ -13,9 +13,9 @@ type User struct {
 	LastName  string    `gorm:"null" json:"last_name"`
 	Banned    bool      `gorm:"default:false" json:"banned"`
 
-	Projects        []Project  `gorm:"many2many:user_projects" json:"projects,omitempty"`
-	ActiveProject   *Project   `gorm:"foreignKey:ActiveProjectID" json:"active_project,omitempty"`
-	ActiveProjectID *uuid.UUID `gorm:"type:uuid;default:null" json:"active_project_id,omitempty"`
+	Organizations        []Organization `gorm:"many2many:user_organizations" json:"organizations,omitempty"`
+	ActiveOrganization   *Organization  `gorm:"foreignKey:ActiveOrganizationID" json:"active_organization,omitempty"`
+	ActiveOrganizationID *uuid.UUID     `gorm:"type:uuid;default:null" json:"active_organization_id,omitempty"`
 
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
