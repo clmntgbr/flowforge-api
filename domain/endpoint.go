@@ -14,7 +14,7 @@ type Endpoint struct {
 	Method  string    `gorm:"not null" json:"method"`
 	Timeout int       `gorm:"not null" json:"timeout"`
 
-	ProjectID uuid.UUID `gorm:"type:uuid;not null" json:"project_id"`
+	OrganizationID uuid.UUID `gorm:"type:uuid;not null" json:"organization_id"`
 
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"createdAt"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updatedAt"`

@@ -20,8 +20,8 @@ func NewEndpointService(endpointRepository *repository.EndpointRepository) *Endp
 	}
 }
 
-func (s *EndpointService) GetEndpoints(c fiber.Ctx, projectID uuid.UUID, query dto.PaginateQuery) (dto.PaginateResponse, error) {
-	endpoints, total, err := s.endpointRepository.FindAllByProjectID(c, projectID, query)
+func (s *EndpointService) GetEndpoints(c fiber.Ctx, organizationID uuid.UUID, query dto.PaginateQuery) (dto.PaginateResponse, error) {
+	endpoints, total, err := s.endpointRepository.FindAllByOrganizationID(c, organizationID, query)
 	if err != nil {
 		return dto.PaginateResponse{}, errors.ErrEndpointsNotFound
 	}
@@ -30,14 +30,14 @@ func (s *EndpointService) GetEndpoints(c fiber.Ctx, projectID uuid.UUID, query d
 	return dto.NewPaginateResponse(outputs, int(total), query), nil
 }
 
-func (s *EndpointService) CreateEndpoint(c fiber.Ctx, projectID uuid.UUID, req dto.CreateEndpointInput) (dto.EndpointOutput, error) {
+func (s *EndpointService) CreateEndpoint(c fiber.Ctx, organizationID uuid.UUID, req dto.CreateEndpointInput) (dto.EndpointOutput, error) {
 	endpoint := &domain.Endpoint{
-		Name:      req.Name,
-		ProjectID: projectID,
-		BaseURI:   req.BaseURI,
-		Path:      req.Path,
-		Method:    req.Method,
-		Timeout:   req.Timeout,
+		Name:           req.Name,
+		OrganizationID: organizationID,
+		BaseURI:        req.BaseURI,
+		Path:           req.Path,
+		Method:         req.Method,
+		Timeout:        req.Timeout,
 	}
 
 	err := s.endpointRepository.Create(endpoint)
@@ -47,8 +47,8 @@ func (s *EndpointService) CreateEndpoint(c fiber.Ctx, projectID uuid.UUID, req d
 	return dto.NewEndpointOutput(*endpoint), nil
 }
 
-func (s *EndpointService) UpdateEndpoint(c fiber.Ctx, projectID uuid.UUID, endpointID uuid.UUID, req dto.UpdateEndpointInput) (dto.EndpointOutput, error) {
-	endpoint, err := s.endpointRepository.FindByProjectIDAndEndpointID(c, projectID, endpointID)
+func (s *EndpointService) UpdateEndpoint(c fiber.Ctx, organizationID uuid.UUID, endpointID uuid.UUID, req dto.UpdateEndpointInput) (dto.EndpointOutput, error) {
+	endpoint, err := s.endpointRepository.FindByOrganizationIDAndEndpointID(c, organizationID, endpointID)
 	if err != nil {
 		return dto.EndpointOutput{}, errors.ErrEndpointNotFound
 	}
@@ -66,8 +66,8 @@ func (s *EndpointService) UpdateEndpoint(c fiber.Ctx, projectID uuid.UUID, endpo
 	return dto.NewEndpointOutput(endpoint), nil
 }
 
-func (s *EndpointService) GetEndpointByID(c fiber.Ctx, projectID uuid.UUID, endpointID uuid.UUID) (dto.EndpointOutput, error) {
-	endpoint, err := s.endpointRepository.FindByProjectIDAndEndpointID(c, projectID, endpointID)
+func (s *EndpointService) GetEndpointByID(c fiber.Ctx, organizationID uuid.UUID, endpointID uuid.UUID) (dto.EndpointOutput, error) {
+	endpoint, err := s.endpointRepository.FindByOrganizationIDAndEndpointID(c, organizationID, endpointID)
 	if err != nil {
 		return dto.EndpointOutput{}, errors.ErrEndpointNotFound
 	}

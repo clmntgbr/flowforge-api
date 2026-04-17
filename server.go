@@ -60,6 +60,7 @@ func setupAPIRoutes(app *fiber.App, deps *deps.Dependencies) {
 	setupUsersRoutes(api, deps)
 	setupOrganizationsRoutes(api, deps)
 	setupEndpointsRoutes(api, deps)
+	setupWorkflowsRoutes(api, deps)
 }
 
 func setupOrganizationsRoutes(api fiber.Router, deps *deps.Dependencies) {
@@ -75,6 +76,13 @@ func setupEndpointsRoutes(api fiber.Router, deps *deps.Dependencies) {
 	api.Get("/endpoints/:id", deps.EndpointHandler.GetEndpointByID)
 	api.Post("/endpoints", deps.EndpointHandler.CreateEndpoint)
 	api.Put("/endpoints/:id", deps.EndpointHandler.UpdateEndpoint)
+}
+
+func setupWorkflowsRoutes(api fiber.Router, deps *deps.Dependencies) {
+	api.Get("/workflows", deps.WorkflowHandler.GetWorkflows)
+	// api.Get("/workflows/:id", deps.WorkflowHandler.GetWorkflowByID)
+	// api.Post("/workflows", deps.WorkflowHandler.CreateWorkflow)
+	// api.Put("/workflows/:id", deps.WorkflowHandler.UpdateWorkflow)
 }
 
 func setupUsersRoutes(api fiber.Router, deps *deps.Dependencies) {

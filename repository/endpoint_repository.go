@@ -29,11 +29,11 @@ func (r *EndpointRepository) Delete(endpoint *domain.Endpoint) error {
 	return r.db.Delete(endpoint).Error
 }
 
-func (r *EndpointRepository) FindAllByProjectID(ctx context.Context, projectID uuid.UUID, q dto.PaginateQuery) ([]domain.Endpoint, int64, error) {
+func (r *EndpointRepository) FindAllByOrganizationID(ctx context.Context, organizationID uuid.UUID, q dto.PaginateQuery) ([]domain.Endpoint, int64, error) {
 	var endpoints []domain.Endpoint
 
 	db := r.db.WithContext(ctx).Model(&domain.Endpoint{}).
-		Where("project_id = ?", projectID)
+		Where("organization_id = ?", organizationID)
 
 	if q.Search != "" {
 		db = db.Where("name ILIKE ?", "%"+q.Search+"%")
@@ -52,10 +52,10 @@ func (r *EndpointRepository) FindAllByProjectID(ctx context.Context, projectID u
 	return endpoints, total, nil
 }
 
-func (r *EndpointRepository) FindByProjectIDAndEndpointID(ctx context.Context, projectID uuid.UUID, endpointID uuid.UUID) (domain.Endpoint, error) {
+func (r *EndpointRepository) FindByOrganizationIDAndEndpointID(ctx context.Context, organizationID uuid.UUID, endpointID uuid.UUID) (domain.Endpoint, error) {
 	var endpoint domain.Endpoint
 	err := r.db.WithContext(ctx).
-		Where("project_id = ? AND id = ?", projectID, endpointID).
+		Where("organization_id = ? AND id = ?", organizationID, endpointID).
 		First(&endpoint).Error
 	if err != nil {
 		return domain.Endpoint{}, err

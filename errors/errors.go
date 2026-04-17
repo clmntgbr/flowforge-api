@@ -22,4 +22,5 @@ var (
 	ErrInvalidEndpointID          = errors.New("invalid endpoint UUID")
 	ErrEndpointNotFound           = errors.New("endpoint not found")
 	ErrEndpointFailedToUpdate     = errors.New("endpoint failed to update")
+	ErrWorkflowsNotFound          = errors.New("workflows not found")
 )
