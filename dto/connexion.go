@@ -3,6 +3,8 @@ package dto
 import (
 	"forgeflow-api/domain"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type ConnexionOutput struct {
@@ -14,9 +16,9 @@ type ConnexionOutput struct {
 }
 
 type CreateConnexionInput struct {
-	WorkflowID string `json:"workflowId" validate:"required,uuid"`
-	From       string `json:"from" validate:"required,uuid"`
-	To         string `json:"to" validate:"required,uuid"`
+	WorkflowID uuid.UUID `json:"workflowId" validate:"required,uuid"`
+	From       string    `json:"from" validate:"required,uuid"`
+	To         string    `json:"to" validate:"required,uuid"`
 }
 
 type DeleteConnexionInput struct {
