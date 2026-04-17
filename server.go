@@ -61,6 +61,11 @@ func setupAPIRoutes(app *fiber.App, deps *deps.Dependencies) {
 	setupOrganizationsRoutes(api, deps)
 	setupEndpointsRoutes(api, deps)
 	setupWorkflowsRoutes(api, deps)
+	setupConnexionRoutes(api, deps)
+}
+
+func setupUsersRoutes(api fiber.Router, deps *deps.Dependencies) {
+	api.Get("/users/me", deps.UserHandler.GetUser)
 }
 
 func setupOrganizationsRoutes(api fiber.Router, deps *deps.Dependencies) {
@@ -86,6 +91,7 @@ func setupWorkflowsRoutes(api fiber.Router, deps *deps.Dependencies) {
 	api.Put("/workflows/:id/steps", deps.WorkflowHandler.UpdateWorkflowSteps)
 }
 
-func setupUsersRoutes(api fiber.Router, deps *deps.Dependencies) {
-	api.Get("/users/me", deps.UserHandler.GetUser)
+func setupConnexionRoutes(api fiber.Router, deps *deps.Dependencies) {
+	api.Delete("/connexions/:id", deps.ConnexionHandler.DeleteConnexion)
+	api.Post("/connexions", deps.ConnexionHandler.CreateConnexion)
 }

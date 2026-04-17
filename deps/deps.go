@@ -13,21 +13,12 @@ import (
 )
 
 type Dependencies struct {
-	UserRepo *repository.UserRepository
-
-	AuthenticateService *service.AuthenticateService
-	ClerkService        *service.ClerkService
-	UserService         *service.UserService
-	OrganizationService *service.OrganizationService
-	EndpointService     *service.EndpointService
-	WorkflowService     *service.WorkflowService
-	StepService         *service.StepService
-
 	WebhookClerkHandler *handler.WebhookClerkHandler
 	UserHandler         *handler.UserHandler
 	OrganizationHandler *handler.OrganizationHandler
 	EndpointHandler     *handler.EndpointHandler
 	WorkflowHandler     *handler.WorkflowHandler
+	ConnexionHandler    *handler.ConnexionHandler
 
 	AuthenticateMiddleware *middleware.AuthenticateMiddleware
 	ClerkWebhookMiddleware *middleware.ClerkWebhookMiddleware
@@ -39,6 +30,7 @@ func New(db *gorm.DB, cfg *config.Config) *Dependencies {
 	endpointRepo := repository.NewEndpointRepository(db)
 	workflowRepo := repository.NewWorkflowRepository(db)
 	stepRepo := repository.NewStepRepository(db)
+	connexionRepo := repository.NewConnexionRepository(db)
 
 	organizationRules := rules.NewOrganizationRules(organizationRepo)
 
@@ -49,31 +41,26 @@ func New(db *gorm.DB, cfg *config.Config) *Dependencies {
 	endpointService := service.NewEndpointService(endpointRepo)
 	workflowService := service.NewWorkflowService(workflowRepo)
 	stepService := service.NewStepService(stepRepo, endpointRepo)
+	connexionService := service.NewConnexionService(connexionRepo)
 
 	webhookClerkHandler := handler.NewWebhookClerkHandler(userService, organizationService, userRepo)
 	userHandler := handler.NewUserHandler(userService)
 	organizationHandler := handler.NewOrganizationHandler(organizationService)
 	endpointHandler := handler.NewEndpointHandler(endpointService)
 	workflowHandler := handler.NewWorkflowHandler(workflowService, stepService)
+	connexionHandler := handler.NewConnexionHandler(connexionService, workflowService)
 
 	clerkWebhookMiddleware := middleware.NewClerkWebhookMiddleware(cfg.ClerkWebhookSecret)
 	authenticateMiddleware := middleware.NewAuthenticateMiddleware(authenticateService, clerkService, userService, organizationService, userRepo)
 
 	return &Dependencies{
-		UserRepo:               userRepo,
-		AuthenticateService:    authenticateService,
-		UserService:            userService,
-		OrganizationService:    organizationService,
-		EndpointService:        endpointService,
-		WorkflowService:        workflowService,
-		StepService:            stepService,
 		WebhookClerkHandler:    webhookClerkHandler,
 		UserHandler:            userHandler,
 		OrganizationHandler:    organizationHandler,
 		EndpointHandler:        endpointHandler,
 		WorkflowHandler:        workflowHandler,
+		ConnexionHandler:       connexionHandler,
 		AuthenticateMiddleware: authenticateMiddleware,
 		ClerkWebhookMiddleware: clerkWebhookMiddleware,
-		ClerkService:           clerkService,
 	}
 }
