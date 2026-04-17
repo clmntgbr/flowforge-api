@@ -43,3 +43,28 @@ func (s *WorkflowService) CreateWorkflow(c fiber.Ctx, organizationID uuid.UUID, 
 	}
 	return dto.NewWorkflowOutput(*workflow), nil
 }
+
+func (s *WorkflowService) UpdateWorkflow(c fiber.Ctx, organizationID uuid.UUID, workflowID uuid.UUID, req dto.UpdateWorkflowInput) (dto.WorkflowOutput, error) {
+	workflow, err := s.workflowRepository.FindByOrganizationIDAndWorkflowID(c, organizationID, workflowID)
+	if err != nil {
+		return dto.WorkflowOutput{}, errors.ErrWorkflowNotFound
+	}
+
+	workflow.Name = req.Name
+	workflow.Description = req.Description
+
+	if err := s.workflowRepository.Update(&workflow); err != nil {
+		return dto.WorkflowOutput{}, errors.ErrWorkflowFailedToUpdate
+	}
+
+	return dto.NewWorkflowOutput(workflow), nil
+}
+
+func (s *WorkflowService) GetWorkflowByID(c fiber.Ctx, organizationID uuid.UUID, workflowID uuid.UUID) (dto.WorkflowOutput, error) {
+	workflow, err := s.workflowRepository.FindByOrganizationIDAndWorkflowID(c, organizationID, workflowID)
+	if err != nil {
+		return dto.WorkflowOutput{}, errors.ErrWorkflowNotFound
+	}
+
+	return dto.NewWorkflowOutput(workflow), nil
+}

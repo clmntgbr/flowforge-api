@@ -22,6 +22,11 @@ type CreateWorkflowInput struct {
 	Description string `json:"description" validate:"omitempty,min=2,max=255"`
 }
 
+type UpdateWorkflowInput struct {
+	Name        string `json:"name" validate:"required,min=2,max=255"`
+	Description string `json:"description" validate:"omitempty,min=2,max=255"`
+}
+
 func NewMinimalWorkflowOutput(workflow domain.Workflow) MinimalWorkflowOutput {
 	return MinimalWorkflowOutput{
 		ID:        workflow.ID.String(),

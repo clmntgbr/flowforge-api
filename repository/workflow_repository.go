@@ -51,3 +51,14 @@ func (r *WorkflowRepository) FindAllByOrganizationID(ctx context.Context, organi
 
 	return workflows, total, nil
 }
+
+func (r *WorkflowRepository) FindByOrganizationIDAndWorkflowID(ctx context.Context, organizationID uuid.UUID, workflowID uuid.UUID) (domain.Workflow, error) {
+	var workflow domain.Workflow
+	err := r.db.WithContext(ctx).
+		Where("organization_id = ? AND id = ?", organizationID, workflowID).
+		First(&workflow).Error
+	if err != nil {
+		return domain.Workflow{}, err
+	}
+	return workflow, nil
+}
