@@ -13,16 +13,20 @@ type Position struct {
 }
 
 type StepOutput struct {
-	ID          string          `json:"id"`
-	Name        string          `json:"name"`
-	Description string          `json:"description"`
-	Position    Position        `json:"position"`
-	Index       string          `json:"index"`
-	Timeout     int             `json:"timeout"`
-	Endpoint    *EndpointOutput `json:"endpoint,omitempty"`
-	EndpointID  string          `json:"endpointId"`
-	CreatedAt   time.Time       `json:"createdAt"`
-	UpdatedAt   time.Time       `json:"updatedAt"`
+	MinimalStepOutput
+	Description string    `json:"description"`
+	Timeout     int       `json:"timeout"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+}
+
+type MinimalStepOutput struct {
+	ID         string          `json:"id"`
+	Name       string          `json:"name"`
+	Position   Position        `json:"position"`
+	Index      string          `json:"index"`
+	Endpoint   *EndpointOutput `json:"endpoint,omitempty"`
+	EndpointID string          `json:"endpointId"`
 }
 
 type UpdateWorkflowStepInput struct {
@@ -42,24 +46,38 @@ type UpdateStepInput struct {
 }
 
 func NewStepOutput(step domain.Step) StepOutput {
+	return StepOutput{
+		MinimalStepOutput: NewMinimalStepOutput(step),
+		Description:       step.Description,
+		Timeout:           step.Timeout,
+		CreatedAt:         step.CreatedAt,
+		UpdatedAt:         step.UpdatedAt,
+	}
+}
+
+func NewMinimalStepOutput(step domain.Step) MinimalStepOutput {
 	var endpoint *EndpointOutput
 	if step.Endpoint.ID != uuid.Nil {
 		endpointOutput := NewEndpointOutput(step.Endpoint)
 		endpoint = &endpointOutput
 	}
 
-	return StepOutput{
-		ID:          step.ID.String(),
-		Name:        step.Name,
-		Description: step.Description,
-		Timeout:     step.Timeout,
-		Position:    Position{X: step.Position.X, Y: step.Position.Y},
-		Index:       step.Index,
-		Endpoint:    endpoint,
-		EndpointID:  step.EndpointID.String(),
-		CreatedAt:   step.CreatedAt,
-		UpdatedAt:   step.UpdatedAt,
+	return MinimalStepOutput{
+		ID:         step.ID.String(),
+		Name:       step.Name,
+		Position:   Position{X: step.Position.X, Y: step.Position.Y},
+		Index:      step.Index,
+		Endpoint:   endpoint,
+		EndpointID: step.EndpointID.String(),
 	}
+}
+
+func NewMinimalStepsOutput(steps []domain.Step) []MinimalStepOutput {
+	outputs := make([]MinimalStepOutput, len(steps))
+	for i, step := range steps {
+		outputs[i] = NewMinimalStepOutput(step)
+	}
+	return outputs
 }
 
 func NewStepsOutput(steps []domain.Step) []StepOutput {

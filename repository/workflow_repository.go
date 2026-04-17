@@ -55,6 +55,11 @@ func (r *WorkflowRepository) FindAllByOrganizationID(ctx context.Context, organi
 func (r *WorkflowRepository) FindByOrganizationIDAndWorkflowID(ctx context.Context, organizationID uuid.UUID, workflowID uuid.UUID) (domain.Workflow, error) {
 	var workflow domain.Workflow
 	err := r.db.WithContext(ctx).
+		Preload("Steps", func(db *gorm.DB) *gorm.DB {
+			return db.Order("index ASC")
+		}).
+		Preload("Steps.Endpoint").
+		Preload("Connexions").
 		Where("organization_id = ? AND id = ?", organizationID, workflowID).
 		First(&workflow).Error
 	if err != nil {

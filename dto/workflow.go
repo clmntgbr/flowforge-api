@@ -14,9 +14,9 @@ type MinimalWorkflowOutput struct {
 
 type WorkflowOutput struct {
 	MinimalWorkflowOutput
-	Description string            `json:"description"`
-	Steps       []StepOutput      `json:"steps"`
-	Connexions  []ConnexionOutput `json:"connexions"`
+	Description string              `json:"description"`
+	Steps       []MinimalStepOutput `json:"steps"`
+	Connexions  []ConnexionOutput   `json:"connexions"`
 }
 
 type CreateWorkflowInput struct {
@@ -46,7 +46,7 @@ func NewWorkflowOutput(workflow domain.Workflow) WorkflowOutput {
 	return WorkflowOutput{
 		MinimalWorkflowOutput: NewMinimalWorkflowOutput(workflow),
 		Description:           workflow.Description,
-		Steps:                 NewStepsOutput(workflow.Steps),
+		Steps:                 NewMinimalStepsOutput(workflow.Steps),
 		Connexions:            NewConnexionsOutput(workflow.Connexions),
 	}
 }
