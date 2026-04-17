@@ -18,4 +18,5 @@ var (
 	ErrMaxOrganizationsReached    = errors.New("max organizations reached")
 	ErrInvalidOrganizationID      = errors.New("invalid organization UUID")
 	ErrOrganizationFailedToCreate = errors.New("organization failed to create")
+	ErrEndpointsNotFound          = errors.New("endpoints not found")
 )

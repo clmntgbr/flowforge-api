@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"forgeflow-api/dto"
 	"forgeflow-api/errors"
 	"forgeflow-api/validator"
 
@@ -10,24 +11,28 @@ import (
 
 type BaseHandler struct{}
 
-func (h *BaseHandler) bindAndValidate(c fiber.Ctx, req interface{}) error {
+func (h *BaseHandler) bindAndValidate(c fiber.Ctx, req interface{}) (error, fiber.Map) {
 	if err := c.Bind().JSON(req); err != nil {
-		c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+		c.Status(fiber.StatusBadRequest).JSON(errors.ErrInvalidRequestBody)
+
+		return errors.ErrValidationFailed, fiber.Map{
 			"message": errors.ErrInvalidRequestBody.Error(),
-		})
-		return errors.ErrValidationFailed
+			"errors":  validator.FormatValidationErrors(err),
+		}
 	}
 
 	if err := validator.ValidateStruct(req); err != nil {
-		c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": errors.ErrInvalidRequestBody.Error(),
-			"errors":  validator.FormatValidationErrors(err),
-		})
+		c.Status(fiber.StatusBadRequest).JSON(errors.ErrValidationFailed)
 
-		return errors.ErrValidationFailed
+		return errors.ErrValidationFailed, fiber.Map{
+			"message": errors.ErrValidationFailed.Error(),
+			"errors":  validator.FormatValidationErrors(err),
+		}
 	}
 
-	return nil
+	return nil, fiber.Map{
+		"message": "Request validated successfully",
+	}
 }
 
 func (h *BaseHandler) validate(c fiber.Ctx, req interface{}) error {
@@ -78,4 +83,13 @@ func (h *BaseHandler) parseUUIDParam(c fiber.Ctx, param string, customErr error)
 		return uuid.Nil, customErr
 	}
 	return parsed, nil
+}
+
+func (h *BaseHandler) bindPaginateQuery(c fiber.Ctx) (dto.PaginateQuery, error) {
+	var query dto.PaginateQuery
+	if err := c.Bind().Query(&query); err != nil {
+		return query, errors.ErrInvalidRequestBody
+	}
+	query.Normalize()
+	return query, nil
 }

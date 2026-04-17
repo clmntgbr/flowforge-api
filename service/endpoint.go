@@ -1,0 +1,48 @@
+package service
+
+import (
+	"forgeflow-api/domain"
+	"forgeflow-api/dto"
+	"forgeflow-api/errors"
+	"forgeflow-api/repository"
+
+	"github.com/gofiber/fiber/v3"
+	"github.com/google/uuid"
+)
+
+type EndpointService struct {
+	endpointRepository *repository.EndpointRepository
+}
+
+func NewEndpointService(endpointRepository *repository.EndpointRepository) *EndpointService {
+	return &EndpointService{
+		endpointRepository: endpointRepository,
+	}
+}
+
+func (s *EndpointService) GetEndpoints(c fiber.Ctx, projectID uuid.UUID, query dto.PaginateQuery) (dto.PaginateResponse, error) {
+	endpoints, total, err := s.endpointRepository.FindAllByProjectID(c, projectID, query)
+	if err != nil {
+		return dto.PaginateResponse{}, errors.ErrEndpointsNotFound
+	}
+
+	outputs := dto.NewEndpointsOutput(endpoints)
+	return dto.NewPaginateResponse(outputs, int(total), query), nil
+}
+
+func (s *EndpointService) CreateEndpoint(c fiber.Ctx, projectID uuid.UUID, req dto.CreateEndpointInput) (dto.EndpointOutput, error) {
+	endpoint := &domain.Endpoint{
+		Name:      req.Name,
+		ProjectID: projectID,
+		BaseURI:   req.BaseURI,
+		Path:      req.Path,
+		Method:    req.Method,
+		Timeout:   req.Timeout,
+	}
+
+	err := s.endpointRepository.Create(endpoint)
+	if err != nil {
+		return dto.EndpointOutput{}, err
+	}
+	return dto.NewEndpointOutput(*endpoint), nil
+}

@@ -65,16 +65,19 @@ func (h *OrganizationHandler) CreateOrganization(c fiber.Ctx) error {
 	}
 
 	var req dto.CreateOrganizationInput
-	if err := h.bindAndValidate(c, &req); err != nil {
-		return err
+	err, response := h.bindAndValidate(c, &req)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(response)
 	}
 
-	organization, err := h.organizationService.CreateOrganization(c, user, req.Name)
+	_, err = h.organizationService.CreateOrganization(c, user, req.Name)
 	if err != nil {
 		return h.sendInternalError(c, err)
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(organization)
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"success": true,
+	})
 }
 
 func (h *OrganizationHandler) UpdateOrganization(c fiber.Ctx) error {
@@ -84,8 +87,9 @@ func (h *OrganizationHandler) UpdateOrganization(c fiber.Ctx) error {
 	}
 
 	var req dto.UpdateOrganizationInput
-	if err := h.bindAndValidate(c, &req); err != nil {
-		return err
+	err, response := h.bindAndValidate(c, &req)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(response)
 	}
 
 	organizationUUID, err := h.parseUUIDParam(c, "id", errors.ErrInvalidOrganizationID)
