@@ -12,11 +12,13 @@ import (
 type WorkflowHandler struct {
 	BaseHandler
 	workflowService *service.WorkflowService
+	stepService     *service.StepService
 }
 
-func NewWorkflowHandler(workflowService *service.WorkflowService) *WorkflowHandler {
+func NewWorkflowHandler(workflowService *service.WorkflowService, stepService *service.StepService) *WorkflowHandler {
 	return &WorkflowHandler{
 		workflowService: workflowService,
+		stepService:     stepService,
 	}
 }
 
@@ -98,6 +100,37 @@ func (h *WorkflowHandler) UpdateWorkflow(c fiber.Ctx) error {
 
 	_, err = h.workflowService.UpdateWorkflow(c, activeOrganizationID, workflowUUID, req)
 	if err != nil {
+		return h.sendInternalError(c, err)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"success": true,
+	})
+}
+
+func (h *WorkflowHandler) UpdateWorkflowSteps(c fiber.Ctx) error {
+	activeOrganizationID, err := ctxutil.GetOrganizationID(c)
+	if err != nil {
+		return h.sendUnauthorized(c)
+	}
+
+	var req dto.UpdateWorkflowStepsInput
+	err, response := h.bindAndValidate(c, &req)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(response)
+	}
+
+	workflowUUID, err := h.parseUUIDParam(c, "id", errors.ErrInvalidWorkflowID)
+	if err != nil {
+		return err
+	}
+
+	_, err = h.workflowService.GetWorkflowByID(c, activeOrganizationID, workflowUUID)
+	if err != nil {
+		return h.sendInternalError(c, err)
+	}
+
+	if err := h.stepService.UpsertSteps(c.Context(), workflowUUID, req.Steps); err != nil {
 		return h.sendInternalError(c, err)
 	}
 

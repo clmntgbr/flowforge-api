@@ -27,6 +27,10 @@ type UpdateWorkflowInput struct {
 	Description string `json:"description" validate:"omitempty,min=2,max=255"`
 }
 
+type UpdateWorkflowStepsInput struct {
+	Steps []UpdateWorkflowStepInput `json:"steps" validate:"omitempty,dive"`
+}
+
 func NewMinimalWorkflowOutput(workflow domain.Workflow) MinimalWorkflowOutput {
 	return MinimalWorkflowOutput{
 		ID:        workflow.ID.String(),

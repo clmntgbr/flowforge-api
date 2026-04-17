@@ -62,3 +62,12 @@ func (r *EndpointRepository) FindByOrganizationIDAndEndpointID(ctx context.Conte
 	}
 	return endpoint, nil
 }
+
+func (r *EndpointRepository) FindByID(ctx context.Context, endpointID uuid.UUID) (domain.Endpoint, error) {
+	var endpoint domain.Endpoint
+	err := r.db.WithContext(ctx).Where("id = ?", endpointID).First(&endpoint).Error
+	if err != nil {
+		return domain.Endpoint{}, err
+	}
+	return endpoint, nil
+}

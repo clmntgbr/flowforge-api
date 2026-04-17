@@ -21,6 +21,7 @@ type Dependencies struct {
 	OrganizationService *service.OrganizationService
 	EndpointService     *service.EndpointService
 	WorkflowService     *service.WorkflowService
+	StepService         *service.StepService
 
 	WebhookClerkHandler *handler.WebhookClerkHandler
 	UserHandler         *handler.UserHandler
@@ -37,6 +38,7 @@ func New(db *gorm.DB, cfg *config.Config) *Dependencies {
 	organizationRepo := repository.NewOrganizationRepository(db)
 	endpointRepo := repository.NewEndpointRepository(db)
 	workflowRepo := repository.NewWorkflowRepository(db)
+	stepRepo := repository.NewStepRepository(db)
 
 	organizationRules := rules.NewOrganizationRules(organizationRepo)
 
@@ -46,12 +48,13 @@ func New(db *gorm.DB, cfg *config.Config) *Dependencies {
 	clerkService := service.NewClerkService(cfg)
 	endpointService := service.NewEndpointService(endpointRepo)
 	workflowService := service.NewWorkflowService(workflowRepo)
+	stepService := service.NewStepService(stepRepo, endpointRepo)
 
 	webhookClerkHandler := handler.NewWebhookClerkHandler(userService, organizationService, userRepo)
 	userHandler := handler.NewUserHandler(userService)
 	organizationHandler := handler.NewOrganizationHandler(organizationService)
 	endpointHandler := handler.NewEndpointHandler(endpointService)
-	workflowHandler := handler.NewWorkflowHandler(workflowService)
+	workflowHandler := handler.NewWorkflowHandler(workflowService, stepService)
 
 	clerkWebhookMiddleware := middleware.NewClerkWebhookMiddleware(cfg.ClerkWebhookSecret)
 	authenticateMiddleware := middleware.NewAuthenticateMiddleware(authenticateService, clerkService, userService, organizationService, userRepo)
@@ -63,6 +66,7 @@ func New(db *gorm.DB, cfg *config.Config) *Dependencies {
 		OrganizationService:    organizationService,
 		EndpointService:        endpointService,
 		WorkflowService:        workflowService,
+		StepService:            stepService,
 		WebhookClerkHandler:    webhookClerkHandler,
 		UserHandler:            userHandler,
 		OrganizationHandler:    organizationHandler,
