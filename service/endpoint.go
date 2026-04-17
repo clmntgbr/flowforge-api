@@ -46,3 +46,22 @@ func (s *EndpointService) CreateEndpoint(c fiber.Ctx, projectID uuid.UUID, req d
 	}
 	return dto.NewEndpointOutput(*endpoint), nil
 }
+
+func (s *EndpointService) UpdateEndpoint(c fiber.Ctx, projectID uuid.UUID, endpointID uuid.UUID, req dto.UpdateEndpointInput) (dto.EndpointOutput, error) {
+	endpoint, err := s.endpointRepository.FindByProjectIDAndEndpointID(c, projectID, endpointID)
+	if err != nil {
+		return dto.EndpointOutput{}, errors.ErrEndpointNotFound
+	}
+
+	endpoint.Name = req.Name
+	endpoint.BaseURI = req.BaseURI
+	endpoint.Path = req.Path
+	endpoint.Method = req.Method
+	endpoint.Timeout = req.Timeout
+
+	if err := s.endpointRepository.Update(&endpoint); err != nil {
+		return dto.EndpointOutput{}, errors.ErrEndpointFailedToUpdate
+	}
+
+	return dto.NewEndpointOutput(endpoint), nil
+}

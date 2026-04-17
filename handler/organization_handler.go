@@ -102,7 +102,7 @@ func (h *OrganizationHandler) UpdateOrganization(c fiber.Ctx) error {
 		return h.sendInternalError(c, err)
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(organization)
+	return c.Status(fiber.StatusOK).JSON(organization)
 }
 
 func (h *OrganizationHandler) ActivateOrganization(c fiber.Ctx) error {
@@ -121,5 +121,5 @@ func (h *OrganizationHandler) ActivateOrganization(c fiber.Ctx) error {
 		return h.sendInternalError(c, err)
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(organization)
+	return c.Status(fiber.StatusOK).JSON(organization)
 }

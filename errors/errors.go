@@ -19,4 +19,7 @@ var (
 	ErrInvalidOrganizationID      = errors.New("invalid organization UUID")
 	ErrOrganizationFailedToCreate = errors.New("organization failed to create")
 	ErrEndpointsNotFound          = errors.New("endpoints not found")
+	ErrInvalidEndpointID          = errors.New("invalid endpoint UUID")
+	ErrEndpointNotFound           = errors.New("endpoint not found")
+	ErrEndpointFailedToUpdate     = errors.New("endpoint failed to update")
 )

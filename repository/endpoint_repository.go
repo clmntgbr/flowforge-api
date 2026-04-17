@@ -51,3 +51,14 @@ func (r *EndpointRepository) FindAllByProjectID(ctx context.Context, projectID u
 
 	return endpoints, total, nil
 }
+
+func (r *EndpointRepository) FindByProjectIDAndEndpointID(ctx context.Context, projectID uuid.UUID, endpointID uuid.UUID) (domain.Endpoint, error) {
+	var endpoint domain.Endpoint
+	err := r.db.WithContext(ctx).
+		Where("project_id = ? AND id = ?", projectID, endpointID).
+		First(&endpoint).Error
+	if err != nil {
+		return domain.Endpoint{}, err
+	}
+	return endpoint, nil
+}

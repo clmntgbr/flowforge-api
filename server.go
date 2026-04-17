@@ -74,7 +74,7 @@ func setupEndpointsRoutes(api fiber.Router, deps *deps.Dependencies) {
 	api.Get("/endpoints", deps.EndpointHandler.GetEndpoints)
 	// api.Get("/endpoints/:id", deps.EndpointHandler.GetEndpointByID)
 	api.Post("/endpoints", deps.EndpointHandler.CreateEndpoint)
-	// api.Put("/endpoints/:id", deps.EndpointHandler.UpdateEndpoint)
+	api.Put("/endpoints/:id", deps.EndpointHandler.UpdateEndpoint)
 }
 
 func setupUsersRoutes(api fiber.Router, deps *deps.Dependencies) {

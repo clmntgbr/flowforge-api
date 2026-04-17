@@ -3,6 +3,7 @@ package handler
 import (
 	"forgeflow-api/ctxutil"
 	"forgeflow-api/dto"
+	"forgeflow-api/errors"
 	"forgeflow-api/service"
 
 	"github.com/gofiber/fiber/v3"
@@ -56,6 +57,33 @@ func (h *EndpointHandler) CreateEndpoint(c fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"success": true,
+	})
+}
+
+func (h *EndpointHandler) UpdateEndpoint(c fiber.Ctx) error {
+	activeOrganizationID, err := ctxutil.GetOrganizationID(c)
+	if err != nil {
+		return h.sendUnauthorized(c)
+	}
+
+	var req dto.UpdateEndpointInput
+	err, response := h.bindAndValidate(c, &req)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(response)
+	}
+
+	endpointUUID, err := h.parseUUIDParam(c, "id", errors.ErrInvalidEndpointID)
+	if err != nil {
+		return err
+	}
+
+	_, err = h.endpointService.UpdateEndpoint(c, activeOrganizationID, endpointUUID, req)
+	if err != nil {
+		return h.sendInternalError(c, err)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"success": true,
 	})
 }
