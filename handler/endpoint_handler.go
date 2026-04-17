@@ -61,6 +61,24 @@ func (h *EndpointHandler) CreateEndpoint(c fiber.Ctx) error {
 	})
 }
 
+func (h *EndpointHandler) GetEndpointByID(c fiber.Ctx) error {
+	activeOrganizationID, err := ctxutil.GetOrganizationID(c)
+	if err != nil {
+		return h.sendUnauthorized(c)
+	}
+
+	endpointUUID, err := h.parseUUIDParam(c, "id", errors.ErrInvalidEndpointID)
+	if err != nil {
+		return err
+	}
+
+	endpoint, err := h.endpointService.GetEndpointByID(c, activeOrganizationID, endpointUUID)
+	if err != nil {
+		return h.sendInternalError(c, err)
+	}
+	return c.Status(fiber.StatusOK).JSON(endpoint)
+}
+
 func (h *EndpointHandler) UpdateEndpoint(c fiber.Ctx) error {
 	activeOrganizationID, err := ctxutil.GetOrganizationID(c)
 	if err != nil {

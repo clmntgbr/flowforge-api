@@ -97,12 +97,14 @@ func (h *OrganizationHandler) UpdateOrganization(c fiber.Ctx) error {
 		return err
 	}
 
-	organization, err := h.organizationService.UpdateOrganization(c, user, organizationUUID, req)
+	_, err = h.organizationService.UpdateOrganization(c, user, organizationUUID, req)
 	if err != nil {
 		return h.sendInternalError(c, err)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(organization)
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"success": true,
+	})
 }
 
 func (h *OrganizationHandler) ActivateOrganization(c fiber.Ctx) error {
@@ -116,10 +118,12 @@ func (h *OrganizationHandler) ActivateOrganization(c fiber.Ctx) error {
 		return err
 	}
 
-	organization, err := h.organizationService.ActivateOrganization(c, user.ID, organizationUUID)
+	_, err = h.organizationService.ActivateOrganization(c, user.ID, organizationUUID)
 	if err != nil {
 		return h.sendInternalError(c, err)
 	}
 
-	return c.Status(fiber.StatusOK).JSON(organization)
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"success": true,
+	})
 }

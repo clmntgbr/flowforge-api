@@ -65,3 +65,12 @@ func (s *EndpointService) UpdateEndpoint(c fiber.Ctx, projectID uuid.UUID, endpo
 
 	return dto.NewEndpointOutput(endpoint), nil
 }
+
+func (s *EndpointService) GetEndpointByID(c fiber.Ctx, projectID uuid.UUID, endpointID uuid.UUID) (dto.EndpointOutput, error) {
+	endpoint, err := s.endpointRepository.FindByProjectIDAndEndpointID(c, projectID, endpointID)
+	if err != nil {
+		return dto.EndpointOutput{}, errors.ErrEndpointNotFound
+	}
+
+	return dto.NewEndpointOutput(endpoint), nil
+}
