@@ -75,8 +75,8 @@ func (s *StepService) UpsertSteps(ctx context.Context, workflowID uuid.UUID, ste
 		if existingStep == nil {
 			newStep := &domain.Step{
 				ID:          stepUUID,
-				Name:        stepInput.Name,
-				Description: endpoint.Name,
+				Name:        endpoint.Name,
+				Description: endpoint.BaseURI + endpoint.Path,
 				Timeout:     endpoint.Timeout,
 				Position:    position,
 				Index:       index,
