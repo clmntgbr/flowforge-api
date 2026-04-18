@@ -39,11 +39,10 @@ type UpdateWorkflowStepInput struct {
 }
 
 type UpdateStepInput struct {
-	Name        string `json:"name" validate:"required,min=2,max=100"`
-	Description string `json:"description" validate:"omitempty,min=2,max=255"`
-	Timeout     int    `json:"timeout" validate:"omitempty,min=0"`
-	EndpointID  string `json:"endpointId" validate:"omitempty,uuid"`
-	WorkflowID  string `json:"workflowId" validate:"required,uuid"`
+	Name        string         `json:"name" validate:"required,min=2,max=100"`
+	Description string         `json:"description" validate:"omitempty,min=2,max=255"`
+	Timeout     int            `json:"timeout" validate:"omitempty,min=0"`
+	Query       datatypes.JSON `json:"query"`
 }
 
 func NewStepOutput(step domain.Step) StepOutput {

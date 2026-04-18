@@ -103,3 +103,21 @@ func (s *StepService) GetStepByID(ctx context.Context, organizationID uuid.UUID,
 
 	return dto.NewStepOutput(*step), nil
 }
+
+func (s *StepService) UpdateStep(ctx context.Context, organizationID uuid.UUID, stepID uuid.UUID, stepInput dto.UpdateStepInput) (dto.StepOutput, error) {
+	step, err := s.stepRepository.FindByOrganizationIDAndStepID(ctx, organizationID, stepID)
+	if err != nil {
+		return dto.StepOutput{}, errors.ErrStepNotFound
+	}
+
+	step.Name = stepInput.Name
+	step.Description = stepInput.Description
+	step.Timeout = stepInput.Timeout
+	step.Query = stepInput.Query
+
+	if err := s.stepRepository.Update(step); err != nil {
+		return dto.StepOutput{}, errors.ErrStepFailedToUpdate
+	}
+
+	return dto.NewStepOutput(*step), nil
+}

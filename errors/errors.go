@@ -29,5 +29,6 @@ var (
 	ErrInvalidRequest             = errors.New("invalid request")
 	ErrInvalidStepID              = errors.New("invalid step UUID")
 	ErrStepNotFound               = errors.New("step not found")
+	ErrStepFailedToUpdate         = errors.New("step failed to update")
 	ErrInvalidConnexionID         = errors.New("invalid connexion UUID")
 )
