@@ -28,5 +28,6 @@ var (
 	ErrWorkflowFailedToUpdate     = errors.New("workflow failed to update")
 	ErrInvalidRequest             = errors.New("invalid request")
 	ErrInvalidStepID              = errors.New("invalid step UUID")
+	ErrStepNotFound               = errors.New("step not found")
 	ErrInvalidConnexionID         = errors.New("invalid connexion UUID")
 )

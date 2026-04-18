@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 )
 
 type Endpoint struct {
@@ -12,7 +13,9 @@ type Endpoint struct {
 	BaseURI string    `gorm:"not null" json:"baseUri"`
 	Path    string    `gorm:"not null" json:"path"`
 	Method  string    `gorm:"not null" json:"method"`
-	Timeout int       `gorm:"not null" json:"timeout"`
+	Timeout int       `gorm:"not null;default:30" json:"timeout"`
+
+	Query datatypes.JSON `json:"query" gorm:"type:json;default:'{}'"`
 
 	OrganizationID uuid.UUID `gorm:"type:uuid;not null" json:"organization_id"`
 

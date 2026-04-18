@@ -3,14 +3,17 @@ package dto
 import (
 	"forgeflow-api/domain"
 	"time"
+
+	"gorm.io/datatypes"
 )
 
 type EndpointOutput struct {
 	MinimalEndpointOutput
-	BaseURI   string    `json:"baseUri"`
-	Timeout   int       `json:"timeout"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	BaseURI   string         `json:"baseUri"`
+	Timeout   int            `json:"timeout"`
+	Query     datatypes.JSON `json:"query"`
+	CreatedAt time.Time      `json:"createdAt"`
+	UpdatedAt time.Time      `json:"updatedAt"`
 }
 
 type MinimalEndpointOutput struct {
@@ -23,19 +26,21 @@ type MinimalEndpointOutput struct {
 }
 
 type CreateEndpointInput struct {
-	Name    string `json:"name" validate:"required,min=2,max=255"`
-	BaseURI string `json:"baseUri" validate:"required,url"`
-	Path    string `json:"path" validate:"required"`
-	Method  string `json:"method" validate:"required"`
-	Timeout int    `json:"timeout" validate:"required,min=1,max=300000,number"`
+	Name    string         `json:"name" validate:"required,min=2,max=255"`
+	BaseURI string         `json:"baseUri" validate:"required,url"`
+	Path    string         `json:"path" validate:"required"`
+	Method  string         `json:"method" validate:"required"`
+	Timeout int            `json:"timeout" validate:"required,min=1,max=300000,number"`
+	Query   datatypes.JSON `json:"query" validate:"required,json"`
 }
 
 type UpdateEndpointInput struct {
-	Name    string `json:"name" validate:"required,min=2,max=255"`
-	BaseURI string `json:"baseUri" validate:"required,url"`
-	Path    string `json:"path" validate:"required"`
-	Method  string `json:"method" validate:"required"`
-	Timeout int    `json:"timeout" validate:"required,min=1,max=300000,number"`
+	Name    string         `json:"name" validate:"required,min=2,max=255"`
+	BaseURI string         `json:"baseUri" validate:"required,url"`
+	Path    string         `json:"path" validate:"required"`
+	Method  string         `json:"method" validate:"required"`
+	Timeout int            `json:"timeout" validate:"required,min=1,max=300000,number"`
+	Query   datatypes.JSON `json:"query" validate:"required,json"`
 }
 
 func NewMinimalEndpointOutput(endpoint domain.Endpoint) MinimalEndpointOutput {
@@ -54,6 +59,7 @@ func NewEndpointOutput(endpoint domain.Endpoint) EndpointOutput {
 		MinimalEndpointOutput: NewMinimalEndpointOutput(endpoint),
 		BaseURI:               endpoint.BaseURI,
 		Timeout:               endpoint.Timeout,
+		Query:                 endpoint.Query,
 	}
 }
 

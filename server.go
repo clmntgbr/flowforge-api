@@ -95,3 +95,8 @@ func setupConnexionRoutes(api fiber.Router, deps *deps.Dependencies) {
 	api.Delete("/connexions/:id", deps.ConnexionHandler.DeleteConnexion)
 	api.Post("/connexions", deps.ConnexionHandler.CreateConnexion)
 }
+
+func setupStepsRoutes(api fiber.Router, deps *deps.Dependencies) {
+	api.Get("/steps/:id", deps.StepHandler.GetStepByID)
+	api.Put("/steps/:id", deps.StepHandler.UpdateStep)
+}

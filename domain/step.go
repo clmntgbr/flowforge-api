@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 )
 
 type Position struct {
@@ -23,6 +24,8 @@ type Step struct {
 	WorkflowID uuid.UUID `gorm:"type:uuid;not null" json:"workflow_id"`
 
 	Endpoint Endpoint `gorm:"foreignKey:EndpointID" json:"endpoint"`
+
+	Query datatypes.JSON `json:"query" gorm:"type:json;default:'{}'"`
 
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`

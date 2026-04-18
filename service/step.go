@@ -78,6 +78,7 @@ func (s *StepService) UpsertSteps(ctx context.Context, workflowID uuid.UUID, ste
 				Name:        endpoint.Name,
 				Description: endpoint.BaseURI + endpoint.Path,
 				Timeout:     endpoint.Timeout,
+				Query:       endpoint.Query,
 				Position:    position,
 				Index:       index,
 				EndpointID:  endpointUUID,
@@ -92,4 +93,13 @@ func (s *StepService) UpsertSteps(ctx context.Context, workflowID uuid.UUID, ste
 	}
 
 	return nil
+}
+
+func (s *StepService) GetStepByID(ctx context.Context, organizationID uuid.UUID, stepID uuid.UUID) (dto.StepOutput, error) {
+	step, err := s.stepRepository.FindByOrganizationIDAndStepID(ctx, organizationID, stepID)
+	if err != nil {
+		return dto.StepOutput{}, errors.ErrStepNotFound
+	}
+
+	return dto.NewStepOutput(*step), nil
 }

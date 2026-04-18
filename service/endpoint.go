@@ -38,6 +38,7 @@ func (s *EndpointService) CreateEndpoint(c fiber.Ctx, organizationID uuid.UUID, 
 		Path:           req.Path,
 		Method:         req.Method,
 		Timeout:        req.Timeout,
+		Query:          req.Query,
 	}
 
 	err := s.endpointRepository.Create(endpoint)
@@ -58,6 +59,7 @@ func (s *EndpointService) UpdateEndpoint(c fiber.Ctx, organizationID uuid.UUID, 
 	endpoint.Path = req.Path
 	endpoint.Method = req.Method
 	endpoint.Timeout = req.Timeout
+	endpoint.Query = req.Query
 
 	if err := s.endpointRepository.Update(&endpoint); err != nil {
 		return dto.EndpointOutput{}, errors.ErrEndpointFailedToUpdate

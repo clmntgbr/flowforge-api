@@ -65,3 +65,14 @@ func (r *StepRepository) UpdatePositionAndIndex(ctx context.Context, stepID uuid
 			}).Error
 	})
 }
+
+func (r *StepRepository) FindByOrganizationIDAndStepID(ctx context.Context, organizationID uuid.UUID, stepID uuid.UUID) (*domain.Step, error) {
+	var step domain.Step
+	err := r.db.WithContext(ctx).
+		Where("organization_id = ? AND id = ?", organizationID, stepID).
+		First(&step).Error
+	if err != nil {
+		return nil, err
+	}
+	return &step, nil
+}

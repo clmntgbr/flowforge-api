@@ -19,6 +19,7 @@ type Dependencies struct {
 	EndpointHandler     *handler.EndpointHandler
 	WorkflowHandler     *handler.WorkflowHandler
 	ConnexionHandler    *handler.ConnexionHandler
+	StepHandler         *handler.StepHandler
 
 	AuthenticateMiddleware *middleware.AuthenticateMiddleware
 	ClerkWebhookMiddleware *middleware.ClerkWebhookMiddleware
@@ -49,6 +50,7 @@ func New(db *gorm.DB, cfg *config.Config) *Dependencies {
 	endpointHandler := handler.NewEndpointHandler(endpointService)
 	workflowHandler := handler.NewWorkflowHandler(workflowService, stepService)
 	connexionHandler := handler.NewConnexionHandler(connexionService, workflowService)
+	stepHandler := handler.NewStepHandler(stepService)
 
 	clerkWebhookMiddleware := middleware.NewClerkWebhookMiddleware(cfg.ClerkWebhookSecret)
 	authenticateMiddleware := middleware.NewAuthenticateMiddleware(authenticateService, clerkService, userService, organizationService, userRepo)
@@ -60,6 +62,7 @@ func New(db *gorm.DB, cfg *config.Config) *Dependencies {
 		EndpointHandler:        endpointHandler,
 		WorkflowHandler:        workflowHandler,
 		ConnexionHandler:       connexionHandler,
+		StepHandler:            stepHandler,
 		AuthenticateMiddleware: authenticateMiddleware,
 		ClerkWebhookMiddleware: clerkWebhookMiddleware,
 	}
