@@ -62,6 +62,7 @@ func setupAPIRoutes(app *fiber.App, deps *deps.Dependencies) {
 	setupEndpointsRoutes(api, deps)
 	setupWorkflowsRoutes(api, deps)
 	setupConnexionRoutes(api, deps)
+	setupStepsRoutes(api, deps)
 }
 
 func setupUsersRoutes(api fiber.Router, deps *deps.Dependencies) {
@@ -98,5 +99,5 @@ func setupConnexionRoutes(api fiber.Router, deps *deps.Dependencies) {
 
 func setupStepsRoutes(api fiber.Router, deps *deps.Dependencies) {
 	api.Get("/steps/:id", deps.StepHandler.GetStepByID)
-	api.Put("/steps/:id", deps.StepHandler.UpdateStep)
+	// api.Put("/steps/:id", deps.StepHandler.UpdateStep)
 }

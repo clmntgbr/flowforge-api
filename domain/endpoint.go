@@ -15,7 +15,7 @@ type Endpoint struct {
 	Method  string    `gorm:"not null" json:"method"`
 	Timeout int       `gorm:"not null;default:30" json:"timeout"`
 
-	Query datatypes.JSON `json:"query" gorm:"type:json;default:'{}'"`
+	Query datatypes.JSON `json:"query" gorm:"type:jsonb;default:'[]'"`
 
 	OrganizationID uuid.UUID `gorm:"type:uuid;not null" json:"organization_id"`
 

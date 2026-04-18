@@ -25,7 +25,7 @@ type Step struct {
 
 	Endpoint Endpoint `gorm:"foreignKey:EndpointID" json:"endpoint"`
 
-	Query datatypes.JSON `json:"query" gorm:"type:json;default:'{}'"`
+	Query datatypes.JSON `json:"query" gorm:"type:jsonb;default:'[]'"`
 
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/datatypes"
 )
 
 type Position struct {
@@ -14,10 +15,11 @@ type Position struct {
 
 type StepOutput struct {
 	MinimalStepOutput
-	Description string    `json:"description"`
-	Timeout     int       `json:"timeout"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
+	Description string         `json:"description"`
+	Timeout     int            `json:"timeout"`
+	Query       datatypes.JSON `json:"query"`
+	CreatedAt   time.Time      `json:"createdAt"`
+	UpdatedAt   time.Time      `json:"updatedAt"`
 }
 
 type MinimalStepOutput struct {
@@ -49,6 +51,7 @@ func NewStepOutput(step domain.Step) StepOutput {
 		MinimalStepOutput: NewMinimalStepOutput(step),
 		Description:       step.Description,
 		Timeout:           step.Timeout,
+		Query:             step.Query,
 		CreatedAt:         step.CreatedAt,
 		UpdatedAt:         step.UpdatedAt,
 	}
