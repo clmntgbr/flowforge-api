@@ -80,3 +80,6 @@ clean-all:
 
 lint:
 	docker-compose exec api golangci-lint run --fix
+
+tests:
+	docker-compose exec api go test ./tests/handler_test -v

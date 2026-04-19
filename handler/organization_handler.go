@@ -11,10 +11,10 @@ import (
 
 type OrganizationHandler struct {
 	BaseHandler
-	organizationService *service.OrganizationService
+	organizationService service.OrganizationServiceInterface
 }
 
-func NewOrganizationHandler(organizationService *service.OrganizationService) *OrganizationHandler {
+func NewOrganizationHandler(organizationService service.OrganizationServiceInterface) *OrganizationHandler {
 	return &OrganizationHandler{
 		organizationService: organizationService,
 	}
@@ -118,7 +118,7 @@ func (h *OrganizationHandler) ActivateOrganization(c fiber.Ctx) error {
 		return err
 	}
 
-	_, err = h.organizationService.ActivateOrganization(c, user.ID, organizationUUID)
+	_, err = h.organizationService.ActivateOrganization(c.Context(), user.ID, organizationUUID)
 	if err != nil {
 		return h.sendError(c, err)
 	}

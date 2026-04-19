@@ -11,11 +11,11 @@ import (
 
 type ConnexionHandler struct {
 	BaseHandler
-	connexionService *service.ConnexionService
-	workflowService  *service.WorkflowService
+	connexionService service.ConnexionServiceInterface
+	workflowService  service.WorkflowServiceInterface
 }
 
-func NewConnexionHandler(connexionService *service.ConnexionService, workflowService *service.WorkflowService) *ConnexionHandler {
+func NewConnexionHandler(connexionService service.ConnexionServiceInterface, workflowService service.WorkflowServiceInterface) *ConnexionHandler {
 	return &ConnexionHandler{
 		connexionService: connexionService,
 		workflowService:  workflowService,

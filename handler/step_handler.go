@@ -11,10 +11,10 @@ import (
 
 type StepHandler struct {
 	BaseHandler
-	stepService *service.StepService
+	stepService service.StepServiceInterface
 }
 
-func NewStepHandler(stepService *service.StepService) *StepHandler {
+func NewStepHandler(stepService service.StepServiceInterface) *StepHandler {
 	return &StepHandler{
 		stepService: stepService,
 	}
@@ -31,7 +31,7 @@ func (h *StepHandler) GetStepByID(c fiber.Ctx) error {
 		return err
 	}
 
-	step, err := h.stepService.GetStepByID(c, activeOrganizationID, stepUUID)
+	step, err := h.stepService.GetStepByID(c.Context(), activeOrganizationID, stepUUID)
 	if err != nil {
 		return h.sendError(c, err)
 	}
@@ -55,7 +55,7 @@ func (h *StepHandler) UpdateStep(c fiber.Ctx) error {
 		return err
 	}
 
-	_, err = h.stepService.UpdateStep(c, activeOrganizationID, stepUUID, req)
+	_, err = h.stepService.UpdateStep(c.Context(), activeOrganizationID, stepUUID, req)
 	if err != nil {
 		return h.sendError(c, err)
 	}

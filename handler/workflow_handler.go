@@ -11,11 +11,11 @@ import (
 
 type WorkflowHandler struct {
 	BaseHandler
-	workflowService *service.WorkflowService
-	stepService     *service.StepService
+	workflowService service.WorkflowServiceInterface
+	stepService     service.StepServiceInterface
 }
 
-func NewWorkflowHandler(workflowService *service.WorkflowService, stepService *service.StepService) *WorkflowHandler {
+func NewWorkflowHandler(workflowService service.WorkflowServiceInterface, stepService service.StepServiceInterface) *WorkflowHandler {
 	return &WorkflowHandler{
 		workflowService: workflowService,
 		stepService:     stepService,
