@@ -36,12 +36,12 @@ func (h *ConnexionHandler) CreateConnexion(c fiber.Ctx) error {
 
 	_, err = h.workflowService.GetWorkflowByID(c, activeOrganizationID, req.WorkflowID)
 	if err != nil {
-		return h.sendInternalError(c, err)
+		return h.sendError(c, err)
 	}
 
 	connexion, err := h.connexionService.CreateConnexion(c, req.WorkflowID, req)
 	if err != nil {
-		return h.sendInternalError(c, err)
+		return h.sendError(c, err)
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(connexion)
@@ -50,12 +50,12 @@ func (h *ConnexionHandler) CreateConnexion(c fiber.Ctx) error {
 func (h *ConnexionHandler) DeleteConnexion(c fiber.Ctx) error {
 	connexionUUID, err := h.parseUUIDParam(c, "id", errors.ErrInvalidConnexionID)
 	if err != nil {
-		return h.sendBadRequest(c, errors.ErrInvalidConnexionID)
+		return err
 	}
 
 	_, err = h.connexionService.DeleteConnexion(c.Context(), connexionUUID)
 	if err != nil {
-		return h.sendInternalError(c, err)
+		return h.sendError(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{

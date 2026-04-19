@@ -33,7 +33,7 @@ func (h *OrganizationHandler) GetOrganizations(c fiber.Ctx) error {
 
 	output, err := h.organizationService.GetOrganizations(c, user, activeOrganizationID)
 	if err != nil {
-		return h.sendInternalError(c, err)
+		return h.sendError(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(output)
@@ -52,7 +52,7 @@ func (h *OrganizationHandler) GetOrganizationByID(c fiber.Ctx) error {
 
 	organization, err := h.organizationService.GetOrganizationByID(c, user, organizationUUID)
 	if err != nil {
-		return h.sendInternalError(c, err)
+		return h.sendError(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(organization)
@@ -72,7 +72,7 @@ func (h *OrganizationHandler) CreateOrganization(c fiber.Ctx) error {
 
 	_, err = h.organizationService.CreateOrganization(c, user, req.Name)
 	if err != nil {
-		return h.sendInternalError(c, err)
+		return h.sendError(c, err)
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
@@ -99,7 +99,7 @@ func (h *OrganizationHandler) UpdateOrganization(c fiber.Ctx) error {
 
 	_, err = h.organizationService.UpdateOrganization(c, user, organizationUUID, req)
 	if err != nil {
-		return h.sendInternalError(c, err)
+		return h.sendError(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -120,7 +120,7 @@ func (h *OrganizationHandler) ActivateOrganization(c fiber.Ctx) error {
 
 	_, err = h.organizationService.ActivateOrganization(c, user.ID, organizationUUID)
 	if err != nil {
-		return h.sendInternalError(c, err)
+		return h.sendError(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{

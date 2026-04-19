@@ -28,12 +28,12 @@ func (h *EndpointHandler) GetEndpoints(c fiber.Ctx) error {
 
 	query, err := h.bindPaginateQuery(c)
 	if err != nil {
-		return err
+		return h.sendBadRequest(c, err)
 	}
 
 	output, err := h.endpointService.GetEndpoints(c, activeOrganizationID, query)
 	if err != nil {
-		return h.sendInternalError(c, err)
+		return h.sendError(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(output)
@@ -53,7 +53,7 @@ func (h *EndpointHandler) CreateEndpoint(c fiber.Ctx) error {
 
 	_, err = h.endpointService.CreateEndpoint(c, activeOrganizationID, req)
 	if err != nil {
-		return h.sendInternalError(c, err)
+		return h.sendError(c, err)
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
@@ -74,7 +74,7 @@ func (h *EndpointHandler) GetEndpointByID(c fiber.Ctx) error {
 
 	endpoint, err := h.endpointService.GetEndpointByID(c, activeOrganizationID, endpointUUID)
 	if err != nil {
-		return h.sendInternalError(c, err)
+		return h.sendError(c, err)
 	}
 	return c.Status(fiber.StatusOK).JSON(endpoint)
 }
@@ -98,7 +98,7 @@ func (h *EndpointHandler) UpdateEndpoint(c fiber.Ctx) error {
 
 	_, err = h.endpointService.UpdateEndpoint(c, activeOrganizationID, endpointUUID, req)
 	if err != nil {
-		return h.sendInternalError(c, err)
+		return h.sendError(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{

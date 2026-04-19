@@ -45,7 +45,7 @@ func (h *WebhookClerkHandler) Handle(c fiber.Ctx) error {
 		}
 
 		if err := h.CreateUser(c, data); err != nil {
-			return h.sendInternalError(c, err)
+			return h.sendError(c, err)
 		}
 
 		return c.SendStatus(fiber.StatusCreated)
@@ -61,7 +61,7 @@ func (h *WebhookClerkHandler) Handle(c fiber.Ctx) error {
 		}
 
 		if err := h.UpdateUser(c, data); err != nil {
-			return h.sendInternalError(c, err)
+			return h.sendError(c, err)
 		}
 
 		return c.SendStatus(fiber.StatusNoContent)
@@ -77,7 +77,7 @@ func (h *WebhookClerkHandler) Handle(c fiber.Ctx) error {
 		}
 
 		if err := h.DeleteUser(c, data); err != nil {
-			return h.sendInternalError(c, err)
+			return h.sendError(c, err)
 		}
 
 		return c.SendStatus(fiber.StatusNoContent)

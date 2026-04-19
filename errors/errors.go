@@ -1,6 +1,9 @@
 package errors
 
-import "errors"
+import (
+	"errors"
+	"net/http"
+)
 
 var (
 	ErrInvalidSignature           = errors.New("invalid signature")
@@ -31,4 +34,44 @@ var (
 	ErrStepNotFound               = errors.New("step not found")
 	ErrStepFailedToUpdate         = errors.New("step failed to update")
 	ErrInvalidConnexionID         = errors.New("invalid connexion UUID")
+	ErrConnexionNotFound          = errors.New("connexion not found")
+	ErrConnexionAlreadyExists     = errors.New("connexion already exists")
 )
+
+func GetHTTPStatus(err error) int {
+	switch {
+	case errors.Is(err, ErrUserNotFound),
+		errors.Is(err, ErrOrganizationNotFound),
+		errors.Is(err, ErrEndpointNotFound),
+		errors.Is(err, ErrWorkflowNotFound),
+		errors.Is(err, ErrStepNotFound),
+		errors.Is(err, ErrConnexionNotFound),
+		errors.Is(err, ErrEndpointsNotFound),
+		errors.Is(err, ErrWorkflowsNotFound):
+		return http.StatusNotFound
+
+	case errors.Is(err, ErrInvalidRequestBody),
+		errors.Is(err, ErrValidationFailed),
+		errors.Is(err, ErrInvalidOrganizationID),
+		errors.Is(err, ErrInvalidEndpointID),
+		errors.Is(err, ErrInvalidWorkflowID),
+		errors.Is(err, ErrInvalidStepID),
+		errors.Is(err, ErrInvalidConnexionID),
+		errors.Is(err, ErrInvalidRequest):
+		return http.StatusBadRequest
+
+	case errors.Is(err, ErrUserNotAuthenticated),
+		errors.Is(err, ErrInvalidToken):
+		return http.StatusUnauthorized
+
+	case errors.Is(err, ErrUserBanned):
+		return http.StatusForbidden
+
+	case errors.Is(err, ErrMaxOrganizationsReached),
+		errors.Is(err, ErrConnexionAlreadyExists):
+		return http.StatusConflict
+
+	default:
+		return http.StatusInternalServerError
+	}
+}

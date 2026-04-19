@@ -30,12 +30,12 @@ func (h *WorkflowHandler) GetWorkflows(c fiber.Ctx) error {
 
 	query, err := h.bindPaginateQuery(c)
 	if err != nil {
-		return err
+		return h.sendBadRequest(c, err)
 	}
 
 	output, err := h.workflowService.GetWorkflows(c, activeOrganizationID, query)
 	if err != nil {
-		return h.sendInternalError(c, err)
+		return h.sendError(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(output)
@@ -55,7 +55,7 @@ func (h *WorkflowHandler) CreateWorkflow(c fiber.Ctx) error {
 
 	_, err = h.workflowService.CreateWorkflow(c, activeOrganizationID, req)
 	if err != nil {
-		return h.sendInternalError(c, err)
+		return h.sendError(c, err)
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
@@ -76,7 +76,7 @@ func (h *WorkflowHandler) GetWorkflowByID(c fiber.Ctx) error {
 
 	workflow, err := h.workflowService.GetWorkflowByID(c, activeOrganizationID, workflowUUID)
 	if err != nil {
-		return h.sendInternalError(c, err)
+		return h.sendError(c, err)
 	}
 	return c.Status(fiber.StatusOK).JSON(workflow)
 }
@@ -100,7 +100,7 @@ func (h *WorkflowHandler) UpdateWorkflow(c fiber.Ctx) error {
 
 	_, err = h.workflowService.UpdateWorkflow(c, activeOrganizationID, workflowUUID, req)
 	if err != nil {
-		return h.sendInternalError(c, err)
+		return h.sendError(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -127,11 +127,11 @@ func (h *WorkflowHandler) UpdateWorkflowSteps(c fiber.Ctx) error {
 
 	_, err = h.workflowService.GetWorkflowByID(c, activeOrganizationID, workflowUUID)
 	if err != nil {
-		return h.sendInternalError(c, err)
+		return h.sendError(c, err)
 	}
 
 	if err := h.stepService.UpsertSteps(c.Context(), workflowUUID, req.Steps); err != nil {
-		return h.sendInternalError(c, err)
+		return h.sendError(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{

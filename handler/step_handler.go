@@ -33,7 +33,7 @@ func (h *StepHandler) GetStepByID(c fiber.Ctx) error {
 
 	step, err := h.stepService.GetStepByID(c, activeOrganizationID, stepUUID)
 	if err != nil {
-		return h.sendInternalError(c, err)
+		return h.sendError(c, err)
 	}
 	return c.Status(fiber.StatusOK).JSON(step)
 }
@@ -57,7 +57,7 @@ func (h *StepHandler) UpdateStep(c fiber.Ctx) error {
 
 	_, err = h.stepService.UpdateStep(c, activeOrganizationID, stepUUID, req)
 	if err != nil {
-		return h.sendInternalError(c, err)
+		return h.sendError(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{

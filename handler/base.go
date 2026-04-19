@@ -53,6 +53,13 @@ func (h *BaseHandler) sendUnauthorized(c fiber.Ctx) error {
 	})
 }
 
+func (h *BaseHandler) sendError(c fiber.Ctx, err error) error {
+	statusCode := errors.GetHTTPStatus(err)
+	return c.Status(statusCode).JSON(fiber.Map{
+		"message": err.Error(),
+	})
+}
+
 func (h *BaseHandler) sendInternalError(c fiber.Ctx, err error) error {
 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 		"message": err.Error(),

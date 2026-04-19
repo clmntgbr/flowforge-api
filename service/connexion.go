@@ -58,7 +58,7 @@ func (s *ConnexionService) CreateConnexion(c fiber.Ctx, workflowID uuid.UUID, re
 func (s *ConnexionService) DeleteConnexion(ctx context.Context, connexionID uuid.UUID) (dto.ConnexionOutput, error) {
 	connexion, err := s.connexionRepository.FindByID(ctx, connexionID)
 	if err != nil {
-		return dto.ConnexionOutput{}, errors.ErrInvalidRequestBody
+		return dto.ConnexionOutput{}, errors.ErrConnexionNotFound
 	}
 
 	if err := s.connexionRepository.Delete(connexion); err != nil {

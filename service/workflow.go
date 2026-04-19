@@ -23,7 +23,7 @@ func NewWorkflowService(workflowRepository *repository.WorkflowRepository) *Work
 func (s *WorkflowService) GetWorkflows(c fiber.Ctx, organizationID uuid.UUID, query dto.PaginateQuery) (dto.PaginateResponse, error) {
 	workflows, total, err := s.workflowRepository.FindAllByOrganizationID(c, organizationID, query)
 	if err != nil {
-		return dto.PaginateResponse{}, errors.ErrWorkflowsNotFound
+		return dto.PaginateResponse{}, err
 	}
 
 	outputs := dto.NewMinimalWorkflowsOutput(workflows)
