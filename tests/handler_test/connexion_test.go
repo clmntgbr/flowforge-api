@@ -220,3 +220,37 @@ func TestConnexionHandler_DeleteConnexion_ServiceError(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, resp.StatusCode >= 400)
 }
+
+func TestConnexionHandler_CreateConnexion_ServiceError(t *testing.T) {
+	app := newTestApp()
+	mockConnexionService := NewMockConnexionService()
+	mockWorkflowService := NewMockWorkflowService()
+	connexionHandler := handler.NewConnexionHandler(mockConnexionService, mockWorkflowService)
+
+	orgID := uuid.New()
+	workflowID := uuid.New()
+
+	validInput := dto.CreateConnexionInput{
+		WorkflowID: workflowID,
+		From:       uuid.New().String(),
+		To:         uuid.New().String(),
+	}
+
+	mockWorkflowService.GetWorkflowByIDFunc = func(c fiber.Ctx, organizationID uuid.UUID, wfID uuid.UUID) (dto.WorkflowOutput, error) {
+		return dto.WorkflowOutput{}, nil
+	}
+
+	mockConnexionService.CreateConnexionFunc = func(c fiber.Ctx, wfID uuid.UUID, req dto.CreateConnexionInput) (dto.ConnexionOutput, error) {
+		return dto.ConnexionOutput{}, errors.New("failed to create connexion")
+	}
+
+	app.Use(setOrganizationIDInContext(app, orgID))
+	app.Post("/connexions", connexionHandler.CreateConnexion)
+
+	req, err := makeJSONRequest("POST", "/connexions", validInput)
+	assert.NoError(t, err)
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.True(t, resp.StatusCode >= 400)
+}

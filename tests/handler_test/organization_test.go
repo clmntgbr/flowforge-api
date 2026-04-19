@@ -1,11 +1,13 @@
 package handler_test
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"forgeflow-api/domain"
 	"forgeflow-api/dto"
 	"forgeflow-api/handler"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/gofiber/fiber/v3"
@@ -280,4 +282,301 @@ func TestOrganizationHandler_ServiceError(t *testing.T) {
 	resp, err := app.Test(req)
 	assert.NoError(t, err)
 	assert.True(t, resp.StatusCode >= 400)
+}
+
+func TestOrganizationHandler_GetOrganizationByID_Unauthorized(t *testing.T) {
+	app := newTestApp()
+	mockService := NewMockOrganizationService()
+	orgHandler := handler.NewOrganizationHandler(mockService)
+
+	orgID := uuid.New()
+
+	app.Get("/organizations/:id", orgHandler.GetOrganizationByID)
+
+	req, err := makeJSONRequest("GET", "/organizations/"+orgID.String(), nil)
+	assert.NoError(t, err)
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+}
+
+func TestOrganizationHandler_CreateOrganization_Unauthorized(t *testing.T) {
+	app := newTestApp()
+	mockService := NewMockOrganizationService()
+	orgHandler := handler.NewOrganizationHandler(mockService)
+
+	validInput := dto.CreateOrganizationInput{
+		Name: "Test Organization",
+	}
+
+	app.Post("/organizations", orgHandler.CreateOrganization)
+
+	req, err := makeJSONRequest("POST", "/organizations", validInput)
+	assert.NoError(t, err)
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+}
+
+func TestOrganizationHandler_UpdateOrganization_Unauthorized(t *testing.T) {
+	app := newTestApp()
+	mockService := NewMockOrganizationService()
+	orgHandler := handler.NewOrganizationHandler(mockService)
+
+	orgID := uuid.New()
+	validInput := dto.UpdateOrganizationInput{
+		Name: "Updated Name",
+	}
+
+	app.Put("/organizations/:id", orgHandler.UpdateOrganization)
+
+	req, err := makeJSONRequest("PUT", "/organizations/"+orgID.String(), validInput)
+	assert.NoError(t, err)
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+}
+
+func TestOrganizationHandler_ActivateOrganization_Unauthorized(t *testing.T) {
+	app := newTestApp()
+	mockService := NewMockOrganizationService()
+	orgHandler := handler.NewOrganizationHandler(mockService)
+
+	orgID := uuid.New()
+
+	app.Patch("/organizations/:id/activate", orgHandler.ActivateOrganization)
+
+	req, err := makeJSONRequest("PATCH", "/organizations/"+orgID.String()+"/activate", nil)
+	assert.NoError(t, err)
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+}
+
+func TestOrganizationHandler_GetOrganizationByID_ServiceError(t *testing.T) {
+	app := newTestApp()
+	mockService := NewMockOrganizationService()
+	orgHandler := handler.NewOrganizationHandler(mockService)
+
+	testUser := makeTestUser()
+	orgID := uuid.New()
+
+	mockService.GetOrganizationByIDFunc = func(c fiber.Ctx, user *domain.User, organizationID uuid.UUID) (dto.OrganizationOutput, error) {
+		return dto.OrganizationOutput{}, errors.New("database error")
+	}
+
+	app.Use(setUserInContext(app, testUser))
+	app.Get("/organizations/:id", orgHandler.GetOrganizationByID)
+
+	req, err := makeJSONRequest("GET", "/organizations/"+orgID.String(), nil)
+	assert.NoError(t, err)
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.True(t, resp.StatusCode >= 400)
+}
+
+func TestOrganizationHandler_CreateOrganization_ServiceError(t *testing.T) {
+	app := newTestApp()
+	mockService := NewMockOrganizationService()
+	orgHandler := handler.NewOrganizationHandler(mockService)
+
+	testUser := makeTestUser()
+	validInput := dto.CreateOrganizationInput{
+		Name: "Test Organization",
+	}
+
+	mockService.CreateOrganizationFunc = func(c fiber.Ctx, user *domain.User, name string) (dto.OrganizationOutput, error) {
+		return dto.OrganizationOutput{}, errors.New("max organizations reached")
+	}
+
+	app.Use(setUserInContext(app, testUser))
+	app.Post("/organizations", orgHandler.CreateOrganization)
+
+	req, err := makeJSONRequest("POST", "/organizations", validInput)
+	assert.NoError(t, err)
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.True(t, resp.StatusCode >= 400)
+}
+
+func TestOrganizationHandler_UpdateOrganization_ServiceError(t *testing.T) {
+	app := newTestApp()
+	mockService := NewMockOrganizationService()
+	orgHandler := handler.NewOrganizationHandler(mockService)
+
+	testUser := makeTestUser()
+	orgID := uuid.New()
+	validInput := dto.UpdateOrganizationInput{
+		Name: "Updated Name",
+	}
+
+	mockService.UpdateOrganizationFunc = func(c fiber.Ctx, user *domain.User, organizationID uuid.UUID, req dto.UpdateOrganizationInput) (dto.OrganizationOutput, error) {
+		return dto.OrganizationOutput{}, errors.New("organization not found")
+	}
+
+	app.Use(setUserInContext(app, testUser))
+	app.Put("/organizations/:id", orgHandler.UpdateOrganization)
+
+	req, err := makeJSONRequest("PUT", "/organizations/"+orgID.String(), validInput)
+	assert.NoError(t, err)
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.True(t, resp.StatusCode >= 400)
+}
+
+func TestOrganizationHandler_ActivateOrganization_ServiceError(t *testing.T) {
+	app := newTestApp()
+	mockService := NewMockOrganizationService()
+	orgHandler := handler.NewOrganizationHandler(mockService)
+
+	testUser := makeTestUser()
+	orgID := uuid.New()
+
+	mockService.ActivateOrganizationFunc = func(ctx context.Context, userID uuid.UUID, organizationID uuid.UUID) (dto.OrganizationOutput, error) {
+		return dto.OrganizationOutput{}, errors.New("organization not found")
+	}
+
+	app.Use(setUserInContext(app, testUser))
+	app.Patch("/organizations/:id/activate", orgHandler.ActivateOrganization)
+
+	req, err := makeJSONRequest("PATCH", "/organizations/"+orgID.String()+"/activate", nil)
+	assert.NoError(t, err)
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.True(t, resp.StatusCode >= 400)
+}
+
+func TestOrganizationHandler_UpdateOrganization_InvalidJSONBody(t *testing.T) {
+	app := newTestApp()
+	mockService := NewMockOrganizationService()
+	orgHandler := handler.NewOrganizationHandler(mockService)
+
+	testUser := makeTestUser()
+	orgID := uuid.New()
+
+	mockService.UpdateOrganizationFunc = func(c fiber.Ctx, user *domain.User, organizationID uuid.UUID, req dto.UpdateOrganizationInput) (dto.OrganizationOutput, error) {
+		t.Fatal("UpdateOrganization must not be called when JSON body is invalid")
+		return dto.OrganizationOutput{}, nil
+	}
+
+	app.Use(setUserInContext(app, testUser))
+	app.Put("/organizations/:id", orgHandler.UpdateOrganization)
+
+	req := httptest.NewRequest("PUT", "/organizations/"+orgID.String(), bytes.NewBufferString(`{`))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+}
+
+func TestOrganizationHandler_GetOrganizationByID_EmptyUUID(t *testing.T) {
+	app := newTestApp()
+	mockService := NewMockOrganizationService()
+	orgHandler := handler.NewOrganizationHandler(mockService)
+
+	testUser := makeTestUser()
+
+	app.Use(setUserInContext(app, testUser))
+	app.Get("/organizations/*", func(c fiber.Ctx) error {
+		c.Params("id")
+		return orgHandler.GetOrganizationByID(c)
+	})
+
+	req, err := makeJSONRequest("GET", "/organizations/", nil)
+	assert.NoError(t, err)
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.True(t, resp.StatusCode >= 400)
+}
+
+func TestOrganizationHandler_GetOrganizationByID_MalformedUUID(t *testing.T) {
+	app := newTestApp()
+	mockService := NewMockOrganizationService()
+	orgHandler := handler.NewOrganizationHandler(mockService)
+
+	testUser := makeTestUser()
+
+	app.Use(setUserInContext(app, testUser))
+	app.Get("/organizations/:id", orgHandler.GetOrganizationByID)
+
+	malformedUUIDs := []string{
+		"not-a-uuid",
+		"12345",
+		"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+		"00000000-0000-0000-0000-00000000000",
+	}
+
+	for _, badID := range malformedUUIDs {
+		req, err := makeJSONRequest("GET", "/organizations/"+badID, nil)
+		assert.NoError(t, err)
+
+		resp, err := app.Test(req)
+		assert.NoError(t, err)
+		assert.True(t, resp.StatusCode >= 400, "Should fail for UUID: %s", badID)
+	}
+}
+
+func TestOrganizationHandler_UpdateOrganization_MalformedUUID(t *testing.T) {
+	app := newTestApp()
+	mockService := NewMockOrganizationService()
+	orgHandler := handler.NewOrganizationHandler(mockService)
+
+	testUser := makeTestUser()
+	validInput := dto.UpdateOrganizationInput{
+		Name: "Updated Name",
+	}
+
+	app.Use(setUserInContext(app, testUser))
+	app.Put("/organizations/:id", orgHandler.UpdateOrganization)
+
+	malformedUUIDs := []string{
+		"not-a-uuid",
+		"12345",
+		"invalid-format",
+	}
+
+	for _, badID := range malformedUUIDs {
+		req, err := makeJSONRequest("PUT", "/organizations/"+badID, validInput)
+		assert.NoError(t, err)
+
+		resp, err := app.Test(req)
+		assert.NoError(t, err)
+		assert.True(t, resp.StatusCode >= 400, "Should fail for UUID: %s", badID)
+	}
+}
+
+func TestOrganizationHandler_ActivateOrganization_MalformedUUID(t *testing.T) {
+	app := newTestApp()
+	mockService := NewMockOrganizationService()
+	orgHandler := handler.NewOrganizationHandler(mockService)
+
+	testUser := makeTestUser()
+
+	app.Use(setUserInContext(app, testUser))
+	app.Patch("/organizations/:id/activate", orgHandler.ActivateOrganization)
+
+	malformedUUIDs := []string{
+		"not-a-uuid",
+		"12345",
+		"invalid-format",
+	}
+
+	for _, badID := range malformedUUIDs {
+		req, err := makeJSONRequest("PATCH", "/organizations/"+badID+"/activate", nil)
+		assert.NoError(t, err)
+
+		resp, err := app.Test(req)
+		assert.NoError(t, err)
+		assert.True(t, resp.StatusCode >= 400, "Should fail for UUID: %s", badID)
+	}
 }

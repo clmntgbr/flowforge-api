@@ -5,6 +5,7 @@ import (
 	"forgeflow-api/dto"
 	"forgeflow-api/handler"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/gofiber/fiber/v3"
@@ -634,4 +635,113 @@ func TestEndpointHandler_CreateEndpoint_VariousValidInputs(t *testing.T) {
 			assert.Equal(t, http.StatusCreated, resp.StatusCode)
 		})
 	}
+}
+
+func TestEndpointHandler_GetEndpoints_BadPaginationQuery(t *testing.T) {
+	app := newTestApp()
+	mockService := NewMockEndpointService()
+	endpointHandler := handler.NewEndpointHandler(mockService)
+
+	orgID := uuid.New()
+
+	mockService.GetEndpointsFunc = func(c fiber.Ctx, organizationID uuid.UUID, query dto.PaginateQuery) (dto.PaginateResponse, error) {
+		return dto.PaginateResponse{
+			Total:      0,
+			Page:       query.Page,
+			Limit:      query.Limit,
+			TotalPages: 0,
+			Members:    []dto.MinimalEndpointOutput{},
+		}, nil
+	}
+
+	app.Use(setOrganizationIDInContext(app, orgID))
+	app.Get("/endpoints", endpointHandler.GetEndpoints)
+
+	req, err := makeJSONRequest("GET", "/endpoints?page=0&limit=0", nil)
+	assert.NoError(t, err)
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, resp.StatusCode)
+}
+
+func TestEndpointHandler_GetEndpoints_WithMalformedQueryString(t *testing.T) {
+	app := newTestApp()
+	mockService := NewMockEndpointService()
+	endpointHandler := handler.NewEndpointHandler(mockService)
+
+	orgID := uuid.New()
+
+	app.Use(setOrganizationIDInContext(app, orgID))
+	app.Get("/endpoints", endpointHandler.GetEndpoints)
+
+	req, err := makeJSONRequest("GET", "/endpoints", nil)
+	assert.NoError(t, err)
+
+	req.URL.RawQuery = strings.Repeat("invalid&", 1000)
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.True(t, resp.StatusCode == fiber.StatusOK || resp.StatusCode >= 400)
+}
+
+func TestBaseHandler_BindAndValidate_InvalidJSON(t *testing.T) {
+	app := newTestApp()
+	mockService := NewMockEndpointService()
+	endpointHandler := handler.NewEndpointHandler(mockService)
+
+	orgID := uuid.New()
+
+	app.Use(setOrganizationIDInContext(app, orgID))
+	app.Post("/endpoints", endpointHandler.CreateEndpoint)
+
+	req, err := makeJSONRequest("POST", "/endpoints", nil)
+	assert.NoError(t, err)
+	req.Body = http.NoBody
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
+}
+
+func TestBaseHandler_ParseUUIDParam_EmptyParam(t *testing.T) {
+	app := newTestApp()
+	mockService := NewMockEndpointService()
+	endpointHandler := handler.NewEndpointHandler(mockService)
+
+	orgID := uuid.New()
+
+	app.Use(setOrganizationIDInContext(app, orgID))
+	app.Get("/endpoints/", endpointHandler.GetEndpointByID)
+
+	req, err := makeJSONRequest("GET", "/endpoints/", nil)
+	assert.NoError(t, err)
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.True(t, resp.StatusCode >= 400)
+}
+
+func TestBaseHandler_BindPaginateQuery_InvalidQuery(t *testing.T) {
+	app := newTestApp()
+	mockService := NewMockEndpointService()
+	endpointHandler := handler.NewEndpointHandler(mockService)
+
+	orgID := uuid.New()
+
+	mockService.GetEndpointsFunc = func(c fiber.Ctx, organizationID uuid.UUID, query dto.PaginateQuery) (dto.PaginateResponse, error) {
+		t.Fatal("GetEndpoints must not be called when query binding fails")
+		return dto.PaginateResponse{}, nil
+	}
+
+	app.Use(setOrganizationIDInContext(app, orgID))
+	app.Get("/endpoints", endpointHandler.GetEndpoints)
+
+	req, err := makeJSONRequest("GET", "/endpoints?page=invalid", nil)
+	assert.NoError(t, err)
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusBadRequest, resp.StatusCode)
 }

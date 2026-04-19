@@ -214,3 +214,59 @@ func TestStepHandler_ServiceError(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, resp.StatusCode >= 400)
 }
+
+func TestStepHandler_UpdateStep_Unauthorized(t *testing.T) {
+	app := newTestApp()
+	mockService := NewMockStepService()
+	stepHandler := handler.NewStepHandler(mockService)
+
+	stepID := uuid.New()
+	validInput := dto.UpdateStepInput{
+		Name:           "Updated Step",
+		Description:    "Test",
+		Timeout:        5000,
+		RetryOnFailure: false,
+		RetryCount:     3,
+		RetryDelay:     1000,
+	}
+
+	app.Put("/steps/:id", stepHandler.UpdateStep)
+
+	req, err := makeJSONRequest("PUT", "/steps/"+stepID.String(), validInput)
+	assert.NoError(t, err)
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.Equal(t, fiber.StatusUnauthorized, resp.StatusCode)
+}
+
+func TestStepHandler_UpdateStep_ServiceError(t *testing.T) {
+	app := newTestApp()
+	mockService := NewMockStepService()
+	stepHandler := handler.NewStepHandler(mockService)
+
+	orgID := uuid.New()
+	stepID := uuid.New()
+	validInput := dto.UpdateStepInput{
+		Name:           "Updated Step",
+		Description:    "Test",
+		Timeout:        5000,
+		RetryOnFailure: false,
+		RetryCount:     3,
+		RetryDelay:     1000,
+	}
+
+	mockService.UpdateStepFunc = func(ctx context.Context, organizationID uuid.UUID, sID uuid.UUID, req dto.UpdateStepInput) (dto.StepOutput, error) {
+		return dto.StepOutput{}, errors.New("failed to update step")
+	}
+
+	app.Use(setOrganizationIDInContext(app, orgID))
+	app.Put("/steps/:id", stepHandler.UpdateStep)
+
+	req, err := makeJSONRequest("PUT", "/steps/"+stepID.String(), validInput)
+	assert.NoError(t, err)
+
+	resp, err := app.Test(req)
+	assert.NoError(t, err)
+	assert.True(t, resp.StatusCode >= 400)
+}
