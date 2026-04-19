@@ -336,9 +336,12 @@ func TestStepHandler_UpdateStep_ServiceError(t *testing.T) {
 	orgID := uuid.New()
 	stepID := uuid.New()
 	validInput := dto.UpdateStepInput{
-		Name:        "Updated Step",
-		Description: "Test",
-		Timeout:     5000,
+		Name:           "Updated Step",
+		Description:    "Test",
+		Timeout:        5000,
+		RetryOnFailure: false,
+		RetryCount:     3,
+		RetryDelay:     1000,
 	}
 
 	mockService.UpdateStepFunc = func(ctx context.Context, organizationID uuid.UUID, sID uuid.UUID, req dto.UpdateStepInput) (dto.StepOutput, error) {

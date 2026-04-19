@@ -47,8 +47,8 @@ type UpdateStepInput struct {
 	Timeout        int            `json:"timeout" validate:"omitempty,min=0"`
 	Query          datatypes.JSON `json:"query"`
 	RetryOnFailure bool           `json:"retryOnFailure"`
-	RetryCount     int            `json:"retryCount" validate:"required,min=0,max=10,number"`
-	RetryDelay     int            `json:"retryDelay" validate:"required,min=0,max=300000,number"`
+	RetryCount     int            `json:"retryCount" validate:"min=0,max=10,number"`
+	RetryDelay     int            `json:"retryDelay" validate:"min=0,max=300000,number"`
 }
 
 func NewStepOutput(step domain.Step) StepOutput {

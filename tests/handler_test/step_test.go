@@ -89,10 +89,13 @@ func TestStepHandler_UpdateStep_Success(t *testing.T) {
 	orgID := uuid.New()
 	stepID := uuid.New()
 	validInput := dto.UpdateStepInput{
-		Name:        "Updated Step",
-		Description: "Updated Description",
-		Timeout:     10000,
-		Query:       datatypes.JSON([]byte(`{"key": "value"}`)),
+		Name:           "Updated Step",
+		Description:    "Updated Description",
+		Timeout:        10000,
+		Query:          datatypes.JSON([]byte(`{"key": "value"}`)),
+		RetryOnFailure: true,
+		RetryCount:     5,
+		RetryDelay:     2000,
 	}
 
 	mockService.UpdateStepFunc = func(ctx context.Context, organizationID uuid.UUID, sID uuid.UUID, req dto.UpdateStepInput) (dto.StepOutput, error) {
@@ -169,9 +172,12 @@ func TestStepHandler_UpdateStep_InvalidUUID(t *testing.T) {
 
 	orgID := uuid.New()
 	validInput := dto.UpdateStepInput{
-		Name:        "Updated",
-		Description: "Test",
-		Timeout:     5000,
+		Name:           "Updated",
+		Description:    "Test",
+		Timeout:        5000,
+		RetryOnFailure: false,
+		RetryCount:     3,
+		RetryDelay:     1000,
 	}
 
 	app.Use(setOrganizationIDInContext(app, orgID))

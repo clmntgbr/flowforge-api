@@ -96,9 +96,12 @@ func TestStepHandler_UpdateStep_Unauthorized(t *testing.T) {
 
 	stepID := uuid.New()
 	validInput := dto.UpdateStepInput{
-		Name:        "Updated Step",
-		Description: "Test",
-		Timeout:     5000,
+		Name:           "Updated Step",
+		Description:    "Test",
+		Timeout:        5000,
+		RetryOnFailure: false,
+		RetryCount:     3,
+		RetryDelay:     1000,
 	}
 
 	// Pas d'organizationID dans le contexte

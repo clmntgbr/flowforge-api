@@ -96,12 +96,15 @@ func TestEndpointHandler_CreateEndpoint_Success(t *testing.T) {
 
 	orgID := uuid.New()
 	validInput := dto.CreateEndpointInput{
-		Name:    "Test Endpoint",
-		BaseURI: "https://api.example.com",
-		Path:    "/users",
-		Method:  "GET",
-		Timeout: 5000,
-		Query:   datatypes.JSON([]byte(`{"key": "value"}`)),
+		Name:           "Test Endpoint",
+		BaseURI:        "https://api.example.com",
+		Path:           "/users",
+		Method:         "GET",
+		Timeout:        5000,
+		Query:          datatypes.JSON([]byte(`{"key": "value"}`)),
+		RetryOnFailure: false,
+		RetryCount:     3,
+		RetryDelay:     1000,
 	}
 
 	mockService.CreateEndpointFunc = func(c fiber.Ctx, organizationID uuid.UUID, req dto.CreateEndpointInput) (dto.EndpointOutput, error) {
@@ -204,12 +207,15 @@ func TestEndpointHandler_CreateEndpoint_Unauthorized(t *testing.T) {
 	app.Post("/endpoints", endpointHandler.CreateEndpoint)
 
 	validInput := dto.CreateEndpointInput{
-		Name:    "Test Endpoint",
-		BaseURI: "https://api.example.com",
-		Path:    "/users",
-		Method:  "GET",
-		Timeout: 5000,
-		Query:   datatypes.JSON([]byte(`{}`)),
+		Name:           "Test Endpoint",
+		BaseURI:        "https://api.example.com",
+		Path:           "/users",
+		Method:         "GET",
+		Timeout:        5000,
+		Query:          datatypes.JSON([]byte(`{}`)),
+		RetryOnFailure: false,
+		RetryCount:     3,
+		RetryDelay:     1000,
 	}
 
 	req, err := makeJSONRequest("POST", "/endpoints", validInput)
@@ -236,12 +242,15 @@ func TestEndpointHandler_CreateEndpoint_ServiceError(t *testing.T) {
 	app.Post("/endpoints", endpointHandler.CreateEndpoint)
 
 	validInput := dto.CreateEndpointInput{
-		Name:    "Test Endpoint",
-		BaseURI: "https://api.example.com",
-		Path:    "/users",
-		Method:  "GET",
-		Timeout: 5000,
-		Query:   datatypes.JSON([]byte(`{}`)),
+		Name:           "Test Endpoint",
+		BaseURI:        "https://api.example.com",
+		Path:           "/users",
+		Method:         "GET",
+		Timeout:        5000,
+		Query:          datatypes.JSON([]byte(`{}`)),
+		RetryOnFailure: false,
+		RetryCount:     3,
+		RetryDelay:     1000,
 	}
 
 	req, err := makeJSONRequest("POST", "/endpoints", validInput)
@@ -362,12 +371,15 @@ func TestEndpointHandler_UpdateEndpoint_Success(t *testing.T) {
 	orgID := uuid.New()
 	endpointID := uuid.New()
 	validInput := dto.UpdateEndpointInput{
-		Name:    "Updated Endpoint",
-		BaseURI: "https://api.updated.com",
-		Path:    "/v2/users",
-		Method:  "POST",
-		Timeout: 10000,
-		Query:   datatypes.JSON([]byte(`{"updated": "value"}`)),
+		Name:           "Updated Endpoint",
+		BaseURI:        "https://api.updated.com",
+		Path:           "/v2/users",
+		Method:         "POST",
+		Timeout:        10000,
+		Query:          datatypes.JSON([]byte(`{"updated": "value"}`)),
+		RetryOnFailure: true,
+		RetryCount:     5,
+		RetryDelay:     2000,
 	}
 
 	mockService.UpdateEndpointFunc = func(c fiber.Ctx, organizationID uuid.UUID, id uuid.UUID, req dto.UpdateEndpointInput) (dto.EndpointOutput, error) {
@@ -479,12 +491,15 @@ func TestEndpointHandler_UpdateEndpoint_Unauthorized(t *testing.T) {
 
 	endpointID := uuid.New()
 	validInput := dto.UpdateEndpointInput{
-		Name:    "Updated",
-		BaseURI: "https://api.example.com",
-		Path:    "/users",
-		Method:  "GET",
-		Timeout: 5000,
-		Query:   datatypes.JSON([]byte(`{}`)),
+		Name:           "Updated",
+		BaseURI:        "https://api.example.com",
+		Path:           "/users",
+		Method:         "GET",
+		Timeout:        5000,
+		Query:          datatypes.JSON([]byte(`{}`)),
+		RetryOnFailure: false,
+		RetryCount:     3,
+		RetryDelay:     1000,
 	}
 
 	app.Put("/endpoints/:id", endpointHandler.UpdateEndpoint)
@@ -514,12 +529,15 @@ func TestEndpointHandler_UpdateEndpoint_ServiceError(t *testing.T) {
 	app.Put("/endpoints/:id", endpointHandler.UpdateEndpoint)
 
 	validInput := dto.UpdateEndpointInput{
-		Name:    "Updated",
-		BaseURI: "https://api.example.com",
-		Path:    "/users",
-		Method:  "GET",
-		Timeout: 5000,
-		Query:   datatypes.JSON([]byte(`{}`)),
+		Name:           "Updated",
+		BaseURI:        "https://api.example.com",
+		Path:           "/users",
+		Method:         "GET",
+		Timeout:        5000,
+		Query:          datatypes.JSON([]byte(`{}`)),
+		RetryOnFailure: false,
+		RetryCount:     3,
+		RetryDelay:     1000,
 	}
 
 	req, err := makeJSONRequest("PUT", "/endpoints/"+endpointID.String(), validInput)
@@ -538,45 +556,57 @@ func TestEndpointHandler_CreateEndpoint_VariousValidInputs(t *testing.T) {
 		{
 			name: "Minimal timeout",
 			input: dto.CreateEndpointInput{
-				Name:    "Fast Endpoint",
-				BaseURI: "https://api.example.com",
-				Path:    "/quick",
-				Method:  "GET",
-				Timeout: 1,
-				Query:   datatypes.JSON([]byte(`{}`)),
+				Name:           "Fast Endpoint",
+				BaseURI:        "https://api.example.com",
+				Path:           "/quick",
+				Method:         "GET",
+				Timeout:        1,
+				Query:          datatypes.JSON([]byte(`{}`)),
+				RetryOnFailure: false,
+				RetryCount:     0,
+				RetryDelay:     0,
 			},
 		},
 		{
 			name: "Maximum timeout",
 			input: dto.CreateEndpointInput{
-				Name:    "Slow Endpoint",
-				BaseURI: "https://api.example.com",
-				Path:    "/slow",
-				Method:  "POST",
-				Timeout: 300000,
-				Query:   datatypes.JSON([]byte(`{}`)),
+				Name:           "Slow Endpoint",
+				BaseURI:        "https://api.example.com",
+				Path:           "/slow",
+				Method:         "POST",
+				Timeout:        300000,
+				Query:          datatypes.JSON([]byte(`{}`)),
+				RetryOnFailure: true,
+				RetryCount:     10,
+				RetryDelay:     300000,
 			},
 		},
 		{
 			name: "Complex path with parameters",
 			input: dto.CreateEndpointInput{
-				Name:    "Dynamic Endpoint",
-				BaseURI: "https://api.example.com",
-				Path:    "/users/:id/posts/:postId",
-				Method:  "DELETE",
-				Timeout: 5000,
-				Query:   datatypes.JSON([]byte(`{"param": "value"}`)),
+				Name:           "Dynamic Endpoint",
+				BaseURI:        "https://api.example.com",
+				Path:           "/users/:id/posts/:postId",
+				Method:         "DELETE",
+				Timeout:        5000,
+				Query:          datatypes.JSON([]byte(`{"param": "value"}`)),
+				RetryOnFailure: true,
+				RetryCount:     3,
+				RetryDelay:     1500,
 			},
 		},
 		{
 			name: "Different HTTP methods",
 			input: dto.CreateEndpointInput{
-				Name:    "PATCH Endpoint",
-				BaseURI: "https://api.example.com",
-				Path:    "/resource",
-				Method:  "PATCH",
-				Timeout: 3000,
-				Query:   datatypes.JSON([]byte(`{"filter": "active"}`)),
+				Name:           "PATCH Endpoint",
+				BaseURI:        "https://api.example.com",
+				Path:           "/resource",
+				Method:         "PATCH",
+				Timeout:        3000,
+				Query:          datatypes.JSON([]byte(`{"filter": "active"}`)),
+				RetryOnFailure: false,
+				RetryCount:     2,
+				RetryDelay:     500,
 			},
 		},
 	}

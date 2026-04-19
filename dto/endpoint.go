@@ -36,8 +36,8 @@ type CreateEndpointInput struct {
 	Timeout        int            `json:"timeout" validate:"required,min=1,max=300000,number"`
 	Query          datatypes.JSON `json:"query" validate:"required,json"`
 	RetryOnFailure bool           `json:"retryOnFailure"`
-	RetryCount     int            `json:"retryCount" validate:"required,min=0,max=10,number"`
-	RetryDelay     int            `json:"retryDelay" validate:"required,min=0,max=300000,number"`
+	RetryCount     int            `json:"retryCount" validate:"min=0,max=10,number"`
+	RetryDelay     int            `json:"retryDelay" validate:"min=0,max=300000,number"`
 }
 
 type UpdateEndpointInput struct {
@@ -48,8 +48,8 @@ type UpdateEndpointInput struct {
 	Timeout        int            `json:"timeout" validate:"required,min=1,max=300000,number"`
 	Query          datatypes.JSON `json:"query" validate:"required,json"`
 	RetryOnFailure bool           `json:"retryOnFailure"`
-	RetryCount     int            `json:"retryCount" validate:"required,min=0,max=10,number"`
-	RetryDelay     int            `json:"retryDelay" validate:"required,min=0,max=300000,number"`
+	RetryCount     int            `json:"retryCount" validate:"min=0,max=10,number"`
+	RetryDelay     int            `json:"retryDelay" validate:"min=0,max=300000,number"`
 }
 
 func NewMinimalEndpointOutput(endpoint domain.Endpoint) MinimalEndpointOutput {
