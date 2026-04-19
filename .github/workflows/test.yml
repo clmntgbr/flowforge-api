@@ -25,7 +25,7 @@ jobs:
         run: |
           go test ./tests/handler_test -v -count=1 \
             -coverprofile=coverage.txt \
-            -covermode=atomic \
+            -covermode=set \
             -coverpkg=./handler
 
       - name: Add coverage to job summary
