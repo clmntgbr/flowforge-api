@@ -27,6 +27,10 @@ type Step struct {
 
 	Query datatypes.JSON `json:"query" gorm:"type:jsonb;default:'[]'"`
 
+	RetryOnFailure bool `gorm:"not null;default:false" json:"retryOnFailure"`
+	RetryCount     int  `gorm:"not null;default:0" json:"retryCount"`
+	RetryDelay     int  `gorm:"not null;default:0" json:"retryDelay"`
+
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }

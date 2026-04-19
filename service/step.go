@@ -74,15 +74,18 @@ func (s *StepService) UpsertSteps(ctx context.Context, workflowID uuid.UUID, ste
 
 		if existingStep == nil {
 			newStep := &domain.Step{
-				ID:          stepUUID,
-				Name:        endpoint.Name,
-				Description: endpoint.BaseURI + endpoint.Path,
-				Timeout:     endpoint.Timeout,
-				Query:       endpoint.Query,
-				Position:    position,
-				Index:       index,
-				EndpointID:  endpointUUID,
-				WorkflowID:  workflowID,
+				ID:             stepUUID,
+				Name:           endpoint.Name,
+				Description:    endpoint.BaseURI + endpoint.Path,
+				Timeout:        endpoint.Timeout,
+				Query:          endpoint.Query,
+				Position:       position,
+				Index:          index,
+				EndpointID:     endpointUUID,
+				WorkflowID:     workflowID,
+				RetryOnFailure: endpoint.RetryOnFailure,
+				RetryCount:     endpoint.RetryCount,
+				RetryDelay:     endpoint.RetryDelay,
 			}
 			s.stepRepository.Create(newStep)
 		} else {
@@ -114,6 +117,9 @@ func (s *StepService) UpdateStep(ctx context.Context, organizationID uuid.UUID, 
 	step.Description = stepInput.Description
 	step.Timeout = stepInput.Timeout
 	step.Query = stepInput.Query
+	step.RetryOnFailure = stepInput.RetryOnFailure
+	step.RetryCount = stepInput.RetryCount
+	step.RetryDelay = stepInput.RetryDelay
 
 	if err := s.stepRepository.Update(step); err != nil {
 		return dto.StepOutput{}, errors.ErrStepFailedToUpdate

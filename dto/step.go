@@ -15,11 +15,14 @@ type Position struct {
 
 type StepOutput struct {
 	MinimalStepOutput
-	Description string         `json:"description"`
-	Timeout     int            `json:"timeout"`
-	Query       datatypes.JSON `json:"query"`
-	CreatedAt   time.Time      `json:"createdAt"`
-	UpdatedAt   time.Time      `json:"updatedAt"`
+	Description    string         `json:"description"`
+	Timeout        int            `json:"timeout"`
+	Query          datatypes.JSON `json:"query"`
+	RetryOnFailure bool           `json:"retryOnFailure"`
+	RetryCount     int            `json:"retryCount"`
+	RetryDelay     int            `json:"retryDelay"`
+	CreatedAt      time.Time      `json:"createdAt"`
+	UpdatedAt      time.Time      `json:"updatedAt"`
 }
 
 type MinimalStepOutput struct {
@@ -39,10 +42,13 @@ type UpdateWorkflowStepInput struct {
 }
 
 type UpdateStepInput struct {
-	Name        string         `json:"name" validate:"required,min=2,max=100"`
-	Description string         `json:"description" validate:"omitempty,min=2,max=255"`
-	Timeout     int            `json:"timeout" validate:"omitempty,min=0"`
-	Query       datatypes.JSON `json:"query"`
+	Name           string         `json:"name" validate:"required,min=2,max=100"`
+	Description    string         `json:"description" validate:"omitempty,min=2,max=255"`
+	Timeout        int            `json:"timeout" validate:"omitempty,min=0"`
+	Query          datatypes.JSON `json:"query"`
+	RetryOnFailure bool           `json:"retryOnFailure" validate:"required,boolean"`
+	RetryCount     int            `json:"retryCount" validate:"required,min=0,max=10,number"`
+	RetryDelay     int            `json:"retryDelay" validate:"required,min=0,max=300000,number"`
 }
 
 func NewStepOutput(step domain.Step) StepOutput {
@@ -51,6 +57,9 @@ func NewStepOutput(step domain.Step) StepOutput {
 		Description:       step.Description,
 		Timeout:           step.Timeout,
 		Query:             step.Query,
+		RetryOnFailure:    step.RetryOnFailure,
+		RetryCount:        step.RetryCount,
+		RetryDelay:        step.RetryDelay,
 		CreatedAt:         step.CreatedAt,
 		UpdatedAt:         step.UpdatedAt,
 	}

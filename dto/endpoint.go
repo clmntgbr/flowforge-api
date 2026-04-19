@@ -9,11 +9,14 @@ import (
 
 type EndpointOutput struct {
 	MinimalEndpointOutput
-	BaseURI   string         `json:"baseUri"`
-	Timeout   int            `json:"timeout"`
-	Query     datatypes.JSON `json:"query"`
-	CreatedAt time.Time      `json:"createdAt"`
-	UpdatedAt time.Time      `json:"updatedAt"`
+	BaseURI        string         `json:"baseUri"`
+	Timeout        int            `json:"timeout"`
+	Query          datatypes.JSON `json:"query"`
+	RetryOnFailure bool           `json:"retryOnFailure"`
+	RetryCount     int            `json:"retryCount"`
+	RetryDelay     int            `json:"retryDelay"`
+	CreatedAt      time.Time      `json:"createdAt"`
+	UpdatedAt      time.Time      `json:"updatedAt"`
 }
 
 type MinimalEndpointOutput struct {
@@ -26,21 +29,27 @@ type MinimalEndpointOutput struct {
 }
 
 type CreateEndpointInput struct {
-	Name    string         `json:"name" validate:"required,min=2,max=255"`
-	BaseURI string         `json:"baseUri" validate:"required,url"`
-	Path    string         `json:"path" validate:"required"`
-	Method  string         `json:"method" validate:"required"`
-	Timeout int            `json:"timeout" validate:"required,min=1,max=300000,number"`
-	Query   datatypes.JSON `json:"query" validate:"required,json"`
+	Name           string         `json:"name" validate:"required,min=2,max=255"`
+	BaseURI        string         `json:"baseUri" validate:"required,url"`
+	Path           string         `json:"path" validate:"required"`
+	Method         string         `json:"method" validate:"required"`
+	Timeout        int            `json:"timeout" validate:"required,min=1,max=300000,number"`
+	Query          datatypes.JSON `json:"query" validate:"required,json"`
+	RetryOnFailure bool           `json:"retryOnFailure" validate:"required,boolean"`
+	RetryCount     int            `json:"retryCount" validate:"required,min=0,max=10,number"`
+	RetryDelay     int            `json:"retryDelay" validate:"required,min=0,max=300000,number"`
 }
 
 type UpdateEndpointInput struct {
-	Name    string         `json:"name" validate:"required,min=2,max=255"`
-	BaseURI string         `json:"baseUri" validate:"required,url"`
-	Path    string         `json:"path" validate:"required"`
-	Method  string         `json:"method" validate:"required"`
-	Timeout int            `json:"timeout" validate:"required,min=1,max=300000,number"`
-	Query   datatypes.JSON `json:"query" validate:"required,json"`
+	Name           string         `json:"name" validate:"required,min=2,max=255"`
+	BaseURI        string         `json:"baseUri" validate:"required,url"`
+	Path           string         `json:"path" validate:"required"`
+	Method         string         `json:"method" validate:"required"`
+	Timeout        int            `json:"timeout" validate:"required,min=1,max=300000,number"`
+	Query          datatypes.JSON `json:"query" validate:"required,json"`
+	RetryOnFailure bool           `json:"retryOnFailure" validate:"required,boolean"`
+	RetryCount     int            `json:"retryCount" validate:"required,min=0,max=10,number"`
+	RetryDelay     int            `json:"retryDelay" validate:"required,min=0,max=300000,number"`
 }
 
 func NewMinimalEndpointOutput(endpoint domain.Endpoint) MinimalEndpointOutput {
@@ -60,6 +69,9 @@ func NewEndpointOutput(endpoint domain.Endpoint) EndpointOutput {
 		BaseURI:               endpoint.BaseURI,
 		Timeout:               endpoint.Timeout,
 		Query:                 endpoint.Query,
+		RetryOnFailure:        endpoint.RetryOnFailure,
+		RetryCount:            endpoint.RetryCount,
+		RetryDelay:            endpoint.RetryDelay,
 	}
 }
 

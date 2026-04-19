@@ -1,4 +1,4 @@
-.PHONY: dev dev-logs dev-down dev-restart dev-rebuild prod prod-logs prod-down prod-restart build clean shell test help
+.PHONY: dev dev-logs dev-down dev-restart dev-rebuild prod prod-logs prod-down prod-restart build clean shell tests coverage help
 
 # ============================================
 # Development commands (docker-compose.yml)
@@ -80,3 +80,10 @@ clean-all:
 
 lint:
 	docker-compose exec api golangci-lint run --fix
+
+coverage:
+	docker-compose exec api go test ./tests/handler_test -coverprofile=coverage.txt
+	go tool cover -func=coverage.txt
+
+tests:
+	docker-compose exec api go test ./tests/handler_test -v
