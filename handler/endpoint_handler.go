@@ -11,10 +11,10 @@ import (
 
 type EndpointHandler struct {
 	BaseHandler
-	endpointService *service.EndpointService
+	endpointService service.EndpointServiceInterface
 }
 
-func NewEndpointHandler(endpointService *service.EndpointService) *EndpointHandler {
+func NewEndpointHandler(endpointService service.EndpointServiceInterface) *EndpointHandler {
 	return &EndpointHandler{
 		endpointService: endpointService,
 	}
