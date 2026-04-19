@@ -10,7 +10,10 @@ import (
 )
 
 type MockUserService struct {
-	GetUserFunc func(user *domain.User) (*dto.UserOutput, error)
+	GetUserFunc    func(user *domain.User) (*dto.UserOutput, error)
+	CreateUserFunc func(c fiber.Ctx, id string, firstName string, lastName string, banned bool) (*domain.User, error)
+	UpdateUserFunc func(c fiber.Ctx, id string, firstName string, lastName string, banned bool) error
+	DeleteUserFunc func(c fiber.Ctx, id string) error
 }
 
 func (m *MockUserService) GetUser(user *domain.User) (*dto.UserOutput, error) {
@@ -20,8 +23,52 @@ func (m *MockUserService) GetUser(user *domain.User) (*dto.UserOutput, error) {
 	return nil, nil
 }
 
+func (m *MockUserService) CreateUser(c fiber.Ctx, id string, firstName string, lastName string, banned bool) (*domain.User, error) {
+	if m.CreateUserFunc != nil {
+		return m.CreateUserFunc(c, id, firstName, lastName, banned)
+	}
+	return nil, nil
+}
+
+func (m *MockUserService) UpdateUser(c fiber.Ctx, id string, firstName string, lastName string, banned bool) error {
+	if m.UpdateUserFunc != nil {
+		return m.UpdateUserFunc(c, id, firstName, lastName, banned)
+	}
+	return nil
+}
+
+func (m *MockUserService) DeleteUser(c fiber.Ctx, id string) error {
+	if m.DeleteUserFunc != nil {
+		return m.DeleteUserFunc(c, id)
+	}
+	return nil
+}
+
 func NewMockUserService() *MockUserService {
 	return &MockUserService{}
+}
+
+type MockUserRepository struct {
+	FindByClerkIDFunc func(clerkID string) (*domain.User, error)
+	UpdateFunc        func(user *domain.User) error
+}
+
+func (m *MockUserRepository) FindByClerkID(clerkID string) (*domain.User, error) {
+	if m.FindByClerkIDFunc != nil {
+		return m.FindByClerkIDFunc(clerkID)
+	}
+	return nil, nil
+}
+
+func (m *MockUserRepository) Update(user *domain.User) error {
+	if m.UpdateFunc != nil {
+		return m.UpdateFunc(user)
+	}
+	return nil
+}
+
+func NewMockUserRepository() *MockUserRepository {
+	return &MockUserRepository{}
 }
 
 type MockEndpointService struct {

@@ -15,12 +15,12 @@ import (
 
 type WebhookClerkHandler struct {
 	BaseHandler
-	userService         *service.UserService
-	organizationService *service.OrganizationService
-	userRepository      *repository.UserRepository
+	userService         service.UserServiceInterface
+	organizationService service.OrganizationServiceInterface
+	userRepository      repository.UserRepositoryInterface
 }
 
-func NewWebhookClerkHandler(userService *service.UserService, organizationService *service.OrganizationService, userRepository *repository.UserRepository) *WebhookClerkHandler {
+func NewWebhookClerkHandler(userService service.UserServiceInterface, organizationService service.OrganizationServiceInterface, userRepository repository.UserRepositoryInterface) *WebhookClerkHandler {
 	return &WebhookClerkHandler{
 		userService:         userService,
 		organizationService: organizationService,
@@ -91,49 +91,70 @@ func (h *WebhookClerkHandler) Handle(c fiber.Ctx) error {
 func (h *WebhookClerkHandler) CreateUser(c fiber.Ctx, data dto.ClerkUserCreated) error {
 	user, err := h.userRepository.FindByClerkID(data.ID)
 	if err != nil {
-		return err
+		log.Printf("Error finding user by Clerk ID %s: %v", data.ID, err)
+		return errors.ErrUserFailedToCreate
 	}
 
 	if user != nil {
+		log.Printf("User with Clerk ID %s already exists, skipping creation", data.ID)
 		return nil
 	}
 
 	user, err = h.userService.CreateUser(c, data.ID, data.FirstName, data.LastName, *data.Banned)
 	if err != nil {
-		return err
+		log.Printf("Error creating user with Clerk ID %s: %v", data.ID, err)
+		return errors.ErrUserFailedToCreate
 	}
 
 	organization, err := h.organizationService.CreateOrganization(c, user, "Default Organization")
 	if err != nil {
-		return err
+		log.Printf("Error creating default organization for user %s: %v", user.ID, err)
+		return errors.ErrOrganizationFailedToCreate
 	}
 
 	organizationID, err := uuid.Parse(organization.ID)
 	if err != nil {
-		return errors.ErrOrganizationFailedToCreate
+		log.Printf("Error parsing organization UUID %s: %v", organization.ID, err)
+		return errors.ErrInvalidOrganizationUUID
 	}
 
 	user.ActiveOrganizationID = &organizationID
 	if err := h.userRepository.Update(user); err != nil {
-		return err
+		log.Printf("Error updating user %s with active organization: %v", user.ID, err)
+		return errors.ErrUserFailedToCreate
 	}
 
+	log.Printf("Successfully created user with Clerk ID %s and organization %s", data.ID, organizationID)
 	return nil
 }
 
 func (h *WebhookClerkHandler) UpdateUser(c fiber.Ctx, data dto.ClerkUserUpdated) error {
 	user, err := h.userRepository.FindByClerkID(data.ID)
 	if err != nil {
+		log.Printf("Error finding user by Clerk ID %s: %v", data.ID, err)
 		return err
 	}
 
 	if user == nil {
+		log.Printf("User with Clerk ID %s not found for update", data.ID)
 		return errors.ErrUserNotFound
 	}
 
-	return h.userService.UpdateUser(c, data.ID, data.FirstName, data.LastName, *data.Banned)
+	if err := h.userService.UpdateUser(c, data.ID, data.FirstName, data.LastName, *data.Banned); err != nil {
+		log.Printf("Error updating user with Clerk ID %s: %v", data.ID, err)
+		return err
+	}
+
+	log.Printf("Successfully updated user with Clerk ID %s", data.ID)
+	return nil
 }
 
 func (h *WebhookClerkHandler) DeleteUser(c fiber.Ctx, data dto.ClerkUserDeleted) error {
-	return h.userService.DeleteUser(c, data.ID)
+	if err := h.userService.DeleteUser(c, data.ID); err != nil {
+		log.Printf("Error deleting user with Clerk ID %s: %v", data.ID, err)
+		return err
+	}
+
+	log.Printf("Successfully deleted user with Clerk ID %s", data.ID)
+	return nil
 }

@@ -11,6 +11,9 @@ import (
 
 type UserServiceInterface interface {
 	GetUser(user *domain.User) (*dto.UserOutput, error)
+	CreateUser(c fiber.Ctx, id string, firstName string, lastName string, banned bool) (*domain.User, error)
+	UpdateUser(c fiber.Ctx, id string, firstName string, lastName string, banned bool) error
+	DeleteUser(c fiber.Ctx, id string) error
 }
 
 type EndpointServiceInterface interface {

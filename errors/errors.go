@@ -21,6 +21,7 @@ var (
 	ErrMaxOrganizationsReached    = errors.New("max organizations reached")
 	ErrInvalidOrganizationID      = errors.New("invalid organization UUID")
 	ErrOrganizationFailedToCreate = errors.New("organization failed to create")
+	ErrInvalidOrganizationUUID    = errors.New("invalid organization UUID format")
 	ErrEndpointsNotFound          = errors.New("endpoints not found")
 	ErrInvalidEndpointID          = errors.New("invalid endpoint UUID")
 	ErrEndpointNotFound           = errors.New("endpoint not found")
@@ -53,6 +54,7 @@ func GetHTTPStatus(err error) int {
 	case errors.Is(err, ErrInvalidRequestBody),
 		errors.Is(err, ErrValidationFailed),
 		errors.Is(err, ErrInvalidOrganizationID),
+		errors.Is(err, ErrInvalidOrganizationUUID),
 		errors.Is(err, ErrInvalidEndpointID),
 		errors.Is(err, ErrInvalidWorkflowID),
 		errors.Is(err, ErrInvalidStepID),
