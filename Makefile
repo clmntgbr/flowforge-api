@@ -82,8 +82,7 @@ lint:
 	docker-compose exec api golangci-lint run --fix
 
 coverage:
-	docker-compose exec api go test ./tests/handler_test -coverprofile=coverage.txt
-	go tool cover -func=coverage.txt
+	docker-compose exec api go test -coverprofile=coverage.out ./tests/handler_test -coverpkg=./handler
 
 tests:
 	docker-compose exec api go test ./tests/handler_test -v

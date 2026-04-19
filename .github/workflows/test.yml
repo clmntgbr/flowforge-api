@@ -18,10 +18,9 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version-file: go.mod
+          go-version: '1.25.9'
           cache-dependency-path: go.sum
 
-      # -coverpkg=./handler: tests live in handler_test but cover the handler package
       - name: Run tests with coverage
         run: |
           go test ./tests/handler_test -v \
