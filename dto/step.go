@@ -46,7 +46,7 @@ type UpdateStepInput struct {
 	Description    string         `json:"description" validate:"omitempty,min=2,max=255"`
 	Timeout        int            `json:"timeout" validate:"omitempty,min=0"`
 	Query          datatypes.JSON `json:"query"`
-	RetryOnFailure bool           `json:"retryOnFailure" validate:"required,boolean"`
+	RetryOnFailure bool           `json:"retryOnFailure"`
 	RetryCount     int            `json:"retryCount" validate:"required,min=0,max=10,number"`
 	RetryDelay     int            `json:"retryDelay" validate:"required,min=0,max=300000,number"`
 }
