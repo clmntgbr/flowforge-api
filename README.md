@@ -1,5 +1,9 @@
 # Go API Template (Fiber + Clerk + PostgreSQL)
 
+[![CI](https://github.com/clmntgbr/flowforge-api/actions/workflows/test.yml/badge.svg)](https://github.com/clmntgbr/flowforge-api/actions/workflows/test.yml)
+[![Codecov](https://codecov.io/gh/clmntgbr/flowforge-api/graph/badge.svg)](https://app.codecov.io/gh/clmntgbr/flowforge-api)
+[![Handler tests](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fclmntgbr%2Fflowforge-api%2Fmain%2Fbadges%2Fhandler-tests.json)](https://github.com/clmntgbr/flowforge-api/tree/main/tests/handler_test)
+
 This organization is a Go API starter built with Fiber, GORM, PostgreSQL, and Clerk authentication.
 It includes:
 
@@ -8,6 +12,14 @@ It includes:
 - User synchronization between Clerk and local database
 - Docker-based local development and production compose setup
 - Makefile commands for daily workflows
+
+## CI, tests, and coverage
+
+- **CI** — GitHub Actions workflow [`.github/workflows/test.yml`](.github/workflows/test.yml): `go test` on `tests/handler_test` with coverage for `handler`.
+- **Coverage badge** — powered by [Codecov](https://codecov.io) (upload uses OIDC; open the Codecov app once for this repo so reports and the badge work).
+- **Handler tests badge** — Shields [endpoint badge](https://shields.io/badges/endpoint-badge) reading [`badges/handler-tests.json`](badges/handler-tests.json). On each push to `main` or `master`, the workflow recomputes the number of `Test*` functions and commits the file when it changes (commit message includes `[skip ci]` to avoid a loop).
+
+If your default branch is not `main`, update the Shields `url=` in this README so it points at the correct branch. For a **private** repository, the endpoint badge may not resolve unless the JSON stays reachable for Shields.
 
 ## Tech Stack
 

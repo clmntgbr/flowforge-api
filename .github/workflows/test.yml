@@ -9,6 +9,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -19,5 +22,61 @@ jobs:
           go-version-file: go.mod
           cache-dependency-path: go.sum
 
-      - name: Run tests
-        run: go test ./tests/handler_test -v
+      # -coverpkg=./handler: tests live in handler_test but cover the handler package
+      - name: Run tests with coverage
+        run: |
+          go test ./tests/handler_test -v \
+            -coverprofile=coverage.out \
+            -covermode=atomic \
+            -coverpkg=./handler
+
+      - name: Add coverage to job summary
+        run: |
+          {
+            echo '## Coverage'
+            echo ''
+            echo 'Statements in `handler` measured via `tests/handler_test`.'
+            echo ''
+            echo '```'
+            go tool cover -func=coverage.out
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage
+          path: coverage.out
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.out
+          use_oidc: true
+          fail_ci_if_error: false
+
+      - name: Update handler test count badge data
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        run: |
+          COUNT=$(go test -list . ./tests/handler_test 2>/dev/null | grep -c '^Test' || echo 0)
+          mkdir -p badges
+          jq -cn \
+            --argjson schemaVersion 1 \
+            --arg label "handler tests" \
+            --arg message "$COUNT" \
+            --arg color brightgreen \
+            '{schemaVersion: $schemaVersion, label: $label, message: $message, color: $color}' \
+            > badges/handler-tests.json
+
+      - name: Commit badge update
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add badges/handler-tests.json
+          if git diff --staged --quiet; then
+            echo "Badge data unchanged."
+          else
+            git commit -m "chore: update handler test count badge [skip ci]"
+            git push
+          fi
