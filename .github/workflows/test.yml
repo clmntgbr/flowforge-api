@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -26,7 +25,7 @@ jobs:
       - name: Run tests with coverage
         run: |
           go test ./tests/handler_test -v \
-            -coverprofile=coverage.out \
+            -coverprofile=coverage.txt \
             -covermode=atomic \
             -coverpkg=./handler
 
@@ -38,7 +37,7 @@ jobs:
             echo 'Statements in `handler` measured via `tests/handler_test`.'
             echo ''
             echo '```'
-            go tool cover -func=coverage.out
+            go tool cover -func=coverage.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -46,13 +45,13 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: coverage
-          path: coverage.out
+          path: coverage.txt
 
-      - name: Upload coverage to Codecov
+      - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
-          files: coverage.out
-          use_oidc: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.txt
           fail_ci_if_error: false
 
       - name: Update handler test count badge data
