@@ -5,5 +5,5 @@ tmp/
 # Air
 build-errors.log
 
-
+coverage*
 .env
