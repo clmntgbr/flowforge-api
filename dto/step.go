@@ -44,11 +44,11 @@ type UpdateWorkflowStepInput struct {
 type UpdateStepInput struct {
 	Name           string         `json:"name" validate:"required,min=2,max=100"`
 	Description    string         `json:"description" validate:"omitempty,min=2,max=255"`
-	Timeout        int            `json:"timeout" validate:"omitempty,min=0"`
+	Timeout        int            `json:"timeout" validate:"required,min=1,max=60,number"`
 	Query          datatypes.JSON `json:"query"`
 	RetryOnFailure bool           `json:"retryOnFailure"`
 	RetryCount     int            `json:"retryCount" validate:"min=0,max=10,number"`
-	RetryDelay     int            `json:"retryDelay" validate:"min=0,max=300000,number"`
+	RetryDelay     int            `json:"retryDelay" validate:"min=0,max=600,number"`
 }
 
 func NewStepOutput(step domain.Step) StepOutput {

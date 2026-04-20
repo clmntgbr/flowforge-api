@@ -26,7 +26,7 @@ func TestStepHandler_GetStepByID_Success(t *testing.T) {
 			Name: "Test Step",
 		},
 		Description: "Test Description",
-		Timeout:     5000,
+		Timeout:     50,
 	}
 
 	mockService.GetStepByIDFunc = func(ctx context.Context, organizationID uuid.UUID, sID uuid.UUID) (dto.StepOutput, error) {
@@ -91,11 +91,11 @@ func TestStepHandler_UpdateStep_Success(t *testing.T) {
 	validInput := dto.UpdateStepInput{
 		Name:           "Updated Step",
 		Description:    "Updated Description",
-		Timeout:        10000,
+		Timeout:        50,
 		Query:          datatypes.JSON([]byte(`{"key": "value"}`)),
 		RetryOnFailure: true,
 		RetryCount:     5,
-		RetryDelay:     2000,
+		RetryDelay:     500,
 	}
 
 	mockService.UpdateStepFunc = func(ctx context.Context, organizationID uuid.UUID, sID uuid.UUID, req dto.UpdateStepInput) (dto.StepOutput, error) {
@@ -123,19 +123,19 @@ func TestStepHandler_UpdateStep_InvalidData(t *testing.T) {
 	}{
 		{
 			name:  "Empty name",
-			input: map[string]interface{}{"name": "", "description": "Test", "timeout": 5000},
+			input: map[string]interface{}{"name": "", "description": "Test", "timeout": 50},
 		},
 		{
 			name:  "Name too short",
-			input: map[string]interface{}{"name": "A", "description": "Test", "timeout": 5000},
+			input: map[string]interface{}{"name": "A", "description": "Test", "timeout": 50},
 		},
 		{
 			name:  "Name too long",
-			input: map[string]interface{}{"name": string(make([]byte, 150)), "description": "Test", "timeout": 5000},
+			input: map[string]interface{}{"name": string(make([]byte, 150)), "description": "Test", "timeout": 50},
 		},
 		{
 			name:  "Missing name",
-			input: map[string]interface{}{"description": "Test", "timeout": 5000},
+			input: map[string]interface{}{"description": "Test", "timeout": 50},
 		},
 		{
 			name:  "Negative timeout",
@@ -174,10 +174,10 @@ func TestStepHandler_UpdateStep_InvalidUUID(t *testing.T) {
 	validInput := dto.UpdateStepInput{
 		Name:           "Updated",
 		Description:    "Test",
-		Timeout:        5000,
+		Timeout:        50,
 		RetryOnFailure: false,
 		RetryCount:     3,
-		RetryDelay:     1000,
+		RetryDelay:     500,
 	}
 
 	app.Use(setOrganizationIDInContext(app, orgID))
@@ -224,10 +224,10 @@ func TestStepHandler_UpdateStep_Unauthorized(t *testing.T) {
 	validInput := dto.UpdateStepInput{
 		Name:           "Updated Step",
 		Description:    "Test",
-		Timeout:        5000,
+		Timeout:        50,
 		RetryOnFailure: false,
 		RetryCount:     3,
-		RetryDelay:     1000,
+		RetryDelay:     500,
 	}
 
 	app.Put("/steps/:id", stepHandler.UpdateStep)
@@ -250,10 +250,10 @@ func TestStepHandler_UpdateStep_ServiceError(t *testing.T) {
 	validInput := dto.UpdateStepInput{
 		Name:           "Updated Step",
 		Description:    "Test",
-		Timeout:        5000,
+		Timeout:        50,
 		RetryOnFailure: false,
 		RetryCount:     3,
-		RetryDelay:     1000,
+		RetryDelay:     500,
 	}
 
 	mockService.UpdateStepFunc = func(ctx context.Context, organizationID uuid.UUID, sID uuid.UUID, req dto.UpdateStepInput) (dto.StepOutput, error) {
