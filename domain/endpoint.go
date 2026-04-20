@@ -20,6 +20,7 @@ type Endpoint struct {
 
 	Query  Query  `json:"query" gorm:"type:jsonb;default:'[]'"`
 	Header Header `json:"headers" gorm:"type:jsonb;default:'[]'"`
+	Body   Body   `json:"body" gorm:"type:jsonb;default:'[]'"`
 
 	OrganizationID uuid.UUID `gorm:"type:uuid;not null" json:"organization_id"`
 

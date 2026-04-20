@@ -18,6 +18,7 @@ type StepOutput struct {
 	Timeout        int           `json:"timeout"`
 	Query          domain.Query  `json:"query"`
 	Header         domain.Header `json:"header"`
+	Body           domain.Body   `json:"body"`
 	RetryOnFailure bool          `json:"retryOnFailure"`
 	RetryCount     int           `json:"retryCount"`
 	RetryDelay     int           `json:"retryDelay"`
@@ -47,6 +48,7 @@ type UpdateStepInput struct {
 	Timeout        int           `json:"timeout" validate:"required,min=1,max=60,number"`
 	Query          domain.Query  `json:"query" validate:"required,dive"`
 	Header         domain.Header `json:"header" validate:"required,dive"`
+	Body           domain.Body   `json:"body" validate:"required,dive"`
 	RetryOnFailure bool          `json:"retryOnFailure"`
 	RetryCount     int           `json:"retryCount" validate:"min=0,max=10,number"`
 	RetryDelay     int           `json:"retryDelay" validate:"min=0,max=600,number"`
@@ -59,6 +61,7 @@ func NewStepOutput(step domain.Step) StepOutput {
 		Timeout:           step.Timeout,
 		Query:             step.Query,
 		Header:            step.Header,
+		Body:              step.Body,
 		RetryOnFailure:    step.RetryOnFailure,
 		RetryCount:        step.RetryCount,
 		RetryDelay:        step.RetryDelay,

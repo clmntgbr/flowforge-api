@@ -26,6 +26,7 @@ type Step struct {
 
 	Query  Query  `json:"query" gorm:"type:jsonb;default:'[]'"`
 	Header Header `json:"headers" gorm:"type:jsonb;default:'[]'"`
+	Body   Body   `json:"body" gorm:"type:jsonb;default:'[]'"`
 
 	RetryOnFailure bool `gorm:"not null;default:false" json:"retryOnFailure"`
 	RetryCount     int  `gorm:"not null;default:0" json:"retryCount"`

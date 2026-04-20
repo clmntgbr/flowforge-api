@@ -40,6 +40,7 @@ func (s *EndpointService) CreateEndpoint(c fiber.Ctx, organizationID uuid.UUID, 
 		Timeout:        req.Timeout,
 		Query:          req.Query,
 		Header:         req.Header,
+		Body:           req.Body,
 		RetryOnFailure: req.RetryOnFailure,
 		RetryCount:     req.RetryCount,
 		RetryDelay:     req.RetryDelay,
@@ -65,6 +66,7 @@ func (s *EndpointService) UpdateEndpoint(c fiber.Ctx, organizationID uuid.UUID, 
 	endpoint.Timeout = req.Timeout
 	endpoint.Query = req.Query
 	endpoint.Header = req.Header
+	endpoint.Body = req.Body
 	endpoint.RetryOnFailure = req.RetryOnFailure
 	endpoint.RetryCount = req.RetryCount
 	endpoint.RetryDelay = req.RetryDelay

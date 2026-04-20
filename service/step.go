@@ -80,6 +80,7 @@ func (s *StepService) UpsertSteps(ctx context.Context, workflowID uuid.UUID, ste
 				Timeout:        endpoint.Timeout,
 				Query:          endpoint.Query,
 				Header:         endpoint.Header,
+				Body:           endpoint.Body,
 				Position:       position,
 				Index:          index,
 				EndpointID:     endpointUUID,
@@ -119,6 +120,7 @@ func (s *StepService) UpdateStep(ctx context.Context, organizationID uuid.UUID, 
 	step.Timeout = stepInput.Timeout
 	step.Query = stepInput.Query
 	step.Header = stepInput.Header
+	step.Body = stepInput.Body
 	step.RetryOnFailure = stepInput.RetryOnFailure
 	step.RetryCount = stepInput.RetryCount
 	step.RetryDelay = stepInput.RetryDelay
