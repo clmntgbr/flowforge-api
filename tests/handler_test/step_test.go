@@ -3,6 +3,7 @@ package handler_test
 import (
 	"context"
 	"errors"
+	"forgeflow-api/domain"
 	"forgeflow-api/dto"
 	"forgeflow-api/handler"
 	"testing"
@@ -10,7 +11,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/datatypes"
 )
 
 func TestStepHandler_GetStepByID_Success(t *testing.T) {
@@ -92,7 +92,8 @@ func TestStepHandler_UpdateStep_Success(t *testing.T) {
 		Name:           "Updated Step",
 		Description:    "Updated Description",
 		Timeout:        50,
-		Query:          datatypes.JSON([]byte(`{"key": "value"}`)),
+		Query:          domain.Query{{ID: "1", Key: "key", Value: "value"}},
+		Header:         domain.Header{},
 		RetryOnFailure: true,
 		RetryCount:     5,
 		RetryDelay:     500,
@@ -175,6 +176,8 @@ func TestStepHandler_UpdateStep_InvalidUUID(t *testing.T) {
 		Name:           "Updated",
 		Description:    "Test",
 		Timeout:        50,
+		Query:          domain.Query{},
+		Header:         domain.Header{},
 		RetryOnFailure: false,
 		RetryCount:     3,
 		RetryDelay:     500,
@@ -225,6 +228,8 @@ func TestStepHandler_UpdateStep_Unauthorized(t *testing.T) {
 		Name:           "Updated Step",
 		Description:    "Test",
 		Timeout:        50,
+		Query:          domain.Query{},
+		Header:         domain.Header{},
 		RetryOnFailure: false,
 		RetryCount:     3,
 		RetryDelay:     500,
@@ -251,6 +256,8 @@ func TestStepHandler_UpdateStep_ServiceError(t *testing.T) {
 		Name:           "Updated Step",
 		Description:    "Test",
 		Timeout:        50,
+		Query:          domain.Query{},
+		Header:         domain.Header{},
 		RetryOnFailure: false,
 		RetryCount:     3,
 		RetryDelay:     500,

@@ -2,6 +2,7 @@ package handler_test
 
 import (
 	"errors"
+	"forgeflow-api/domain"
 	"forgeflow-api/dto"
 	"forgeflow-api/handler"
 	"net/http"
@@ -11,7 +12,6 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/datatypes"
 )
 
 func TestEndpointHandler_GetEndpoints_Success(t *testing.T) {
@@ -102,7 +102,8 @@ func TestEndpointHandler_CreateEndpoint_Success(t *testing.T) {
 		Path:           "/users",
 		Method:         "GET",
 		Timeout:        50,
-		Query:          datatypes.JSON([]byte(`{"key": "value"}`)),
+		Query:          domain.Query{{ID: "1", Key: "key", Value: "value"}},
+		Header:         domain.Header{},
 		RetryOnFailure: false,
 		RetryCount:     3,
 		RetryDelay:     500,
@@ -213,7 +214,8 @@ func TestEndpointHandler_CreateEndpoint_Unauthorized(t *testing.T) {
 		Path:           "/users",
 		Method:         "GET",
 		Timeout:        50,
-		Query:          datatypes.JSON([]byte(`{}`)),
+		Query:          domain.Query{},
+		Header:         domain.Header{},
 		RetryOnFailure: false,
 		RetryCount:     3,
 		RetryDelay:     500,
@@ -248,7 +250,8 @@ func TestEndpointHandler_CreateEndpoint_ServiceError(t *testing.T) {
 		Path:           "/users",
 		Method:         "GET",
 		Timeout:        50,
-		Query:          datatypes.JSON([]byte(`{}`)),
+		Query:          domain.Query{},
+		Header:         domain.Header{},
 		RetryOnFailure: false,
 		RetryCount:     3,
 		RetryDelay:     500,
@@ -278,7 +281,8 @@ func TestEndpointHandler_GetEndpointByID_Success(t *testing.T) {
 		},
 		BaseURI: "https://api.example.com",
 		Timeout: 5000,
-		Query:   datatypes.JSON([]byte(`{}`)),
+		Query:   domain.Query{},
+		Header:  domain.Header{},
 	}
 
 	mockService.GetEndpointByIDFunc = func(c fiber.Ctx, organizationID uuid.UUID, id uuid.UUID) (dto.EndpointOutput, error) {
@@ -377,7 +381,8 @@ func TestEndpointHandler_UpdateEndpoint_Success(t *testing.T) {
 		Path:           "/v2/users",
 		Method:         "POST",
 		Timeout:        50,
-		Query:          datatypes.JSON([]byte(`{"updated": "value"}`)),
+		Query:          domain.Query{{ID: "1", Key: "updated", Value: "value"}},
+		Header:         domain.Header{},
 		RetryOnFailure: true,
 		RetryCount:     5,
 		RetryDelay:     500,
@@ -469,7 +474,8 @@ func TestEndpointHandler_UpdateEndpoint_InvalidUUID(t *testing.T) {
 		Path:    "/users",
 		Method:  "GET",
 		Timeout: 50,
-		Query:   datatypes.JSON([]byte(`{}`)),
+		Query:   domain.Query{},
+		Header:  domain.Header{},
 	}
 
 	app.Use(setOrganizationIDInContext(app, orgID))
@@ -497,7 +503,8 @@ func TestEndpointHandler_UpdateEndpoint_Unauthorized(t *testing.T) {
 		Path:           "/users",
 		Method:         "GET",
 		Timeout:        50,
-		Query:          datatypes.JSON([]byte(`{}`)),
+		Query:          domain.Query{},
+		Header:         domain.Header{},
 		RetryOnFailure: false,
 		RetryCount:     3,
 		RetryDelay:     500,
@@ -535,7 +542,8 @@ func TestEndpointHandler_UpdateEndpoint_ServiceError(t *testing.T) {
 		Path:           "/users",
 		Method:         "GET",
 		Timeout:        50,
-		Query:          datatypes.JSON([]byte(`{}`)),
+		Query:          domain.Query{},
+		Header:         domain.Header{},
 		RetryOnFailure: false,
 		RetryCount:     3,
 		RetryDelay:     500,
@@ -562,7 +570,8 @@ func TestEndpointHandler_CreateEndpoint_VariousValidInputs(t *testing.T) {
 				Path:           "/quick",
 				Method:         "GET",
 				Timeout:        1,
-				Query:          datatypes.JSON([]byte(`{}`)),
+				Query:          domain.Query{},
+				Header:         domain.Header{},
 				RetryOnFailure: false,
 				RetryCount:     0,
 				RetryDelay:     0,
@@ -576,7 +585,8 @@ func TestEndpointHandler_CreateEndpoint_VariousValidInputs(t *testing.T) {
 				Path:           "/slow",
 				Method:         "POST",
 				Timeout:        60,
-				Query:          datatypes.JSON([]byte(`{}`)),
+				Query:          domain.Query{},
+				Header:         domain.Header{},
 				RetryOnFailure: true,
 				RetryCount:     10,
 				RetryDelay:     500,
@@ -590,7 +600,8 @@ func TestEndpointHandler_CreateEndpoint_VariousValidInputs(t *testing.T) {
 				Path:           "/users/:id/posts/:postId",
 				Method:         "DELETE",
 				Timeout:        50,
-				Query:          datatypes.JSON([]byte(`{"param": "value"}`)),
+				Query:          domain.Query{{ID: "1", Key: "param", Value: "value"}},
+				Header:         domain.Header{},
 				RetryOnFailure: true,
 				RetryCount:     3,
 				RetryDelay:     500,
@@ -604,7 +615,8 @@ func TestEndpointHandler_CreateEndpoint_VariousValidInputs(t *testing.T) {
 				Path:           "/resource",
 				Method:         "PATCH",
 				Timeout:        50,
-				Query:          datatypes.JSON([]byte(`{"filter": "active"}`)),
+				Query:          domain.Query{{ID: "1", Key: "filter", Value: "active"}},
+				Header:         domain.Header{},
 				RetryOnFailure: false,
 				RetryCount:     2,
 				RetryDelay:     500,
