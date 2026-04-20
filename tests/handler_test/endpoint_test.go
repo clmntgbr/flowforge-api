@@ -101,11 +101,11 @@ func TestEndpointHandler_CreateEndpoint_Success(t *testing.T) {
 		BaseURI:        "https://api.example.com",
 		Path:           "/users",
 		Method:         "GET",
-		Timeout:        5000,
+		Timeout:        50,
 		Query:          datatypes.JSON([]byte(`{"key": "value"}`)),
 		RetryOnFailure: false,
 		RetryCount:     3,
-		RetryDelay:     1000,
+		RetryDelay:     500,
 	}
 
 	mockService.CreateEndpointFunc = func(c fiber.Ctx, organizationID uuid.UUID, req dto.CreateEndpointInput) (dto.EndpointOutput, error) {
@@ -139,27 +139,27 @@ func TestEndpointHandler_CreateEndpoint_InvalidData(t *testing.T) {
 	}{
 		{
 			name:        "Empty name",
-			input:       map[string]interface{}{"name": "", "baseUri": "https://api.example.com", "path": "/users", "method": "GET", "timeout": 5000, "query": `{}`},
+			input:       map[string]interface{}{"name": "", "baseUri": "https://api.example.com", "path": "/users", "method": "GET", "timeout": 50, "query": `{}`},
 			description: "Name is required",
 		},
 		{
 			name:        "Name too short",
-			input:       map[string]interface{}{"name": "A", "baseUri": "https://api.example.com", "path": "/users", "method": "GET", "timeout": 5000, "query": `{}`},
+			input:       map[string]interface{}{"name": "A", "baseUri": "https://api.example.com", "path": "/users", "method": "GET", "timeout": 50, "query": `{}`},
 			description: "Name must be at least 2 characters",
 		},
 		{
 			name:        "Invalid URL",
-			input:       map[string]interface{}{"name": "Test", "baseUri": "not-a-url", "path": "/users", "method": "GET", "timeout": 5000, "query": `{}`},
+			input:       map[string]interface{}{"name": "Test", "baseUri": "not-a-url", "path": "/users", "method": "GET", "timeout": 50, "query": `{}`},
 			description: "BaseURI must be a valid URL",
 		},
 		{
 			name:        "Missing path",
-			input:       map[string]interface{}{"name": "Test", "baseUri": "https://api.example.com", "path": "", "method": "GET", "timeout": 5000, "query": `{}`},
+			input:       map[string]interface{}{"name": "Test", "baseUri": "https://api.example.com", "path": "", "method": "GET", "timeout": 50, "query": `{}`},
 			description: "Path is required",
 		},
 		{
 			name:        "Missing method",
-			input:       map[string]interface{}{"name": "Test", "baseUri": "https://api.example.com", "path": "/users", "method": "", "timeout": 5000, "query": `{}`},
+			input:       map[string]interface{}{"name": "Test", "baseUri": "https://api.example.com", "path": "/users", "method": "", "timeout": 50, "query": `{}`},
 			description: "Method is required",
 		},
 		{
@@ -170,7 +170,7 @@ func TestEndpointHandler_CreateEndpoint_InvalidData(t *testing.T) {
 		{
 			name:        "Timeout too high",
 			input:       map[string]interface{}{"name": "Test", "baseUri": "https://api.example.com", "path": "/users", "method": "GET", "timeout": 500000, "query": `{}`},
-			description: "Timeout must be at most 300000",
+			description: "Timeout must be at most 60",
 		},
 		{
 			name:        "Missing all fields",
@@ -212,11 +212,11 @@ func TestEndpointHandler_CreateEndpoint_Unauthorized(t *testing.T) {
 		BaseURI:        "https://api.example.com",
 		Path:           "/users",
 		Method:         "GET",
-		Timeout:        5000,
+		Timeout:        50,
 		Query:          datatypes.JSON([]byte(`{}`)),
 		RetryOnFailure: false,
 		RetryCount:     3,
-		RetryDelay:     1000,
+		RetryDelay:     500,
 	}
 
 	req, err := makeJSONRequest("POST", "/endpoints", validInput)
@@ -247,11 +247,11 @@ func TestEndpointHandler_CreateEndpoint_ServiceError(t *testing.T) {
 		BaseURI:        "https://api.example.com",
 		Path:           "/users",
 		Method:         "GET",
-		Timeout:        5000,
+		Timeout:        50,
 		Query:          datatypes.JSON([]byte(`{}`)),
 		RetryOnFailure: false,
 		RetryCount:     3,
-		RetryDelay:     1000,
+		RetryDelay:     500,
 	}
 
 	req, err := makeJSONRequest("POST", "/endpoints", validInput)
@@ -319,7 +319,7 @@ func TestEndpointHandler_GetEndpointByID_InvalidUUID(t *testing.T) {
 
 	resp, err := app.Test(req)
 	assert.NoError(t, err)
-	// parseUUIDParam sends BadRequest response but returns error, 
+	// parseUUIDParam sends BadRequest response but returns error,
 	// which might result in 500 from error handler
 	assert.True(t, resp.StatusCode == fiber.StatusBadRequest || resp.StatusCode == fiber.StatusInternalServerError)
 }
@@ -376,11 +376,11 @@ func TestEndpointHandler_UpdateEndpoint_Success(t *testing.T) {
 		BaseURI:        "https://api.updated.com",
 		Path:           "/v2/users",
 		Method:         "POST",
-		Timeout:        10000,
+		Timeout:        50,
 		Query:          datatypes.JSON([]byte(`{"updated": "value"}`)),
 		RetryOnFailure: true,
 		RetryCount:     5,
-		RetryDelay:     2000,
+		RetryDelay:     500,
 	}
 
 	mockService.UpdateEndpointFunc = func(c fiber.Ctx, organizationID uuid.UUID, id uuid.UUID, req dto.UpdateEndpointInput) (dto.EndpointOutput, error) {
@@ -415,7 +415,7 @@ func TestEndpointHandler_UpdateEndpoint_InvalidData(t *testing.T) {
 	}{
 		{
 			name:        "Empty name",
-			input:       map[string]interface{}{"name": "", "baseUri": "https://api.example.com", "path": "/users", "method": "GET", "timeout": 5000, "query": `{}`},
+			input:       map[string]interface{}{"name": "", "baseUri": "https://api.example.com", "path": "/users", "method": "GET", "timeout": 50, "query": `{}`},
 			description: "Name is required",
 		},
 		{
@@ -425,12 +425,12 @@ func TestEndpointHandler_UpdateEndpoint_InvalidData(t *testing.T) {
 		},
 		{
 			name:        "Missing method",
-			input:       map[string]interface{}{"name": "Updated", "baseUri": "https://api.example.com", "path": "/users", "method": "", "timeout": 5000, "query": `{}`},
+			input:       map[string]interface{}{"name": "Updated", "baseUri": "https://api.example.com", "path": "/users", "method": "", "timeout": 50, "query": `{}`},
 			description: "Method is required",
 		},
 		{
 			name:        "Very long name",
-			input:       map[string]interface{}{"name": string(make([]byte, 300)), "baseUri": "https://api.example.com", "path": "/users", "method": "GET", "timeout": 5000, "query": `{}`},
+			input:       map[string]interface{}{"name": string(make([]byte, 300)), "baseUri": "https://api.example.com", "path": "/users", "method": "GET", "timeout": 50, "query": `{}`},
 			description: "Name exceeds maximum length",
 		},
 	}
@@ -468,7 +468,7 @@ func TestEndpointHandler_UpdateEndpoint_InvalidUUID(t *testing.T) {
 		BaseURI: "https://api.example.com",
 		Path:    "/users",
 		Method:  "GET",
-		Timeout: 5000,
+		Timeout: 50,
 		Query:   datatypes.JSON([]byte(`{}`)),
 	}
 
@@ -496,11 +496,11 @@ func TestEndpointHandler_UpdateEndpoint_Unauthorized(t *testing.T) {
 		BaseURI:        "https://api.example.com",
 		Path:           "/users",
 		Method:         "GET",
-		Timeout:        5000,
+		Timeout:        50,
 		Query:          datatypes.JSON([]byte(`{}`)),
 		RetryOnFailure: false,
 		RetryCount:     3,
-		RetryDelay:     1000,
+		RetryDelay:     500,
 	}
 
 	app.Put("/endpoints/:id", endpointHandler.UpdateEndpoint)
@@ -534,11 +534,11 @@ func TestEndpointHandler_UpdateEndpoint_ServiceError(t *testing.T) {
 		BaseURI:        "https://api.example.com",
 		Path:           "/users",
 		Method:         "GET",
-		Timeout:        5000,
+		Timeout:        50,
 		Query:          datatypes.JSON([]byte(`{}`)),
 		RetryOnFailure: false,
 		RetryCount:     3,
-		RetryDelay:     1000,
+		RetryDelay:     500,
 	}
 
 	req, err := makeJSONRequest("PUT", "/endpoints/"+endpointID.String(), validInput)
@@ -575,11 +575,11 @@ func TestEndpointHandler_CreateEndpoint_VariousValidInputs(t *testing.T) {
 				BaseURI:        "https://api.example.com",
 				Path:           "/slow",
 				Method:         "POST",
-				Timeout:        300000,
+				Timeout:        60,
 				Query:          datatypes.JSON([]byte(`{}`)),
 				RetryOnFailure: true,
 				RetryCount:     10,
-				RetryDelay:     300000,
+				RetryDelay:     500,
 			},
 		},
 		{
@@ -589,11 +589,11 @@ func TestEndpointHandler_CreateEndpoint_VariousValidInputs(t *testing.T) {
 				BaseURI:        "https://api.example.com",
 				Path:           "/users/:id/posts/:postId",
 				Method:         "DELETE",
-				Timeout:        5000,
+				Timeout:        50,
 				Query:          datatypes.JSON([]byte(`{"param": "value"}`)),
 				RetryOnFailure: true,
 				RetryCount:     3,
-				RetryDelay:     1500,
+				RetryDelay:     500,
 			},
 		},
 		{
@@ -603,7 +603,7 @@ func TestEndpointHandler_CreateEndpoint_VariousValidInputs(t *testing.T) {
 				BaseURI:        "https://api.example.com",
 				Path:           "/resource",
 				Method:         "PATCH",
-				Timeout:        3000,
+				Timeout:        50,
 				Query:          datatypes.JSON([]byte(`{"filter": "active"}`)),
 				RetryOnFailure: false,
 				RetryCount:     2,
