@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"forgeflow-api/ctxutil"
 	"forgeflow-api/dto"
 	"forgeflow-api/errors"
@@ -48,6 +49,8 @@ func (h *EndpointHandler) CreateEndpoint(c fiber.Ctx) error {
 	var req dto.CreateEndpointInput
 	err, response := h.bindAndValidate(c, &req)
 	if err != nil {
+		fmt.Println("Error binding and validating request", err)
+		fmt.Println("Response", response)
 		return c.Status(fiber.StatusBadRequest).JSON(response)
 	}
 

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gorm.io/datatypes"
 )
 
 type Position struct {
@@ -15,14 +14,15 @@ type Position struct {
 
 type StepOutput struct {
 	MinimalStepOutput
-	Description    string         `json:"description"`
-	Timeout        int            `json:"timeout"`
-	Query          datatypes.JSON `json:"query"`
-	RetryOnFailure bool           `json:"retryOnFailure"`
-	RetryCount     int            `json:"retryCount"`
-	RetryDelay     int            `json:"retryDelay"`
-	CreatedAt      time.Time      `json:"createdAt"`
-	UpdatedAt      time.Time      `json:"updatedAt"`
+	Description    string        `json:"description"`
+	Timeout        int           `json:"timeout"`
+	Query          domain.Query  `json:"query"`
+	Header         domain.Header `json:"header"`
+	RetryOnFailure bool          `json:"retryOnFailure"`
+	RetryCount     int           `json:"retryCount"`
+	RetryDelay     int           `json:"retryDelay"`
+	CreatedAt      time.Time     `json:"createdAt"`
+	UpdatedAt      time.Time     `json:"updatedAt"`
 }
 
 type MinimalStepOutput struct {
@@ -42,13 +42,14 @@ type UpdateWorkflowStepInput struct {
 }
 
 type UpdateStepInput struct {
-	Name           string         `json:"name" validate:"required,min=2,max=100"`
-	Description    string         `json:"description" validate:"omitempty,min=2,max=255"`
-	Timeout        int            `json:"timeout" validate:"required,min=1,max=60,number"`
-	Query          datatypes.JSON `json:"query"`
-	RetryOnFailure bool           `json:"retryOnFailure"`
-	RetryCount     int            `json:"retryCount" validate:"min=0,max=10,number"`
-	RetryDelay     int            `json:"retryDelay" validate:"min=0,max=600,number"`
+	Name           string        `json:"name" validate:"required,min=2,max=100"`
+	Description    string        `json:"description" validate:"omitempty,min=2,max=255"`
+	Timeout        int           `json:"timeout" validate:"required,min=1,max=60,number"`
+	Query          domain.Query  `json:"query" validate:"required,dive"`
+	Header         domain.Header `json:"header" validate:"required,dive"`
+	RetryOnFailure bool          `json:"retryOnFailure"`
+	RetryCount     int           `json:"retryCount" validate:"min=0,max=10,number"`
+	RetryDelay     int           `json:"retryDelay" validate:"min=0,max=600,number"`
 }
 
 func NewStepOutput(step domain.Step) StepOutput {
@@ -57,6 +58,7 @@ func NewStepOutput(step domain.Step) StepOutput {
 		Description:       step.Description,
 		Timeout:           step.Timeout,
 		Query:             step.Query,
+		Header:            step.Header,
 		RetryOnFailure:    step.RetryOnFailure,
 		RetryCount:        step.RetryCount,
 		RetryDelay:        step.RetryDelay,

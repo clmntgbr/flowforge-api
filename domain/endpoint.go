@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gorm.io/datatypes"
 )
 
 type Endpoint struct {
@@ -19,7 +18,8 @@ type Endpoint struct {
 	RetryCount     int  `gorm:"not null;default:0" json:"retryCount"`
 	RetryDelay     int  `gorm:"not null;default:0" json:"retryDelay"`
 
-	Query datatypes.JSON `json:"query" gorm:"type:jsonb;default:'[]'"`
+	Query  Query  `json:"query" gorm:"type:jsonb;default:'[]'"`
+	Header Header `json:"headers" gorm:"type:jsonb;default:'[]'"`
 
 	OrganizationID uuid.UUID `gorm:"type:uuid;not null" json:"organization_id"`
 

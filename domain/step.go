@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gorm.io/datatypes"
 )
 
 type Position struct {
@@ -25,7 +24,8 @@ type Step struct {
 
 	Endpoint Endpoint `gorm:"foreignKey:EndpointID" json:"endpoint"`
 
-	Query datatypes.JSON `json:"query" gorm:"type:jsonb;default:'[]'"`
+	Query  Query  `json:"query" gorm:"type:jsonb;default:'[]'"`
+	Header Header `json:"headers" gorm:"type:jsonb;default:'[]'"`
 
 	RetryOnFailure bool `gorm:"not null;default:false" json:"retryOnFailure"`
 	RetryCount     int  `gorm:"not null;default:0" json:"retryCount"`
