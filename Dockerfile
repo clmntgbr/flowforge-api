@@ -41,12 +41,19 @@ CMD ["air", "-c", ".air.toml"]
 # ============================================
 FROM base AS builder
 
-# Build the application from cmd/server
+# Build the server application
 RUN CGO_ENABLED=0 GOOS=linux go build \
     -a -installsuffix cgo \
     -ldflags="-w -s" \
-    -o main \
-    ./server/main.go
+    -o server \
+    ./cmd/server
+
+# Build the CLI application
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -a -installsuffix cgo \
+    -ldflags="-w -s" \
+    -o cli \
+    ./cmd/cli
 
 
 # ============================================
@@ -63,8 +70,9 @@ RUN addgroup -g 1000 appuser && \
 
 WORKDIR /home/appuser
 
-# Copy binary from builder
-COPY --from=builder --chown=appuser:appuser /app/main .
+# Copy binaries from builder
+COPY --from=builder --chown=appuser:appuser /app/server .
+COPY --from=builder --chown=appuser:appuser /app/cli ./bin/cli
 
 # Switch to non-root user
 USER appuser
@@ -72,5 +80,5 @@ USER appuser
 # Expose port
 EXPOSE 3000
 
-# Run the application
-CMD ["./main"]
+# Run the server application by default
+CMD ["./server"]

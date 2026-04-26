@@ -14,7 +14,7 @@ services:
     env_file:
       - .env
     networks:
-      - uplink
+      - api
     restart: unless-stopped
 
   database:
@@ -34,7 +34,7 @@ services:
     volumes:
       - database_data:/var/lib/postgresql/data:rw
     networks:
-      - uplink
+      - api
     restart: unless-stopped
 
   ngrok:
@@ -46,7 +46,7 @@ services:
     ports:
       - "4040:4040"
     networks:
-      - uplink
+      - api
     restart: unless-stopped
 
 volumes:
@@ -54,5 +54,5 @@ volumes:
   database_data:
 
 networks:
-  uplink:
+  api:
     driver: bridge

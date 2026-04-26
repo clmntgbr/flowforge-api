@@ -86,3 +86,13 @@ coverage:
 
 tests:
 	docker-compose exec api go test ./tests/handler_test -v
+
+# ============================================
+# CLI Commands (via Docker)
+# ============================================
+
+start-workflow:
+	@echo "🔨 Building CLI..."
+	@docker-compose exec api go build -o bin/cli ./cmd/cli
+	@echo "🔄 Running workflow:start command..."
+	@docker-compose exec api ./bin/cli workflow:start
