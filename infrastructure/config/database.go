@@ -1,7 +1,6 @@
 package config
 
 import (
-	"flowforge-api/domain/entity"
 	"log"
 	"time"
 
@@ -36,21 +35,4 @@ func ConnectDatabase(cfg *Config) *gorm.DB {
 	log.Println("database connection pool configured")
 
 	return db
-}
-
-func AutoMigrate(db *gorm.DB) {
-	err := db.AutoMigrate(
-		&entity.User{},
-		&entity.Organization{},
-		&entity.Endpoint{},
-		&entity.Workflow{},
-		&entity.Step{},
-		&entity.Connexion{},
-	)
-
-	if err != nil {
-		log.Fatalf("failed to migrate database: %v", err)
-	}
-
-	log.Println("database migrations completed")
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/gofiber/fiber/v3/middleware/healthcheck"
 	"github.com/gofiber/fiber/v3/middleware/helmet"
 	"github.com/gofiber/fiber/v3/middleware/limiter"
+	"github.com/gofiber/fiber/v3/middleware/logger"
 )
 
 func main() {
@@ -44,6 +45,18 @@ func main() {
 			})
 		},
 	}))
+
+	app.Use(logger.New(logger.Config{
+		Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",
+	}))
+
+	app.Use(func(c fiber.Ctx) error {
+		start := time.Now()
+		err := c.Next()
+		duration := time.Since(start)
+		c.Append("Server-Timing", "app;dur="+duration.String())
+		return err
+	})
 
 	setupHealthChecks(app)
 
