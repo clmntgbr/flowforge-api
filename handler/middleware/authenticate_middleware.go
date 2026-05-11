@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"flowforge-api/handler/context"
 	"flowforge-api/presenter"
 	"flowforge-api/usecase/auth"
 	"flowforge-api/usecase/clerk"
@@ -113,6 +114,9 @@ func (m *AuthenticateMiddleware) Protected() fiber.Handler {
 				"message": "User is banned",
 			})
 		}
+
+		context.SetUser(c, *output.User)
+		context.SetOrganizationID(c, *output.User.ActiveOrganizationID)
 
 		return c.Next()
 	}
