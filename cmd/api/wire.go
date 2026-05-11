@@ -38,7 +38,7 @@ func NewWire(db *gorm.DB, env *config.Config) *Dependencies {
 	updateUserUseCase := user.NewUpdateUserUseCase(userRepo)
 	deleteUserUseCase := user.NewDeleteUserUseCase(userRepo)
 
-	clerkMiddleware := middleware.NewClerkMiddleware(env.ClerkSecretKey)
+	clerkMiddleware := middleware.NewClerkMiddleware(env.ClerkWebhookSecret)
 	authenticateMiddleware := middleware.NewAuthenticateMiddleware(validateTokenUseCase, fetchUserUseCase, createUserUseCase, createOrganizationUseCase, updateUserUseCase)
 	clerkHandler := handler.NewClerkHandler(userRepo, createUserUseCase, createOrganizationUseCase, updateUserUseCase, deleteUserUseCase)
 	userHandler := handler.NewUserHandler()
