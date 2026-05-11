@@ -15,21 +15,21 @@ import (
 	"gorm.io/gorm"
 )
 
-type Dependencies struct {
+type Container struct {
 	AuthenticateMiddleware *middleware.AuthenticateMiddleware
 	ClerkMiddleware        *middleware.ClerkMiddleware
 	ClerkHandler           *handler.ClerkHandler
 	UserHandler            *handler.UserHandler
 }
 
-func NewWire(db *gorm.DB, env *config.Config) *Dependencies {
-	userRepo := repoGorm.NewUserRepository(db)
-	organizationRepo := repoGorm.NewOrganizationRepository(db)
-
+func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	jwksProvider, err := infraClerk.NewJWKSProvider(env)
 	if err != nil {
 		log.Fatalf("failed to create JWKS provider: %v", err)
 	}
+
+	userRepo := repoGorm.NewUserRepository(db)
+	organizationRepo := repoGorm.NewOrganizationRepository(db)
 
 	validateTokenUseCase := auth.NewValidateTokenUseCase(jwksProvider, userRepo)
 	fetchUserUseCase := clerk.NewFetchUserUseCase(env)
@@ -40,10 +40,11 @@ func NewWire(db *gorm.DB, env *config.Config) *Dependencies {
 
 	clerkMiddleware := middleware.NewClerkMiddleware(env.ClerkWebhookSecret)
 	authenticateMiddleware := middleware.NewAuthenticateMiddleware(validateTokenUseCase, fetchUserUseCase, createUserUseCase, createOrganizationUseCase, updateUserUseCase)
+
 	clerkHandler := handler.NewClerkHandler(userRepo, createUserUseCase, createOrganizationUseCase, updateUserUseCase, deleteUserUseCase)
 	userHandler := handler.NewUserHandler()
 
-	return &Dependencies{
+	return &Container{
 		AuthenticateMiddleware: authenticateMiddleware,
 		ClerkMiddleware:        clerkMiddleware,
 		ClerkHandler:           clerkHandler,

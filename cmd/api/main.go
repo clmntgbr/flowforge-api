@@ -58,7 +58,7 @@ func main() {
 		return err
 	})
 
-	deps := NewWire(db, env)
+	deps := NewContainer(db, env)
 
 	setupHealthChecks(app)
 	setupWebhooks(app, deps)
@@ -68,10 +68,10 @@ func main() {
 	log.Fatal(app.Listen(":" + env.Port))
 }
 
-func setupWebhooks(app *fiber.App, deps *Dependencies) {
+func setupWebhooks(app *fiber.App, container *Container) {
 	webhooks := app.Group("/webhook")
 
-	webhooks.Post("/clerk", deps.ClerkMiddleware.Protected(), deps.ClerkHandler.Execute)
+	webhooks.Post("/clerk", container.ClerkMiddleware.Protected(), container.ClerkHandler.Execute)
 }
 
 func setupHealthChecks(app *fiber.App) {
@@ -80,13 +80,13 @@ func setupHealthChecks(app *fiber.App) {
 	app.Get(healthcheck.StartupEndpoint, healthcheck.New())
 }
 
-func setupAPIRoutes(app *fiber.App, deps *Dependencies) {
+func setupAPIRoutes(app *fiber.App, container *Container) {
 	api := app.Group("/api")
 
-	api.Use(deps.AuthenticateMiddleware.Protected())
-	setupUsersRoutes(api, deps)
+	api.Use(container.AuthenticateMiddleware.Protected())
+	setupUsersRoutes(api, container)
 }
 
-func setupUsersRoutes(api fiber.Router, deps *Dependencies) {
-	api.Get("/users/me", deps.UserHandler.GetUser)
+func setupUsersRoutes(api fiber.Router, container *Container) {
+	api.Get("/users/me", container.UserHandler.GetUser)
 }
