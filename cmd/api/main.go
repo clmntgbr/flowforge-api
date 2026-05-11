@@ -15,7 +15,7 @@ import (
 
 func main() {
 	env := config.Load()
-	config.ConnectDatabase(env)
+	db := config.ConnectDatabase(env)
 
 	app := fiber.New(fiber.Config{
 		AppName:       "Flowforge API",
@@ -58,7 +58,10 @@ func main() {
 		return err
 	})
 
+	deps := NewWire(db, env)
+
 	setupHealthChecks(app)
+	setupAPIRoutes(app, deps)
 
 	log.Println("🚀 Server is running on port", env.Port)
 	log.Fatal(app.Listen(":" + env.Port))
@@ -68,4 +71,15 @@ func setupHealthChecks(app *fiber.App) {
 	app.Get(healthcheck.LivenessEndpoint, healthcheck.New())
 	app.Get(healthcheck.ReadinessEndpoint, healthcheck.New())
 	app.Get(healthcheck.StartupEndpoint, healthcheck.New())
+}
+
+func setupAPIRoutes(app *fiber.App, deps *Dependencies) {
+	api := app.Group("/api")
+
+	api.Use(deps.AuthenticateMiddleware.Protected())
+	setupUsersRoutes(api, deps)
+}
+
+func setupUsersRoutes(api fiber.Router, deps *Dependencies) {
+	api.Get("/users/me", deps.UserHandler.GetUser)
 }
