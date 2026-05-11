@@ -14,16 +14,16 @@ import (
 
 type AuthenticateMiddleware struct {
 	validateTokenUseCase      *auth.ValidateTokenUseCase
-	getUserUseCase            *clerk.GetUserUseCase
+	fetchUserUseCase          *clerk.FetchUserUseCase
 	createUserUseCase         *user.CreateUserUseCase
 	createOrganizationUseCase *organization.CreateOrganizationUseCase
 	updateUserUseCase         *user.UpdateUserUseCase
 }
 
-func NewAuthenticateMiddleware(validateTokenUseCase *auth.ValidateTokenUseCase, getUserUseCase *clerk.GetUserUseCase, createUserUseCase *user.CreateUserUseCase, createOrganizationUseCase *organization.CreateOrganizationUseCase, updateUserUseCase *user.UpdateUserUseCase) *AuthenticateMiddleware {
+func NewAuthenticateMiddleware(validateTokenUseCase *auth.ValidateTokenUseCase, fetchUserUseCase *clerk.FetchUserUseCase, createUserUseCase *user.CreateUserUseCase, createOrganizationUseCase *organization.CreateOrganizationUseCase, updateUserUseCase *user.UpdateUserUseCase) *AuthenticateMiddleware {
 	return &AuthenticateMiddleware{
 		validateTokenUseCase:      validateTokenUseCase,
-		getUserUseCase:            getUserUseCase,
+		fetchUserUseCase:          fetchUserUseCase,
 		createUserUseCase:         createUserUseCase,
 		createOrganizationUseCase: createOrganizationUseCase,
 		updateUserUseCase:         updateUserUseCase,
@@ -70,7 +70,7 @@ func (m *AuthenticateMiddleware) Protected() fiber.Handler {
 		}
 
 		if output.User == nil {
-			clerkUser, err := m.getUserUseCase.Execute(c.Context(), output.Claims.Subject)
+			clerkUser, err := m.fetchUserUseCase.Execute(c.Context(), output.Claims.Subject)
 			if err != nil {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 					"message": "Failed to get user",

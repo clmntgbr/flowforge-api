@@ -10,16 +10,16 @@ import (
 	clerkuser "github.com/clerk/clerk-sdk-go/v2/user"
 )
 
-type GetUserUseCase struct {
+type FetchUserUseCase struct {
 	config *config.Config
 }
 
-func NewGetUserUseCase(cfg *config.Config) *GetUserUseCase {
+func NewFetchUserUseCase(cfg *config.Config) *FetchUserUseCase {
 	clerk.SetKey(cfg.ClerkSecretKey)
-	return &GetUserUseCase{config: cfg}
+	return &FetchUserUseCase{config: cfg}
 }
 
-func (s *GetUserUseCase) Execute(ctx context.Context, clerkID string) (presenter.ClerkUser, error) {
+func (s *FetchUserUseCase) Execute(ctx context.Context, clerkID string) (presenter.ClerkUser, error) {
 	clerkUser, err := clerkuser.Get(context.Background(), clerkID)
 	if err != nil {
 		return presenter.ClerkUser{}, errors.New("failed to get user")
