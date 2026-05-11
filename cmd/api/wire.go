@@ -18,6 +18,7 @@ import (
 type Dependencies struct {
 	AuthenticateMiddleware *middleware.AuthenticateMiddleware
 	ClerkMiddleware        *middleware.ClerkMiddleware
+	ClerkHandler           *handler.ClerkHandler
 	UserHandler            *handler.UserHandler
 }
 
@@ -35,15 +36,17 @@ func NewWire(db *gorm.DB, env *config.Config) *Dependencies {
 	createUserUseCase := user.NewCreateUserUseCase(userRepo)
 	createOrganizationUseCase := organization.NewCreateOrganizationUseCase(organizationRepo)
 	updateUserUseCase := user.NewUpdateUserUseCase(userRepo)
+	deleteUserUseCase := user.NewDeleteUserUseCase(userRepo)
 
 	clerkMiddleware := middleware.NewClerkMiddleware(env.ClerkSecretKey)
 	authenticateMiddleware := middleware.NewAuthenticateMiddleware(validateTokenUseCase, fetchUserUseCase, createUserUseCase, createOrganizationUseCase, updateUserUseCase)
-
+	clerkHandler := handler.NewClerkHandler(userRepo, createUserUseCase, createOrganizationUseCase, updateUserUseCase, deleteUserUseCase)
 	userHandler := handler.NewUserHandler()
 
 	return &Dependencies{
 		AuthenticateMiddleware: authenticateMiddleware,
 		ClerkMiddleware:        clerkMiddleware,
+		ClerkHandler:           clerkHandler,
 		UserHandler:            userHandler,
 	}
 }

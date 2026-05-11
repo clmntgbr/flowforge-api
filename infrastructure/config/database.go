@@ -11,9 +11,9 @@ import (
 
 func ConnectDatabase(cfg *Config) *gorm.DB {
 	logLevel := logger.Warn
-	if cfg.Environment == "development" {
-		logLevel = logger.Info
-	}
+	// if cfg.Environment == "development" {
+	// 	logLevel = logger.Info
+	// }
 
 	db, err := gorm.Open(postgres.Open(cfg.DatabaseURL), &gorm.Config{
 		Logger: logger.Default.LogMode(logLevel),

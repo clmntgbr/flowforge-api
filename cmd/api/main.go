@@ -61,10 +61,17 @@ func main() {
 	deps := NewWire(db, env)
 
 	setupHealthChecks(app)
+	setupWebhooks(app, deps)
 	setupAPIRoutes(app, deps)
 
 	log.Println("🚀 Server is running on port", env.Port)
 	log.Fatal(app.Listen(":" + env.Port))
+}
+
+func setupWebhooks(app *fiber.App, deps *Dependencies) {
+	webhooks := app.Group("/webhook")
+
+	webhooks.Post("/clerk", deps.ClerkMiddleware.Protected(), deps.ClerkHandler.Execute)
 }
 
 func setupHealthChecks(app *fiber.App) {
