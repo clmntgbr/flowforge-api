@@ -29,7 +29,7 @@ func (r *organizationRepository) Delete(ctx context.Context, id uuid.UUID) error
 	return r.db.WithContext(ctx).Delete(&entity.Organization{}, id).Error
 }
 
-func (r *organizationRepository) GetByUserID(ctx context.Context, userID uuid.UUID) ([]entity.Organization, error) {
+func (r *organizationRepository) List(ctx context.Context, userID uuid.UUID) ([]entity.Organization, error) {
 	var organizations []entity.Organization
 
 	db := r.db.WithContext(ctx).

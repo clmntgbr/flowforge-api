@@ -17,7 +17,7 @@ func NewListOrganizationsUseCase(organizationRepo repository.OrganizationReposit
 }
 
 func (u *ListOrganizationsUseCase) Execute(ctx context.Context, user *entity.User, activeOrganizationID uuid.UUID) ([]entity.Organization, error) {
-	organizations, err := u.organizationRepo.GetByUserID(ctx, user.ID)
+	organizations, err := u.organizationRepo.List(ctx, user.ID)
 	if err != nil {
 		return []entity.Organization{}, err
 	}
