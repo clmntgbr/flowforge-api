@@ -39,15 +39,17 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	fetchUserUseCase := clerk.NewFetchUserUseCase(env)
 	getUserByClerkIDUseCase := user.NewGetUserByClerkIDUseCase(userRepo)
 	createUserUseCase := user.NewCreateUserUseCase(userRepo)
-	createOrganizationUseCase := organization.NewCreateOrganizationUseCase(organizationRepo)
 	updateUserUseCase := user.NewUpdateUserUseCase(userRepo)
 	deleteUserByClerkIDUseCase := user.NewDeleteUserByClerkIDUseCase(userRepo)
+
+	createOrganizationUseCase := organization.NewCreateOrganizationUseCase(organizationRepo)
 	listOrganizationsUseCase := organization.NewListOrganizationsUseCase(organizationRepo)
 	getOrganizationByIDUseCase := organization.NewGetOrganizationByIDUseCase(organizationRepo)
 	updateOrganizationUseCase := organization.NewUpdateOrganizationUseCase(organizationRepo)
 	activateOrganizationUseCase := organization.NewActivateOrganizationUseCase(organizationRepo)
 
 	listEndpointsUseCase := endpoint.NewListEndpointsUseCase(endpointRepo)
+	createEndpointUseCase := endpoint.NewCreateEndpointUseCase(endpointRepo)
 
 	clerkMiddleware := middleware.NewClerkMiddleware(
 		env.ClerkWebhookSecret,
@@ -81,6 +83,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 
 	endpointHandler := handler.NewEndpointHandler(
 		listEndpointsUseCase,
+		createEndpointUseCase,
 	)
 
 	return &Container{

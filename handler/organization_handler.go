@@ -84,14 +84,16 @@ func (h *OrganizationHandler) CreateOrganization(c fiber.Ctx) error {
 		})
 	}
 
-	organization, err := h.createOrganizationUseCase.Execute(c.Context(), user, request.Name)
+	_, err = h.createOrganizationUseCase.Execute(c.Context(), user, request.Name)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to create organization",
 		})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(presenter.NewOrganizationDetailResponse(organization))
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"success": true,
+	})
 }
 
 func (h *OrganizationHandler) GetOrganizationByID(c fiber.Ctx) error {

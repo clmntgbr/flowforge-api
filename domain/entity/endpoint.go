@@ -21,7 +21,7 @@ type Endpoint struct {
 	RetryDelay     int  `gorm:"not null;default:0" json:"retryDelay"`
 
 	Query  types.Query  `json:"query" gorm:"type:jsonb;default:'[]'"`
-	Header types.Header `json:"headers" gorm:"type:jsonb;default:'[]'"`
+	Header types.Header `json:"header" gorm:"type:jsonb;default:'[]'"`
 	Body   types.Body   `json:"body" gorm:"type:jsonb;default:'[]'"`
 
 	OrganizationID uuid.UUID `gorm:"type:uuid;not null;index:idx_endpoint_org" json:"organization_id"`
