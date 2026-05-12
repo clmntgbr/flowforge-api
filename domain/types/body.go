@@ -8,15 +8,15 @@ import (
 type Body json.RawMessage
 
 func (b Body) Value() (driver.Value, error) {
-	if b == nil {
-		return []byte("null"), nil
+	if len(b) == 0 {
+		return []byte("[]"), nil
 	}
 	return []byte(b), nil
 }
 
 func (b *Body) Scan(value interface{}) error {
 	if value == nil {
-		*b = Body("null")
+		*b = Body("[]")
 		return nil
 	}
 	bytes, ok := value.([]byte)
