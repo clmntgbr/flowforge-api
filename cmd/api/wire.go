@@ -33,15 +33,16 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 
 	validateTokenUseCase := auth.NewValidateTokenUseCase(jwksProvider, userRepo)
 	fetchUserUseCase := clerk.NewFetchUserUseCase(env)
+	getUserByClerkIDUseCase := user.NewGetUserByClerkIDUseCase(userRepo)
 	createUserUseCase := user.NewCreateUserUseCase(userRepo)
 	createOrganizationUseCase := organization.NewCreateOrganizationUseCase(organizationRepo)
 	updateUserUseCase := user.NewUpdateUserUseCase(userRepo)
-	deleteUserUseCase := user.NewDeleteUserUseCase(userRepo)
+	deleteUserByClerkIDUseCase := user.NewDeleteUserByClerkIDUseCase(userRepo)
 
 	clerkMiddleware := middleware.NewClerkMiddleware(env.ClerkWebhookSecret)
 	authenticateMiddleware := middleware.NewAuthenticateMiddleware(validateTokenUseCase, fetchUserUseCase, createUserUseCase, createOrganizationUseCase, updateUserUseCase)
 
-	clerkHandler := handler.NewClerkHandler(userRepo, createUserUseCase, createOrganizationUseCase, updateUserUseCase, deleteUserUseCase)
+	clerkHandler := handler.NewClerkHandler(getUserByClerkIDUseCase, createUserUseCase, createOrganizationUseCase, updateUserUseCase, deleteUserByClerkIDUseCase)
 	userHandler := handler.NewUserHandler()
 
 	return &Container{

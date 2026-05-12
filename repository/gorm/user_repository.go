@@ -41,3 +41,7 @@ func (r *userRepository) Update(ctx context.Context, user *entity.User) error {
 func (r *userRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.db.WithContext(ctx).Delete(&entity.User{}, id).Error
 }
+
+func (r *userRepository) DeleteByClerkID(ctx context.Context, clerkID string) error {
+	return r.db.WithContext(ctx).Where("clerk_id = ?", clerkID).Delete(&entity.User{}).Error
+}

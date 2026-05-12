@@ -28,3 +28,19 @@ func (r *organizationRepository) Update(ctx context.Context, organization *entit
 func (r *organizationRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return r.db.WithContext(ctx).Delete(&entity.Organization{}, id).Error
 }
+
+func (r *organizationRepository) GetByUserID(ctx context.Context, userID uuid.UUID) ([]entity.Organization, error) {
+	var organizations []entity.Organization
+
+	db := r.db.WithContext(ctx).
+		Model(&entity.Organization{}).
+		Joins("JOIN user_organizations ON user_organizations.organization_id = organizations.id").
+		Where("user_organizations.user_id = ?", userID)
+
+	err := db.Find(&organizations).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return organizations, nil
+}

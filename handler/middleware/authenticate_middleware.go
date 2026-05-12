@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/google/uuid"
 )
 
 type AuthenticateMiddleware struct {
@@ -92,14 +91,7 @@ func (m *AuthenticateMiddleware) Protected() fiber.Handler {
 				})
 			}
 
-			organizationID, err := uuid.Parse(organization.ID)
-			if err != nil {
-				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-					"message": "Failed to create organization",
-				})
-			}
-
-			user.ActiveOrganizationID = &organizationID
+			user.ActiveOrganizationID = &organization.ID
 			if err := m.updateUserUseCase.Execute(c.Context(), user); err != nil {
 				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 					"message": "Failed to update user",

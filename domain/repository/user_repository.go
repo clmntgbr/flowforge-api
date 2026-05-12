@@ -12,4 +12,5 @@ type UserRepository interface {
 	GetByClerkID(ctx context.Context, clerkID string) (*entity.User, error)
 	Update(ctx context.Context, user *entity.User) error
 	Delete(ctx context.Context, id uuid.UUID) error
+	DeleteByClerkID(ctx context.Context, clerkID string) error
 }

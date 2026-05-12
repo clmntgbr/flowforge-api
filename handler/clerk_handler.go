@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"flowforge-api/domain/repository"
 	clerkdto "flowforge-api/infrastructure/clerk"
 	"flowforge-api/usecase/organization"
 	"flowforge-api/usecase/user"
@@ -11,25 +10,24 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type ClerkHandler struct {
-	userRepository            repository.UserRepository
-	createUserUseCase         *user.CreateUserUseCase
-	createOrganizationUseCase *organization.CreateOrganizationUseCase
-	updateUserUseCase         *user.UpdateUserUseCase
-	deleteUserUseCase         *user.DeleteUserUseCase
+	getUserByClerkIDUseCase    *user.GetUserByClerkIDUseCase
+	createUserUseCase          *user.CreateUserUseCase
+	createOrganizationUseCase  *organization.CreateOrganizationUseCase
+	updateUserUseCase          *user.UpdateUserUseCase
+	deleteUserByClerkIDUseCase *user.DeleteUserByClerkIDUseCase
 }
 
-func NewClerkHandler(userRepository repository.UserRepository, createUserUseCase *user.CreateUserUseCase, createOrganizationUseCase *organization.CreateOrganizationUseCase, updateUserUseCase *user.UpdateUserUseCase, deleteUserUseCase *user.DeleteUserUseCase) *ClerkHandler {
+func NewClerkHandler(getUserByClerkIDUseCase *user.GetUserByClerkIDUseCase, createUserUseCase *user.CreateUserUseCase, createOrganizationUseCase *organization.CreateOrganizationUseCase, updateUserUseCase *user.UpdateUserUseCase, deleteUserByClerkIDUseCase *user.DeleteUserByClerkIDUseCase) *ClerkHandler {
 	return &ClerkHandler{
-		userRepository:            userRepository,
-		createUserUseCase:         createUserUseCase,
-		createOrganizationUseCase: createOrganizationUseCase,
-		updateUserUseCase:         updateUserUseCase,
-		deleteUserUseCase:         deleteUserUseCase,
+		getUserByClerkIDUseCase:    getUserByClerkIDUseCase,
+		createUserUseCase:          createUserUseCase,
+		createOrganizationUseCase:  createOrganizationUseCase,
+		updateUserUseCase:          updateUserUseCase,
+		deleteUserByClerkIDUseCase: deleteUserByClerkIDUseCase,
 	}
 }
 
@@ -107,7 +105,7 @@ func (h *ClerkHandler) Execute(c fiber.Ctx) error {
 }
 
 func (h *ClerkHandler) CreateUser(c fiber.Ctx, data clerkdto.ClerkUserCreated) error {
-	user, err := h.userRepository.GetByClerkID(c.Context(), data.ID)
+	user, err := h.getUserByClerkIDUseCase.Execute(c.Context(), data.ID)
 	if err != nil {
 		log.Printf("Error finding user by Clerk ID %s: %v", data.ID, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -137,7 +135,7 @@ func (h *ClerkHandler) CreateUser(c fiber.Ctx, data clerkdto.ClerkUserCreated) e
 			})
 		}
 
-		organizationID, err := uuid.Parse(organization.ID)
+		organizationID := organization.ID
 		if err != nil {
 			log.Printf("Error parsing organization UUID %s: %v", organization.ID, err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -146,7 +144,7 @@ func (h *ClerkHandler) CreateUser(c fiber.Ctx, data clerkdto.ClerkUserCreated) e
 		}
 
 		user.ActiveOrganizationID = &organizationID
-		if err := h.userRepository.Update(c.Context(), user); err != nil {
+		if err := h.updateUserUseCase.Execute(c.Context(), user); err != nil {
 			log.Printf("Error updating user %s with active organization: %v", user.ID, err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "Failed to update user",
@@ -157,11 +155,15 @@ func (h *ClerkHandler) CreateUser(c fiber.Ctx, data clerkdto.ClerkUserCreated) e
 		return nil
 	}
 
+	if err := txFunc(nil); err != nil {
+		return err
+	}
+
 	return txFunc(nil)
 }
 
 func (h *ClerkHandler) UpdateUser(c fiber.Ctx, data clerkdto.ClerkUserUpdated) error {
-	user, err := h.userRepository.GetByClerkID(c.Context(), data.ID)
+	user, err := h.getUserByClerkIDUseCase.Execute(c.Context(), data.ID)
 	if err != nil {
 		log.Printf("Error finding user by Clerk ID %s: %v", data.ID, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -192,7 +194,7 @@ func (h *ClerkHandler) UpdateUser(c fiber.Ctx, data clerkdto.ClerkUserUpdated) e
 }
 
 func (h *ClerkHandler) DeleteUser(c fiber.Ctx, data clerkdto.ClerkUserDeleted) error {
-	if err := h.deleteUserUseCase.Execute(c.Context(), data.ID); err != nil {
+	if err := h.deleteUserByClerkIDUseCase.Execute(c.Context(), data.ID); err != nil {
 		log.Printf("Error deleting user with Clerk ID %s: %v", data.ID, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to delete user",

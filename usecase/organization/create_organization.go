@@ -4,7 +4,6 @@ import (
 	"context"
 	"flowforge-api/domain/entity"
 	"flowforge-api/domain/repository"
-	"flowforge-api/presenter"
 )
 
 type CreateOrganizationUseCase struct {
@@ -15,7 +14,7 @@ func NewCreateOrganizationUseCase(organizationRepo repository.OrganizationReposi
 	return &CreateOrganizationUseCase{organizationRepo: organizationRepo}
 }
 
-func (u *CreateOrganizationUseCase) Execute(ctx context.Context, user *entity.User, name string) (presenter.OrganizationDetailResponse, error) {
+func (u *CreateOrganizationUseCase) Execute(ctx context.Context, user *entity.User, name string) (entity.Organization, error) {
 	organization := &entity.Organization{
 		Name: name,
 		Users: []entity.User{
@@ -26,8 +25,8 @@ func (u *CreateOrganizationUseCase) Execute(ctx context.Context, user *entity.Us
 	}
 
 	if err := u.organizationRepo.Create(ctx, organization); err != nil {
-		return presenter.OrganizationDetailResponse{}, err
+		return entity.Organization{}, err
 	}
 
-	return presenter.NewOrganizationDetailResponse(*organization), nil
+	return *organization, nil
 }
