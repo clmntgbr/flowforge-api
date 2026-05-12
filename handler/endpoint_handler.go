@@ -6,7 +6,6 @@ import (
 	"flowforge-api/infrastructure/paginate"
 	"flowforge-api/presenter"
 	"flowforge-api/usecase/endpoint"
-	"log"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
@@ -97,7 +96,6 @@ func (h *EndpointHandler) CreateEndpoint(c fiber.Ctx) error {
 func (h *EndpointHandler) GetEndpointByID(c fiber.Ctx) error {
 	activeOrganizationID, err := context.GetOrganizationID(c)
 	if err != nil {
-		log.Println("error getting organization ID: ", err)
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
 		})
@@ -106,7 +104,6 @@ func (h *EndpointHandler) GetEndpointByID(c fiber.Ctx) error {
 	endpointID := c.Params("id")
 	endpointUUID, err := uuid.Parse(endpointID)
 	if err != nil {
-		log.Println("error parsing endpoint ID: ", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid endpoint ID",
 		})
@@ -114,7 +111,6 @@ func (h *EndpointHandler) GetEndpointByID(c fiber.Ctx) error {
 
 	endpoint, err := h.getEndpointUseCase.Execute(c.Context(), activeOrganizationID, endpointUUID)
 	if err != nil {
-		log.Println("error getting endpoint: ", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to get endpoint",
 		})
@@ -126,7 +122,6 @@ func (h *EndpointHandler) GetEndpointByID(c fiber.Ctx) error {
 func (h *EndpointHandler) UpdateEndpoint(c fiber.Ctx) error {
 	activeOrganizationID, err := context.GetOrganizationID(c)
 	if err != nil {
-		log.Println("error getting organization ID: ", err)
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
 		})
@@ -135,7 +130,6 @@ func (h *EndpointHandler) UpdateEndpoint(c fiber.Ctx) error {
 	endpointID := c.Params("id")
 	endpointUUID, err := uuid.Parse(endpointID)
 	if err != nil {
-		log.Println("error parsing endpoint ID: ", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid endpoint ID",
 		})
@@ -143,14 +137,12 @@ func (h *EndpointHandler) UpdateEndpoint(c fiber.Ctx) error {
 
 	var request endpointDTO.UpdateEndpointInput
 	if err := c.Bind().JSON(&request); err != nil {
-		log.Println("error binding request body: ", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
 		})
 	}
 
 	if err := validator.New().Struct(request); err != nil {
-		log.Println("error validating request body: ", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
 			"errors":  err.Error(),
@@ -159,7 +151,6 @@ func (h *EndpointHandler) UpdateEndpoint(c fiber.Ctx) error {
 
 	_, err = h.updateEndpointUseCase.Execute(c.Context(), activeOrganizationID, endpointUUID, request)
 	if err != nil {
-		log.Println("error updating endpoint: ", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to update endpoint",
 		})
