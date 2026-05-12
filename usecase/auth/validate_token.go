@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"flowforge-api/domain/repository"
+	authdto "flowforge-api/infrastructure/auth"
 	"flowforge-api/infrastructure/clerk"
-	"flowforge-api/presenter"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -25,10 +25,10 @@ func NewValidateTokenUseCase(
 	}
 }
 
-func (uc *ValidateTokenUseCase) Execute(ctx context.Context, input presenter.ValidateTokenInput) (*presenter.ValidateTokenOutput, error) {
+func (uc *ValidateTokenUseCase) Execute(ctx context.Context, input authdto.ValidateTokenInput) (*authdto.ValidateTokenOutput, error) {
 	token, err := jwt.ParseWithClaims(
 		input.Token,
-		&presenter.JWTClaims{},
+		&authdto.JWTClaims{},
 		uc.jwksProvider.GetKeyfunc(),
 		jwt.WithIssuer(uc.jwksProvider.GetIssuer()),
 		jwt.WithExpirationRequired(),
@@ -38,7 +38,7 @@ func (uc *ValidateTokenUseCase) Execute(ctx context.Context, input presenter.Val
 		return nil, errors.New("invalid token")
 	}
 
-	claims, ok := token.Claims.(*presenter.JWTClaims)
+	claims, ok := token.Claims.(*authdto.JWTClaims)
 	if !ok || !token.Valid {
 		return nil, errors.New("invalid token")
 	}
@@ -48,7 +48,7 @@ func (uc *ValidateTokenUseCase) Execute(ctx context.Context, input presenter.Val
 		return nil, errors.New("user not found")
 	}
 
-	return &presenter.ValidateTokenOutput{
+	return &authdto.ValidateTokenOutput{
 		User:   user,
 		Claims: claims,
 	}, nil

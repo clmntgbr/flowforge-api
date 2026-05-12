@@ -15,7 +15,7 @@ func NewCreateOrganizationUseCase(organizationRepo repository.OrganizationReposi
 	return &CreateOrganizationUseCase{organizationRepo: organizationRepo}
 }
 
-func (u *CreateOrganizationUseCase) Execute(ctx context.Context, user *entity.User, name string) (presenter.OrganizationOutput, error) {
+func (u *CreateOrganizationUseCase) Execute(ctx context.Context, user *entity.User, name string) (presenter.OrganizationResponse, error) {
 	organization := &entity.Organization{
 		Name: name,
 		Users: []entity.User{
@@ -26,7 +26,7 @@ func (u *CreateOrganizationUseCase) Execute(ctx context.Context, user *entity.Us
 	}
 
 	if err := u.organizationRepo.Create(ctx, organization); err != nil {
-		return presenter.OrganizationOutput{}, err
+		return presenter.OrganizationResponse{}, err
 	}
 
 	activeID := organization.ID
@@ -34,5 +34,5 @@ func (u *CreateOrganizationUseCase) Execute(ctx context.Context, user *entity.Us
 		activeID = *user.ActiveOrganizationID
 	}
 
-	return presenter.NewOrganizationOutput(*organization, activeID), nil
+	return presenter.NewOrganizationResponse(*organization, activeID), nil
 }

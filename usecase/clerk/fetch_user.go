@@ -3,8 +3,8 @@ package clerk
 import (
 	"context"
 	"errors"
+	clerkdto "flowforge-api/infrastructure/clerk"
 	"flowforge-api/infrastructure/config"
-	"flowforge-api/presenter"
 
 	"github.com/clerk/clerk-sdk-go/v2"
 	clerkuser "github.com/clerk/clerk-sdk-go/v2/user"
@@ -19,10 +19,10 @@ func NewFetchUserUseCase(cfg *config.Config) *FetchUserUseCase {
 	return &FetchUserUseCase{config: cfg}
 }
 
-func (s *FetchUserUseCase) Execute(ctx context.Context, clerkID string) (presenter.ClerkUser, error) {
+func (s *FetchUserUseCase) Execute(ctx context.Context, clerkID string) (clerkdto.ClerkUser, error) {
 	clerkUser, err := clerkuser.Get(context.Background(), clerkID)
 	if err != nil {
-		return presenter.ClerkUser{}, errors.New("failed to get user")
+		return clerkdto.ClerkUser{}, errors.New("failed to get user")
 	}
 
 	firstName := ""
@@ -37,7 +37,7 @@ func (s *FetchUserUseCase) Execute(ctx context.Context, clerkID string) (present
 
 	banned := clerkUser.Banned
 
-	return presenter.ClerkUser{
+	return clerkdto.ClerkUser{
 		ID:        clerkUser.ID,
 		FirstName: firstName,
 		LastName:  lastName,

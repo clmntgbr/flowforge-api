@@ -1,4 +1,4 @@
-package presenter
+package auth
 
 import (
 	"flowforge-api/domain/entity"

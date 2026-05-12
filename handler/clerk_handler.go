@@ -3,7 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"flowforge-api/domain/repository"
-	"flowforge-api/presenter"
+	clerkdto "flowforge-api/infrastructure/clerk"
 	"flowforge-api/usecase/organization"
 	"flowforge-api/usecase/user"
 	"fmt"
@@ -34,14 +34,14 @@ func NewClerkHandler(userRepository repository.UserRepository, createUserUseCase
 }
 
 func (h *ClerkHandler) Execute(c fiber.Ctx) error {
-	clerkEvent := c.Locals("payload").(presenter.ClerkEvent)
+	clerkEvent := c.Locals("payload").(clerkdto.ClerkEvent)
 	validate := validator.New()
 
 	fmt.Printf("Clerk event type: %s", clerkEvent.Type)
 
 	switch clerkEvent.Type {
 	case "user.created":
-		var data presenter.ClerkUserCreated
+		var data clerkdto.ClerkUserCreated
 		if err := json.Unmarshal(clerkEvent.Data, &data); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "Invalid request body",
@@ -61,7 +61,7 @@ func (h *ClerkHandler) Execute(c fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusCreated)
 
 	case "user.updated":
-		var data presenter.ClerkUserUpdated
+		var data clerkdto.ClerkUserUpdated
 		if err := json.Unmarshal(clerkEvent.Data, &data); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "Invalid request body",
@@ -81,7 +81,7 @@ func (h *ClerkHandler) Execute(c fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusNoContent)
 
 	case "user.deleted":
-		var data presenter.ClerkUserDeleted
+		var data clerkdto.ClerkUserDeleted
 		if err := json.Unmarshal(clerkEvent.Data, &data); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "Invalid request body",
@@ -106,7 +106,7 @@ func (h *ClerkHandler) Execute(c fiber.Ctx) error {
 	}
 }
 
-func (h *ClerkHandler) CreateUser(c fiber.Ctx, data presenter.ClerkUserCreated) error {
+func (h *ClerkHandler) CreateUser(c fiber.Ctx, data clerkdto.ClerkUserCreated) error {
 	user, err := h.userRepository.GetByClerkID(c.Context(), data.ID)
 	if err != nil {
 		log.Printf("Error finding user by Clerk ID %s: %v", data.ID, err)
@@ -160,7 +160,7 @@ func (h *ClerkHandler) CreateUser(c fiber.Ctx, data presenter.ClerkUserCreated) 
 	return txFunc(nil)
 }
 
-func (h *ClerkHandler) UpdateUser(c fiber.Ctx, data presenter.ClerkUserUpdated) error {
+func (h *ClerkHandler) UpdateUser(c fiber.Ctx, data clerkdto.ClerkUserUpdated) error {
 	user, err := h.userRepository.GetByClerkID(c.Context(), data.ID)
 	if err != nil {
 		log.Printf("Error finding user by Clerk ID %s: %v", data.ID, err)
@@ -191,7 +191,7 @@ func (h *ClerkHandler) UpdateUser(c fiber.Ctx, data presenter.ClerkUserUpdated) 
 	return nil
 }
 
-func (h *ClerkHandler) DeleteUser(c fiber.Ctx, data presenter.ClerkUserDeleted) error {
+func (h *ClerkHandler) DeleteUser(c fiber.Ctx, data clerkdto.ClerkUserDeleted) error {
 	if err := h.deleteUserUseCase.Execute(c.Context(), data.ID); err != nil {
 		log.Printf("Error deleting user with Clerk ID %s: %v", data.ID, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

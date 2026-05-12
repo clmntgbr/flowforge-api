@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"encoding/json"
-	"flowforge-api/presenter"
+	clerkdto "flowforge-api/infrastructure/clerk"
 	"net/http"
 
 	"github.com/gofiber/fiber/v3"
@@ -39,7 +39,7 @@ func (m *ClerkMiddleware) Protected() fiber.Handler {
 			})
 		}
 
-		var clerkEvent presenter.ClerkEvent
+		var clerkEvent clerkdto.ClerkEvent
 		if err := json.Unmarshal(payload, &clerkEvent); err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "invalid payload",

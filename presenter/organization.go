@@ -7,11 +7,11 @@ import (
 	"github.com/google/uuid"
 )
 
-type OrganizationOutput struct {
-	MinimalOrganizationOutput
+type OrganizationResponse struct {
+	MinimalOrganizationResponse
 }
 
-type MinimalOrganizationOutput struct {
+type MinimalOrganizationResponse struct {
 	ID        string    `json:"id"`
 	Name      string    `json:"name"`
 	IsActive  bool      `json:"isActive"`
@@ -19,21 +19,21 @@ type MinimalOrganizationOutput struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-func NewMinimalOrganizationsOutput(organizations []entity.Organization, activeOrganizationID uuid.UUID) []MinimalOrganizationOutput {
-	outputs := make([]MinimalOrganizationOutput, len(organizations))
+func NewMinimalOrganizationsOutput(organizations []entity.Organization, activeOrganizationID uuid.UUID) []MinimalOrganizationResponse {
+	outputs := make([]MinimalOrganizationResponse, len(organizations))
 	for i, organization := range organizations {
-		outputs[i] = NewMinimalOrganizationOutput(organization, activeOrganizationID)
+		outputs[i] = NewMinimalOrganizationResponse(organization, activeOrganizationID)
 	}
 	return outputs
 }
 
-func NewMinimalOrganizationOutput(organization entity.Organization, activeOrganizationID uuid.UUID) MinimalOrganizationOutput {
+func NewMinimalOrganizationResponse(organization entity.Organization, activeOrganizationID uuid.UUID) MinimalOrganizationResponse {
 	isActive := false
 	if activeOrganizationID != uuid.Nil && activeOrganizationID == organization.ID {
 		isActive = true
 	}
 
-	return MinimalOrganizationOutput{
+	return MinimalOrganizationResponse{
 		ID:        organization.ID.String(),
 		Name:      organization.Name,
 		IsActive:  isActive,
@@ -42,8 +42,8 @@ func NewMinimalOrganizationOutput(organization entity.Organization, activeOrgani
 	}
 }
 
-func NewOrganizationOutput(organization entity.Organization, activeOrganizationID uuid.UUID) OrganizationOutput {
-	return OrganizationOutput{
-		MinimalOrganizationOutput: NewMinimalOrganizationOutput(organization, activeOrganizationID),
+func NewOrganizationResponse(organization entity.Organization, activeOrganizationID uuid.UUID) OrganizationResponse {
+	return OrganizationResponse{
+		MinimalOrganizationResponse: NewMinimalOrganizationResponse(organization, activeOrganizationID),
 	}
 }

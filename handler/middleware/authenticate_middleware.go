@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"flowforge-api/handler/context"
-	"flowforge-api/presenter"
+	authdto "flowforge-api/infrastructure/auth"
 	"flowforge-api/usecase/auth"
 	"flowforge-api/usecase/clerk"
 	"flowforge-api/usecase/organization"
@@ -60,7 +60,7 @@ func (m *AuthenticateMiddleware) Protected() fiber.Handler {
 			})
 		}
 
-		output, err := m.validateTokenUseCase.Execute(c.Context(), presenter.ValidateTokenInput{
+		output, err := m.validateTokenUseCase.Execute(c.Context(), authdto.ValidateTokenInput{
 			Token: tokenString,
 		})
 
