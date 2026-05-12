@@ -118,7 +118,7 @@ func (h *ClerkHandler) CreateUser(c fiber.Ctx, data clerkdto.ClerkUserCreated) e
 		return nil
 	}
 
-	txFunc := func(tx *gorm.DB) error {
+	txFunc := func(_ *gorm.DB) error {
 		user, err = h.createUserUseCase.Execute(c.Context(), data.ID, data.FirstName, data.LastName, *data.Banned)
 		if err != nil {
 			log.Printf("Error creating user with Clerk ID %s: %v", data.ID, err)
@@ -135,15 +135,7 @@ func (h *ClerkHandler) CreateUser(c fiber.Ctx, data clerkdto.ClerkUserCreated) e
 			})
 		}
 
-		organizationID := organization.ID
-		if err != nil {
-			log.Printf("Error parsing organization UUID %s: %v", organization.ID, err)
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"message": "Failed to parse organization UUID",
-			})
-		}
-
-		user.ActiveOrganizationID = &organizationID
+		user.ActiveOrganizationID = &organization.ID
 		if err := h.updateUserUseCase.Execute(c.Context(), user); err != nil {
 			log.Printf("Error updating user %s with active organization: %v", user.ID, err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -151,7 +143,7 @@ func (h *ClerkHandler) CreateUser(c fiber.Ctx, data clerkdto.ClerkUserCreated) e
 			})
 		}
 
-		log.Printf("Successfully created user with Clerk ID %s and organization %s", data.ID, organizationID)
+		log.Printf("Successfully created user with Clerk ID %s and organization %s", data.ID, organization.ID)
 		return nil
 	}
 
