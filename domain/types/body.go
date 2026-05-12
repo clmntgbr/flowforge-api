@@ -7,6 +7,17 @@ import (
 
 type Body json.RawMessage
 
+func (b Body) MarshalJSON() ([]byte, error) {
+	if len(b) == 0 {
+		return []byte("[]"), nil
+	}
+	return json.RawMessage(b).MarshalJSON()
+}
+
+func (b *Body) UnmarshalJSON(data []byte) error {
+	return (*json.RawMessage)(b).UnmarshalJSON(data)
+}
+
 func (b Body) Value() (driver.Value, error) {
 	if len(b) == 0 {
 		return []byte("[]"), nil

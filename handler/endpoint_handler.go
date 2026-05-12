@@ -4,6 +4,7 @@ import (
 	"flowforge-api/handler/context"
 	endpointDTO "flowforge-api/infrastructure/endpoint"
 	"flowforge-api/infrastructure/paginate"
+	"flowforge-api/presenter"
 	"flowforge-api/usecase/endpoint"
 	"log"
 
@@ -16,17 +17,20 @@ type EndpointHandler struct {
 	listEndpointsUseCase  *endpoint.ListEndpointsUseCase
 	createEndpointUseCase *endpoint.CreateEndpointUseCase
 	updateEndpointUseCase *endpoint.UpdateEndpointUseCase
+	getEndpointUseCase    *endpoint.GetEndpointUseCase
 }
 
 func NewEndpointHandler(
 	listEndpointsUseCase *endpoint.ListEndpointsUseCase,
 	createEndpointUseCase *endpoint.CreateEndpointUseCase,
 	updateEndpointUseCase *endpoint.UpdateEndpointUseCase,
+	getEndpointUseCase *endpoint.GetEndpointUseCase,
 ) *EndpointHandler {
 	return &EndpointHandler{
 		listEndpointsUseCase:  listEndpointsUseCase,
 		createEndpointUseCase: createEndpointUseCase,
 		updateEndpointUseCase: updateEndpointUseCase,
+		getEndpointUseCase:    getEndpointUseCase,
 	}
 }
 
@@ -53,7 +57,7 @@ func (h *EndpointHandler) GetEndpoints(c fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(paginate.NewPaginateResponse(endpoints, int(total), query))
+	return c.JSON(paginate.NewPaginateResponse(presenter.NewEndpointListResponses(endpoints), int(total), query))
 }
 
 func (h *EndpointHandler) CreateEndpoint(c fiber.Ctx) error {
@@ -91,9 +95,32 @@ func (h *EndpointHandler) CreateEndpoint(c fiber.Ctx) error {
 }
 
 func (h *EndpointHandler) GetEndpointByID(c fiber.Ctx) error {
-	return c.JSON(fiber.Map{
-		"message": "Hello, World!",
-	})
+	activeOrganizationID, err := context.GetOrganizationID(c)
+	if err != nil {
+		log.Println("error getting organization ID: ", err)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+
+	endpointID := c.Params("id")
+	endpointUUID, err := uuid.Parse(endpointID)
+	if err != nil {
+		log.Println("error parsing endpoint ID: ", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid endpoint ID",
+		})
+	}
+
+	endpoint, err := h.getEndpointUseCase.Execute(c.Context(), activeOrganizationID, endpointUUID)
+	if err != nil {
+		log.Println("error getting endpoint: ", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to get endpoint",
+		})
+	}
+
+	return c.JSON(presenter.NewEndpointDetailResponse(endpoint))
 }
 
 func (h *EndpointHandler) UpdateEndpoint(c fiber.Ctx) error {
