@@ -46,7 +46,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 
 	clerkHandler := handler.NewClerkHandler(getUserByClerkIDUseCase, createUserUseCase, createOrganizationUseCase, updateUserUseCase, deleteUserByClerkIDUseCase)
 	userHandler := handler.NewUserHandler()
-	organizationHandler := handler.NewOrganizationHandler(listOrganizationsUseCase)
+	organizationHandler := handler.NewOrganizationHandler(listOrganizationsUseCase, createOrganizationUseCase)
 
 	return &Container{
 		AuthenticateMiddleware: authenticateMiddleware,
