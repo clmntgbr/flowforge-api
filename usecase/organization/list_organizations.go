@@ -22,9 +22,9 @@ func (u *ListOrganizationsUseCase) Execute(ctx context.Context, user *entity.Use
 		return []entity.Organization{}, err
 	}
 
-	for _, organization := range organizations {
-		if organization.ID == activeOrganizationID {
-			organization.IsActive = true
+	for i := range organizations {
+		if organizations[i].ID == activeOrganizationID {
+			organizations[i].IsActive = true
 		}
 	}
 

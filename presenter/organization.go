@@ -10,6 +10,7 @@ type OrganizationListResponse struct {
 	Name      string    `json:"name"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	IsActive  bool      `json:"isActive"`
 }
 
 type OrganizationDetailResponse struct {
@@ -24,6 +25,8 @@ func NewOrganizationListResponse(org entity.Organization) OrganizationListRespon
 		ID:        org.ID.String(),
 		Name:      org.Name,
 		CreatedAt: org.CreatedAt,
+		UpdatedAt: org.UpdatedAt,
+		IsActive:  org.IsActive,
 	}
 }
 

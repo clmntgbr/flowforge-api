@@ -2,7 +2,9 @@ package handler
 
 import (
 	"flowforge-api/handler/context"
+	"flowforge-api/presenter"
 	"flowforge-api/usecase/organization"
+	"log"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -32,10 +34,11 @@ func (h *OrganizationHandler) GetOrganizations(c fiber.Ctx) error {
 
 	organizations, err := h.listOrganizationsUseCase.Execute(c.Context(), user, activeOrganizationID)
 	if err != nil {
+		log.Println("Failed to list organizations: ", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to list organizations",
 		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(organizations)
+	return c.Status(fiber.StatusOK).JSON(presenter.NewOrganizationListResponses(organizations))
 }

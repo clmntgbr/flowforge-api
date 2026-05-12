@@ -15,7 +15,7 @@ type Organization struct {
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 
-	IsActive bool `json:"isActive"`
+	IsActive bool `gorm:"-" json:"isActive"`
 }
 
 func (Organization) TableName() string {

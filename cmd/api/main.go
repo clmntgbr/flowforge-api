@@ -85,8 +85,13 @@ func setupAPIRoutes(app *fiber.App, container *Container) {
 
 	api.Use(container.AuthenticateMiddleware.Protected())
 	setupUsersRoutes(api, container)
+	setupOrganizationsRoutes(api, container)
 }
 
 func setupUsersRoutes(api fiber.Router, container *Container) {
 	api.Get("/users/me", container.UserHandler.GetUser)
+}
+
+func setupOrganizationsRoutes(api fiber.Router, container *Container) {
+	api.Get("/organizations", container.OrganizationHandler.GetOrganizations)
 }

@@ -20,6 +20,7 @@ type Container struct {
 	ClerkMiddleware        *middleware.ClerkMiddleware
 	ClerkHandler           *handler.ClerkHandler
 	UserHandler            *handler.UserHandler
+	OrganizationHandler    *handler.OrganizationHandler
 }
 
 func NewContainer(db *gorm.DB, env *config.Config) *Container {
@@ -38,17 +39,20 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	createOrganizationUseCase := organization.NewCreateOrganizationUseCase(organizationRepo)
 	updateUserUseCase := user.NewUpdateUserUseCase(userRepo)
 	deleteUserByClerkIDUseCase := user.NewDeleteUserByClerkIDUseCase(userRepo)
+	listOrganizationsUseCase := organization.NewListOrganizationsUseCase(organizationRepo)
 
 	clerkMiddleware := middleware.NewClerkMiddleware(env.ClerkWebhookSecret)
 	authenticateMiddleware := middleware.NewAuthenticateMiddleware(validateTokenUseCase, fetchUserUseCase, createUserUseCase, createOrganizationUseCase, updateUserUseCase)
 
 	clerkHandler := handler.NewClerkHandler(getUserByClerkIDUseCase, createUserUseCase, createOrganizationUseCase, updateUserUseCase, deleteUserByClerkIDUseCase)
 	userHandler := handler.NewUserHandler()
+	organizationHandler := handler.NewOrganizationHandler(listOrganizationsUseCase)
 
 	return &Container{
 		AuthenticateMiddleware: authenticateMiddleware,
 		ClerkMiddleware:        clerkMiddleware,
 		ClerkHandler:           clerkHandler,
 		UserHandler:            userHandler,
+		OrganizationHandler:    organizationHandler,
 	}
 }
