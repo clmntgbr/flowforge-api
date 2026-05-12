@@ -86,6 +86,7 @@ func setupAPIRoutes(app *fiber.App, container *Container) {
 	api.Use(container.AuthenticateMiddleware.Protected())
 	setupUsersRoutes(api, container)
 	setupOrganizationsRoutes(api, container)
+	setupEndpointsRoutes(api, container)
 }
 
 func setupUsersRoutes(api fiber.Router, container *Container) {
@@ -98,4 +99,11 @@ func setupOrganizationsRoutes(api fiber.Router, container *Container) {
 	api.Get("/organizations/:id", container.OrganizationHandler.GetOrganizationByID)
 	api.Put("/organizations/:id", container.OrganizationHandler.UpdateOrganization)
 	api.Put("/organizations/:id/activate", container.OrganizationHandler.ActivateOrganization)
+}
+
+func setupEndpointsRoutes(api fiber.Router, container *Container) {
+	api.Get("/endpoints", container.EndpointHandler.GetEndpoints)
+	api.Post("/endpoints", container.EndpointHandler.CreateEndpoint)
+	api.Get("/endpoints/:id", container.EndpointHandler.GetEndpointByID)
+	api.Put("/endpoints/:id", container.EndpointHandler.UpdateEndpoint)
 }
