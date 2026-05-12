@@ -41,13 +41,38 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	deleteUserByClerkIDUseCase := user.NewDeleteUserByClerkIDUseCase(userRepo)
 	listOrganizationsUseCase := organization.NewListOrganizationsUseCase(organizationRepo)
 	getOrganizationByIDUseCase := organization.NewGetOrganizationByIDUseCase(organizationRepo)
+	updateOrganizationUseCase := organization.NewUpdateOrganizationUseCase(organizationRepo)
+	activateOrganizationUseCase := organization.NewActivateOrganizationUseCase(organizationRepo)
 
-	clerkMiddleware := middleware.NewClerkMiddleware(env.ClerkWebhookSecret)
-	authenticateMiddleware := middleware.NewAuthenticateMiddleware(validateTokenUseCase, fetchUserUseCase, createUserUseCase, createOrganizationUseCase, updateUserUseCase)
+	clerkMiddleware := middleware.NewClerkMiddleware(
+		env.ClerkWebhookSecret,
+	)
 
-	clerkHandler := handler.NewClerkHandler(getUserByClerkIDUseCase, createUserUseCase, createOrganizationUseCase, updateUserUseCase, deleteUserByClerkIDUseCase)
+	authenticateMiddleware := middleware.NewAuthenticateMiddleware(
+		validateTokenUseCase,
+		fetchUserUseCase,
+		createUserUseCase,
+		createOrganizationUseCase,
+		updateUserUseCase,
+	)
+
+	clerkHandler := handler.NewClerkHandler(
+		getUserByClerkIDUseCase,
+		createUserUseCase,
+		createOrganizationUseCase,
+		updateUserUseCase,
+		deleteUserByClerkIDUseCase,
+	)
+
 	userHandler := handler.NewUserHandler()
-	organizationHandler := handler.NewOrganizationHandler(listOrganizationsUseCase, createOrganizationUseCase, getOrganizationByIDUseCase)
+
+	organizationHandler := handler.NewOrganizationHandler(
+		listOrganizationsUseCase,
+		createOrganizationUseCase,
+		getOrganizationByIDUseCase,
+		updateOrganizationUseCase,
+		activateOrganizationUseCase,
+	)
 
 	return &Container{
 		AuthenticateMiddleware: authenticateMiddleware,

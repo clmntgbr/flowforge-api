@@ -60,3 +60,26 @@ func (r *organizationRepository) GetByIDAndUserID(ctx context.Context, id uuid.U
 
 	return organization, nil
 }
+
+func (r *organizationRepository) ActivateOrganization(ctx context.Context, userID uuid.UUID, organizationID uuid.UUID) (entity.Organization, error) {
+	var organization entity.Organization
+	err := r.db.WithContext(ctx).
+		Joins("JOIN user_organizations ON user_organizations.organization_id = organizations.id").
+		Where("organizations.id = ? AND user_organizations.user_id = ?", organizationID, userID).
+		First(&organization).Error
+
+	if err != nil {
+		return entity.Organization{}, err
+	}
+
+	err = r.db.WithContext(ctx).
+		Model(&entity.User{}).
+		Where("id = ?", userID).
+		Update("active_organization_id", organizationID).Error
+
+	if err != nil {
+		return entity.Organization{}, err
+	}
+
+	return organization, nil
+}

@@ -13,13 +13,27 @@ import (
 )
 
 type OrganizationHandler struct {
-	listOrganizationsUseCase   *organization.ListOrganizationsUseCase
-	createOrganizationUseCase  *organization.CreateOrganizationUseCase
-	getOrganizationByIDUseCase *organization.GetOrganizationByIDUseCase
+	listOrganizationsUseCase    *organization.ListOrganizationsUseCase
+	createOrganizationUseCase   *organization.CreateOrganizationUseCase
+	getOrganizationByIDUseCase  *organization.GetOrganizationByIDUseCase
+	updateOrganizationUseCase   *organization.UpdateOrganizationUseCase
+	activateOrganizationUseCase *organization.ActivateOrganizationUseCase
 }
 
-func NewOrganizationHandler(listOrganizationsUseCase *organization.ListOrganizationsUseCase, createOrganizationUseCase *organization.CreateOrganizationUseCase, getOrganizationByIDUseCase *organization.GetOrganizationByIDUseCase) *OrganizationHandler {
-	return &OrganizationHandler{listOrganizationsUseCase: listOrganizationsUseCase, createOrganizationUseCase: createOrganizationUseCase, getOrganizationByIDUseCase: getOrganizationByIDUseCase}
+func NewOrganizationHandler(
+	listOrganizationsUseCase *organization.ListOrganizationsUseCase,
+	createOrganizationUseCase *organization.CreateOrganizationUseCase,
+	getOrganizationByIDUseCase *organization.GetOrganizationByIDUseCase,
+	updateOrganizationUseCase *organization.UpdateOrganizationUseCase,
+	activateOrganizationUseCase *organization.ActivateOrganizationUseCase,
+) *OrganizationHandler {
+	return &OrganizationHandler{
+		listOrganizationsUseCase:    listOrganizationsUseCase,
+		createOrganizationUseCase:   createOrganizationUseCase,
+		getOrganizationByIDUseCase:  getOrganizationByIDUseCase,
+		updateOrganizationUseCase:   updateOrganizationUseCase,
+		activateOrganizationUseCase: activateOrganizationUseCase,
+	}
 }
 
 func (h *OrganizationHandler) GetOrganizations(c fiber.Ctx) error {
@@ -104,4 +118,78 @@ func (h *OrganizationHandler) GetOrganizationByID(c fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(presenter.NewOrganizationDetailResponse(organization))
+}
+
+func (h *OrganizationHandler) UpdateOrganization(c fiber.Ctx) error {
+	user, err := context.GetUser(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+
+	organizationID := c.Params("id")
+	organizationUUID, err := uuid.Parse(organizationID)
+	if err != nil {
+		log.Println("Invalid organization ID: ", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid organization ID",
+		})
+	}
+
+	var request organizationDTO.UpdateOrganizationInput
+	if err := c.Bind().JSON(&request); err != nil {
+		log.Println("Invalid request body: ", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid request body",
+		})
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		log.Println("Invalid request body: ", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid request body",
+			"errors":  err.Error(),
+		})
+	}
+
+	organization, err := h.updateOrganizationUseCase.Execute(c.Context(), user, organizationUUID, request.Name)
+	if err != nil {
+		log.Println("Failed to update organization: ", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to update organization",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(presenter.NewOrganizationDetailResponse(organization))
+}
+
+func (h *OrganizationHandler) ActivateOrganization(c fiber.Ctx) error {
+	user, err := context.GetUser(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+
+	organizationID := c.Params("id")
+	organizationUUID, err := uuid.Parse(organizationID)
+	if err != nil {
+		log.Println("Invalid organization ID: ", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid organization ID",
+		})
+	}
+
+	_, err = h.activateOrganizationUseCase.Execute(c.Context(), user, organizationUUID)
+	if err != nil {
+		log.Println("Failed to activate organization: ", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to activate organization",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"success": true,
+	})
 }

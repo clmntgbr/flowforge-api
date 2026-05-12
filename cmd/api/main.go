@@ -96,4 +96,6 @@ func setupOrganizationsRoutes(api fiber.Router, container *Container) {
 	api.Get("/organizations", container.OrganizationHandler.GetOrganizations)
 	api.Post("/organizations", container.OrganizationHandler.CreateOrganization)
 	api.Get("/organizations/:id", container.OrganizationHandler.GetOrganizationByID)
+	api.Put("/organizations/:id", container.OrganizationHandler.UpdateOrganization)
+	api.Put("/organizations/:id/activate", container.OrganizationHandler.ActivateOrganization)
 }
