@@ -52,3 +52,17 @@ func (r *endpointRepository) List(ctx context.Context, organizationID uuid.UUID,
 
 	return endpoints, total, nil
 }
+
+func (r *endpointRepository) GetByIDAndOrganizationID(ctx context.Context, id uuid.UUID, organizationID uuid.UUID) (entity.Endpoint, error) {
+	var endpoint entity.Endpoint
+
+	err := r.db.WithContext(ctx).
+		Where("organization_id = ? AND id = ?", organizationID, id).
+		First(&endpoint).Error
+
+	if err != nil {
+		return entity.Endpoint{}, err
+	}
+
+	return endpoint, nil
+}

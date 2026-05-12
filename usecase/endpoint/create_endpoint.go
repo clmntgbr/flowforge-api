@@ -5,7 +5,6 @@ import (
 	"flowforge-api/domain/entity"
 	"flowforge-api/domain/repository"
 	endpointDTO "flowforge-api/infrastructure/endpoint"
-	"log"
 
 	"github.com/google/uuid"
 )
@@ -19,13 +18,6 @@ func NewCreateEndpointUseCase(endpointRepo repository.EndpointRepository) *Creat
 }
 
 func (u *CreateEndpointUseCase) Execute(ctx context.Context, organizationID uuid.UUID, input endpointDTO.CreateEndpointInput) (entity.Endpoint, error) {
-
-	log.Println("input: ", input)
-	log.Println("organizationID: ", organizationID)
-	log.Println("Body: ", input.Body)
-	log.Println("Query: ", input.Query)
-	log.Println("Header: ", input.Header)
-
 	endpoint := &entity.Endpoint{
 		Name:           input.Name,
 		OrganizationID: organizationID,
@@ -42,7 +34,6 @@ func (u *CreateEndpointUseCase) Execute(ctx context.Context, organizationID uuid
 	}
 
 	if err := u.endpointRepo.Create(ctx, endpoint); err != nil {
-		log.Println("error creating endpoint: ", err)
 		return entity.Endpoint{}, err
 	}
 

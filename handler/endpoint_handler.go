@@ -9,20 +9,24 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
+	"github.com/google/uuid"
 )
 
 type EndpointHandler struct {
 	listEndpointsUseCase  *endpoint.ListEndpointsUseCase
 	createEndpointUseCase *endpoint.CreateEndpointUseCase
+	updateEndpointUseCase *endpoint.UpdateEndpointUseCase
 }
 
 func NewEndpointHandler(
 	listEndpointsUseCase *endpoint.ListEndpointsUseCase,
 	createEndpointUseCase *endpoint.CreateEndpointUseCase,
+	updateEndpointUseCase *endpoint.UpdateEndpointUseCase,
 ) *EndpointHandler {
 	return &EndpointHandler{
 		listEndpointsUseCase:  listEndpointsUseCase,
 		createEndpointUseCase: createEndpointUseCase,
+		updateEndpointUseCase: updateEndpointUseCase,
 	}
 }
 
@@ -68,18 +72,14 @@ func (h *EndpointHandler) CreateEndpoint(c fiber.Ctx) error {
 	}
 
 	if err := validator.New().Struct(request); err != nil {
-		log.Println("error validating request: ", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
 			"errors":  err.Error(),
 		})
 	}
 
-	log.Println("request: ", request)
-
 	_, err = h.createEndpointUseCase.Execute(c.Context(), activeOrganizationID, request)
 	if err != nil {
-		log.Println("error creating endpoint: ", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to create endpoint",
 		})
@@ -97,7 +97,48 @@ func (h *EndpointHandler) GetEndpointByID(c fiber.Ctx) error {
 }
 
 func (h *EndpointHandler) UpdateEndpoint(c fiber.Ctx) error {
-	return c.JSON(fiber.Map{
-		"message": "Hello, World!",
+	activeOrganizationID, err := context.GetOrganizationID(c)
+	if err != nil {
+		log.Println("error getting organization ID: ", err)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+
+	endpointID := c.Params("id")
+	endpointUUID, err := uuid.Parse(endpointID)
+	if err != nil {
+		log.Println("error parsing endpoint ID: ", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid endpoint ID",
+		})
+	}
+
+	var request endpointDTO.UpdateEndpointInput
+	if err := c.Bind().JSON(&request); err != nil {
+		log.Println("error binding request body: ", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid request body",
+		})
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		log.Println("error validating request body: ", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid request body",
+			"errors":  err.Error(),
+		})
+	}
+
+	_, err = h.updateEndpointUseCase.Execute(c.Context(), activeOrganizationID, endpointUUID, request)
+	if err != nil {
+		log.Println("error updating endpoint: ", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to update endpoint",
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"success": true,
 	})
 }

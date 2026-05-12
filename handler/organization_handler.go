@@ -5,7 +5,6 @@ import (
 	organizationDTO "flowforge-api/infrastructure/organization"
 	"flowforge-api/presenter"
 	"flowforge-api/usecase/organization"
-	"log"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
@@ -53,7 +52,6 @@ func (h *OrganizationHandler) GetOrganizations(c fiber.Ctx) error {
 
 	organizations, err := h.listOrganizationsUseCase.Execute(c.Context(), user, activeOrganizationID)
 	if err != nil {
-		log.Println("Failed to list organizations: ", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to list organizations",
 		})
@@ -133,7 +131,6 @@ func (h *OrganizationHandler) UpdateOrganization(c fiber.Ctx) error {
 	organizationID := c.Params("id")
 	organizationUUID, err := uuid.Parse(organizationID)
 	if err != nil {
-		log.Println("Invalid organization ID: ", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid organization ID",
 		})
@@ -141,14 +138,12 @@ func (h *OrganizationHandler) UpdateOrganization(c fiber.Ctx) error {
 
 	var request organizationDTO.UpdateOrganizationInput
 	if err := c.Bind().JSON(&request); err != nil {
-		log.Println("Invalid request body: ", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
 		})
 	}
 
 	if err := validator.New().Struct(request); err != nil {
-		log.Println("Invalid request body: ", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
 			"errors":  err.Error(),
@@ -157,7 +152,6 @@ func (h *OrganizationHandler) UpdateOrganization(c fiber.Ctx) error {
 
 	organization, err := h.updateOrganizationUseCase.Execute(c.Context(), user, organizationUUID, request.Name)
 	if err != nil {
-		log.Println("Failed to update organization: ", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to update organization",
 		})
@@ -177,7 +171,6 @@ func (h *OrganizationHandler) ActivateOrganization(c fiber.Ctx) error {
 	organizationID := c.Params("id")
 	organizationUUID, err := uuid.Parse(organizationID)
 	if err != nil {
-		log.Println("Invalid organization ID: ", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid organization ID",
 		})
@@ -185,7 +178,6 @@ func (h *OrganizationHandler) ActivateOrganization(c fiber.Ctx) error {
 
 	_, err = h.activateOrganizationUseCase.Execute(c.Context(), user, organizationUUID)
 	if err != nil {
-		log.Println("Failed to activate organization: ", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to activate organization",
 		})

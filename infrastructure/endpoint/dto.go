@@ -15,3 +15,7 @@ type CreateEndpointInput struct {
 	RetryCount     int          `json:"retryCount" validate:"min=0,max=10,number"`
 	RetryDelay     int          `json:"retryDelay" validate:"min=0,max=600,number"`
 }
+
+type UpdateEndpointInput struct {
+	CreateEndpointInput
+}

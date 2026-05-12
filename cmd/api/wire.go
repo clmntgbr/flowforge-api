@@ -50,6 +50,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 
 	listEndpointsUseCase := endpoint.NewListEndpointsUseCase(endpointRepo)
 	createEndpointUseCase := endpoint.NewCreateEndpointUseCase(endpointRepo)
+	updateEndpointUseCase := endpoint.NewUpdateEndpointUseCase(endpointRepo)
 
 	clerkMiddleware := middleware.NewClerkMiddleware(
 		env.ClerkWebhookSecret,
@@ -84,6 +85,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	endpointHandler := handler.NewEndpointHandler(
 		listEndpointsUseCase,
 		createEndpointUseCase,
+		updateEndpointUseCase,
 	)
 
 	return &Container{
