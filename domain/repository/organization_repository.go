@@ -8,6 +8,7 @@ import (
 )
 
 type OrganizationRepository interface {
+	GetByIDAndUserID(ctx context.Context, id uuid.UUID, userID uuid.UUID) (entity.Organization, error)
 	GetByUserID(ctx context.Context, userID uuid.UUID) ([]entity.Organization, error)
 	Create(ctx context.Context, organization *entity.Organization) error
 	Update(ctx context.Context, organization *entity.Organization) error

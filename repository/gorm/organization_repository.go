@@ -44,3 +44,19 @@ func (r *organizationRepository) GetByUserID(ctx context.Context, userID uuid.UU
 
 	return organizations, nil
 }
+
+func (r *organizationRepository) GetByIDAndUserID(ctx context.Context, id uuid.UUID, userID uuid.UUID) (entity.Organization, error) {
+	var organization entity.Organization
+
+	db := r.db.WithContext(ctx).
+		Model(&entity.Organization{}).
+		Joins("JOIN user_organizations ON user_organizations.organization_id = organizations.id").
+		Where("organizations.id = ? AND user_organizations.user_id = ?", id, userID)
+
+	err := db.First(&organization).Error
+	if err != nil {
+		return entity.Organization{}, err
+	}
+
+	return organization, nil
+}
