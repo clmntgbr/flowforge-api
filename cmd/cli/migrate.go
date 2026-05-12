@@ -15,8 +15,8 @@ func NewMigrateCommand() *cobra.Command {
 		Short: "Migrate the database",
 		Long:  "Migrate the database",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg := config.Load()
-			db := config.ConnectDatabase(cfg)
+			env := config.Load()
+			db := config.ConnectDatabase(env)
 
 			err := db.Transaction(func(tx *gorm.DB) error {
 				return tx.AutoMigrate(
