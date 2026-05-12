@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type UserResponse struct {
+type UserDetailResponse struct {
 	ID        string    `json:"id"`
 	ClerkID   string    `json:"clerkId"`
 	FirstName string    `json:"firstName"`
@@ -14,8 +14,8 @@ type UserResponse struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
-func NewUserResponse(user entity.User) UserResponse {
-	return UserResponse{
+func NewUserDetailResponse(user entity.User) UserDetailResponse {
+	return UserDetailResponse{
 		ID:        user.ID.String(),
 		ClerkID:   user.ClerkID,
 		FirstName: user.FirstName,

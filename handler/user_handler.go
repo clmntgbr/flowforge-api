@@ -22,5 +22,5 @@ func (h *UserHandler) GetUser(c fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(presenter.NewUserResponse(*user))
+	return c.Status(fiber.StatusOK).JSON(presenter.NewUserDetailResponse(*user))
 }
