@@ -17,3 +17,9 @@ migrate:
 	@docker-compose exec api go build -o bin/cli ./cmd/cli
 	@echo "🔄 Running migrate command..."
 	@docker-compose exec api ./bin/cli migrate
+
+execute-workflow:
+	@echo "🔨 Building CLI..."
+	@docker-compose exec api go build -o bin/cli ./cmd/cli
+	@echo "🔄 Running execute-workflow command..."
+	@docker-compose exec api ./bin/cli execute-workflow

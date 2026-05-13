@@ -1,4 +1,4 @@
-package main
+package command
 
 import (
 	"flowforge-api/domain/entity"

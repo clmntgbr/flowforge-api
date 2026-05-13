@@ -33,6 +33,8 @@ type Container struct {
 	WorkflowHandler        *handler.WorkflowHandler
 	ConsumerHandler        *handler.ConsumerHandler
 	RunnerHandler          *handler.RunnerHandler
+
+	ExecuteWorkflowUseCase *workflow.ExecuteWorkflowUseCase
 }
 
 func NewContainer(db *gorm.DB, env *config.Config) *Container {
@@ -86,6 +88,8 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 
 	completeWorkflowStepUseCase := consumer.NewCompleteWorkflowStepUseCase()
 	failWorkflowStepUseCase := consumer.NewFailWorkflowStepUseCase()
+
+	executeWorkflowUseCase := workflow.NewExecuteWorkflowUseCase(workflowRepo)
 
 	clerkMiddleware := middleware.NewClerkMiddleware(
 		env.ClerkWebhookSecret,
@@ -164,5 +168,6 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		WorkflowHandler:        workflowHandler,
 		ConsumerHandler:        consumerHandler,
 		RunnerHandler:          runnerHandler,
+		ExecuteWorkflowUseCase: executeWorkflowUseCase,
 	}
 }

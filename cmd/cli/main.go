@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flowforge-api/cmd/cli/command"
 	"fmt"
 	"os"
 
@@ -15,7 +16,8 @@ func main() {
 	}
 
 	rootCmd.AddCommand(
-		NewMigrateCommand(),
+		command.NewMigrateCommand(),
+		command.NewExecuteWorkflowCommand(),
 	)
 
 	if err := rootCmd.Execute(); err != nil {
