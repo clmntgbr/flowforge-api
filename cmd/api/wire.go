@@ -14,6 +14,7 @@ import (
 	"flowforge-api/usecase/step"
 	"flowforge-api/usecase/user"
 	"flowforge-api/usecase/workflow"
+	"flowforge-api/usecase/workflow_run"
 	"log"
 
 	"gorm.io/gorm"
@@ -43,6 +44,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	connexionRepo := repoGorm.NewConnexionRepository(db)
 	stepRepo := repoGorm.NewStepRepository(db)
 	workflowRepo := repoGorm.NewWorkflowRepository(db)
+	workflowRunRepo := repoGorm.NewWorkflowRunRepository(db)
 
 	validateTokenUseCase := auth.NewValidateTokenUseCase(jwksProvider, userRepo)
 	fetchUserUseCase := clerk.NewFetchUserUseCase(env)
@@ -77,6 +79,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	activateWorkflowUseCase := workflow.NewActivateWorkflowUseCase(workflowRepo)
 	deactivateWorkflowUseCase := workflow.NewDeactivateWorkflowUseCase(workflowRepo)
 	upsertWorkflowUseCase := workflow.NewUpsertWorkflowUseCase(workflowRepo, stepRepo, endpointRepo, *calculateExecutionOrderUseCase)
+	getWorkflowRunsUseCase := workflow_run.NewGetWorkflowRunsUseCase(workflowRepo, workflowRunRepo)
 
 	clerkMiddleware := middleware.NewClerkMiddleware(
 		env.ClerkWebhookSecret,
@@ -133,6 +136,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		activateWorkflowUseCase,
 		deactivateWorkflowUseCase,
 		upsertWorkflowUseCase,
+		getWorkflowRunsUseCase,
 	)
 
 	return &Container{

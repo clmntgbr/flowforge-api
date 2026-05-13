@@ -6,6 +6,7 @@ import (
 	workflowDTO "flowforge-api/infrastructure/workflow"
 	"flowforge-api/presenter"
 	"flowforge-api/usecase/workflow"
+	"flowforge-api/usecase/workflow_run"
 	"log"
 
 	"github.com/go-playground/validator/v10"
@@ -21,6 +22,7 @@ type WorkflowHandler struct {
 	activateWorkflowUseCase   *workflow.ActivateWorkflowUseCase
 	deactivateWorkflowUseCase *workflow.DeactivateWorkflowUseCase
 	upsertWorkflowUseCase     *workflow.UpsertWorkflowUseCase
+	getWorkflowRunsUseCase    *workflow_run.GetWorkflowRunsUseCase
 }
 
 func NewWorkflowHandler(
@@ -31,6 +33,7 @@ func NewWorkflowHandler(
 	activateWorkflowUseCase *workflow.ActivateWorkflowUseCase,
 	deactivateWorkflowUseCase *workflow.DeactivateWorkflowUseCase,
 	upsertWorkflowUseCase *workflow.UpsertWorkflowUseCase,
+	getWorkflowRunsUseCase *workflow_run.GetWorkflowRunsUseCase,
 ) *WorkflowHandler {
 	return &WorkflowHandler{
 		listWorkflowsUseCase:      listWorkflowsUseCase,
@@ -40,6 +43,7 @@ func NewWorkflowHandler(
 		activateWorkflowUseCase:   activateWorkflowUseCase,
 		deactivateWorkflowUseCase: deactivateWorkflowUseCase,
 		upsertWorkflowUseCase:     upsertWorkflowUseCase,
+		getWorkflowRunsUseCase:    getWorkflowRunsUseCase,
 	}
 }
 
@@ -268,4 +272,38 @@ func (h *WorkflowHandler) UpsertWorkflow(c fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"success": true,
 	})
+}
+
+func (h *WorkflowHandler) GetWorkflowRuns(c fiber.Ctx) error {
+	activeOrganizationID, err := context.GetOrganizationID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+
+	workflowID := c.Params("id")
+	workflowUUID, err := uuid.Parse(workflowID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid workflow ID",
+		})
+	}
+
+	var query paginate.PaginateQuery
+	if err := c.Bind().Query(&query); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid request body",
+		})
+	}
+	query.Normalize()
+
+	workflowRuns, total, err := h.getWorkflowRunsUseCase.Execute(c.Context(), activeOrganizationID, workflowUUID, query)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Internal server error",
+		})
+	}
+
+	return c.JSON(paginate.NewPaginateResponse(presenter.NewWorkflowRunListResponses(workflowRuns), int(total), query))
 }
