@@ -45,3 +45,11 @@ func NewStepDetailResponse(step entity.Step) StepDetailResponse {
 		UpdatedAt:      step.UpdatedAt,
 	}
 }
+
+func NewStepDetailResponses(steps []entity.Step) []StepDetailResponse {
+	responses := make([]StepDetailResponse, len(steps))
+	for i, step := range steps {
+		responses[i] = NewStepDetailResponse(step)
+	}
+	return responses
+}

@@ -13,6 +13,7 @@ import (
 	"flowforge-api/usecase/organization"
 	"flowforge-api/usecase/step"
 	"flowforge-api/usecase/user"
+	"flowforge-api/usecase/workflow"
 	"log"
 
 	"gorm.io/gorm"
@@ -27,6 +28,7 @@ type Container struct {
 	EndpointHandler        *handler.EndpointHandler
 	ConnexionHandler       *handler.ConnexionHandler
 	StepHandler            *handler.StepHandler
+	WorkflowHandler        *handler.WorkflowHandler
 }
 
 func NewContainer(db *gorm.DB, env *config.Config) *Container {
@@ -40,6 +42,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	endpointRepo := repoGorm.NewEndpointRepository(db)
 	connexionRepo := repoGorm.NewConnexionRepository(db)
 	stepRepo := repoGorm.NewStepRepository(db)
+	workflowRepo := repoGorm.NewWorkflowRepository(db)
 
 	validateTokenUseCase := auth.NewValidateTokenUseCase(jwksProvider, userRepo)
 	fetchUserUseCase := clerk.NewFetchUserUseCase(env)
@@ -62,8 +65,13 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	createConnexionUseCase := connexion.NewCreateConnexionUseCase(connexionRepo)
 	deleteConnexionUseCase := connexion.NewDeleteConnexionUseCase(connexionRepo)
 
+	listWorkflowsUseCase := workflow.NewListWorkflowsUseCase(workflowRepo)
+	createWorkflowUseCase := workflow.NewCreateWorkflowUseCase(workflowRepo)
+
 	getStepUseCase := step.NewGetStepUseCase(stepRepo)
 	updateStepUseCase := step.NewUpdateStepUseCase(stepRepo)
+	getWorkflowUseCase := workflow.NewGetWorkflowUseCase(workflowRepo)
+	updateWorkflowUseCase := workflow.NewUpdateWorkflowUseCase(workflowRepo)
 
 	clerkMiddleware := middleware.NewClerkMiddleware(
 		env.ClerkWebhookSecret,
@@ -112,6 +120,13 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		updateStepUseCase,
 	)
 
+	workflowHandler := handler.NewWorkflowHandler(
+		listWorkflowsUseCase,
+		createWorkflowUseCase,
+		getWorkflowUseCase,
+		updateWorkflowUseCase,
+	)
+
 	return &Container{
 		AuthenticateMiddleware: authenticateMiddleware,
 		ClerkMiddleware:        clerkMiddleware,
@@ -121,5 +136,6 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		EndpointHandler:        endpointHandler,
 		ConnexionHandler:       connexionHandler,
 		StepHandler:            stepHandler,
+		WorkflowHandler:        workflowHandler,
 	}
 }
