@@ -72,6 +72,8 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	updateStepUseCase := step.NewUpdateStepUseCase(stepRepo)
 	getWorkflowUseCase := workflow.NewGetWorkflowUseCase(workflowRepo)
 	updateWorkflowUseCase := workflow.NewUpdateWorkflowUseCase(workflowRepo)
+	activateWorkflowUseCase := workflow.NewActivateWorkflowUseCase(workflowRepo)
+	deactivateWorkflowUseCase := workflow.NewDeactivateWorkflowUseCase(workflowRepo)
 
 	clerkMiddleware := middleware.NewClerkMiddleware(
 		env.ClerkWebhookSecret,
@@ -125,6 +127,8 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		createWorkflowUseCase,
 		getWorkflowUseCase,
 		updateWorkflowUseCase,
+		activateWorkflowUseCase,
+		deactivateWorkflowUseCase,
 	)
 
 	return &Container{

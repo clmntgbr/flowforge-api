@@ -13,10 +13,12 @@ import (
 )
 
 type WorkflowHandler struct {
-	listWorkflowsUseCase  *workflow.ListWorkflowsUseCase
-	createWorkflowUseCase *workflow.CreateWorkflowUseCase
-	getWorkflowUseCase    *workflow.GetWorkflowUseCase
-	updateWorkflowUseCase *workflow.UpdateWorkflowUseCase
+	listWorkflowsUseCase      *workflow.ListWorkflowsUseCase
+	createWorkflowUseCase     *workflow.CreateWorkflowUseCase
+	getWorkflowUseCase        *workflow.GetWorkflowUseCase
+	updateWorkflowUseCase     *workflow.UpdateWorkflowUseCase
+	activateWorkflowUseCase   *workflow.ActivateWorkflowUseCase
+	deactivateWorkflowUseCase *workflow.DeactivateWorkflowUseCase
 }
 
 func NewWorkflowHandler(
@@ -24,12 +26,16 @@ func NewWorkflowHandler(
 	createWorkflowUseCase *workflow.CreateWorkflowUseCase,
 	getWorkflowUseCase *workflow.GetWorkflowUseCase,
 	updateWorkflowUseCase *workflow.UpdateWorkflowUseCase,
+	activateWorkflowUseCase *workflow.ActivateWorkflowUseCase,
+	deactivateWorkflowUseCase *workflow.DeactivateWorkflowUseCase,
 ) *WorkflowHandler {
 	return &WorkflowHandler{
-		listWorkflowsUseCase:  listWorkflowsUseCase,
-		createWorkflowUseCase: createWorkflowUseCase,
-		getWorkflowUseCase:    getWorkflowUseCase,
-		updateWorkflowUseCase: updateWorkflowUseCase,
+		listWorkflowsUseCase:      listWorkflowsUseCase,
+		createWorkflowUseCase:     createWorkflowUseCase,
+		getWorkflowUseCase:        getWorkflowUseCase,
+		updateWorkflowUseCase:     updateWorkflowUseCase,
+		activateWorkflowUseCase:   activateWorkflowUseCase,
+		deactivateWorkflowUseCase: deactivateWorkflowUseCase,
 	}
 }
 
@@ -157,6 +163,62 @@ func (h *WorkflowHandler) UpdateWorkflow(c fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"success": true,
+	})
+}
+
+func (h *WorkflowHandler) ActivateWorkflow(c fiber.Ctx) error {
+	activeOrganizationID, err := context.GetOrganizationID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+
+	workflowID := c.Params("id")
+	workflowUUID, err := uuid.Parse(workflowID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid workflow ID",
+		})
+	}
+
+	_, err = h.activateWorkflowUseCase.Execute(c.Context(), activeOrganizationID, workflowUUID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to activate workflow",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"success": true,
+	})
+}
+
+func (h *WorkflowHandler) DeactivateWorkflow(c fiber.Ctx) error {
+	activeOrganizationID, err := context.GetOrganizationID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+
+	workflowID := c.Params("id")
+	workflowUUID, err := uuid.Parse(workflowID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid workflow ID",
+		})
+	}
+
+	_, err = h.deactivateWorkflowUseCase.Execute(c.Context(), activeOrganizationID, workflowUUID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to deactivate workflow",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"success": true,
 	})
 }

@@ -3,7 +3,6 @@ package presenter
 import (
 	"flowforge-api/domain/entity"
 	"flowforge-api/domain/enum"
-	"fmt"
 	"time"
 )
 
@@ -48,11 +47,11 @@ func NewWorkflowListResponses(workflows []entity.Workflow) []WorkflowListRespons
 }
 
 func NewWorkflowDetailResponse(workflow entity.Workflow) WorkflowDetailResponse {
-	fmt.Println(workflow.Status)
 	return WorkflowDetailResponse{
 		ID:          workflow.ID.String(),
 		Name:        workflow.Name,
 		Status:      workflow.Status,
+		IsActive:    workflow.Status == enum.WorkflowStatusActive,
 		CreatedAt:   workflow.CreatedAt,
 		UpdatedAt:   workflow.UpdatedAt,
 		Description: workflow.Description,
