@@ -4,15 +4,18 @@ import (
 	"fmt"
 	"log"
 
-	"flowforge-api/handler"
 	"flowforge-api/infrastructure/config"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
+type RunnerMessageHandler interface {
+	HandleMessage(delivery *amqp.Delivery) error
+}
+
 type WorkerRunner struct {
 	env     *config.Config
-	handler *handler.RunnerHandler
+	handler RunnerMessageHandler
 
 	conn    *amqp.Connection
 	channel *amqp.Channel
@@ -20,7 +23,7 @@ type WorkerRunner struct {
 
 func NewWorkerRunner(
 	env *config.Config,
-	handler *handler.RunnerHandler,
+	handler RunnerMessageHandler,
 ) *WorkerRunner {
 	return &WorkerRunner{
 		env:     env,

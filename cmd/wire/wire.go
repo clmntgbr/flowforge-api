@@ -146,6 +146,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	)
 
 	consumerHandler := handler.NewConsumerHandler(
+		env,
 		completeWorkflowStepUseCase,
 		failWorkflowStepUseCase,
 	)

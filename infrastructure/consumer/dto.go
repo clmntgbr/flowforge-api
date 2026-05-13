@@ -1,10 +1,14 @@
 package consumer
 
-import "flowforge-api/infrastructure/worker"
+import (
+	"encoding/json"
+
+	"flowforge-api/infrastructure/worker"
+)
 
 type ConsumerMessage struct {
-	SecretKey string `json:"secret_key" validate:"required"`
-	Message   any    `json:"message" validate:"required"`
+	SecretKey string          `json:"secret_key" validate:"required"`
+	Message   json.RawMessage `json:"message" validate:"required"`
 }
 
 type ConsumerCompletedMessage struct {

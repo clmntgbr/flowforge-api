@@ -1,18 +1,22 @@
 package rabbitmq
 
 import (
+	"context"
 	"fmt"
 	"log"
 
-	"flowforge-api/handler"
 	"flowforge-api/infrastructure/config"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
+type ConsumerMessageHandler interface {
+	HandleMessage(ctx context.Context, delivery *amqp.Delivery) error
+}
+
 type WorkerConsumer struct {
 	env     *config.Config
-	handler *handler.ConsumerHandler
+	handler ConsumerMessageHandler
 
 	conn    *amqp.Connection
 	channel *amqp.Channel
@@ -20,7 +24,7 @@ type WorkerConsumer struct {
 
 func NewWorkerConsumer(
 	env *config.Config,
-	handler *handler.ConsumerHandler,
+	handler ConsumerMessageHandler,
 ) *WorkerConsumer {
 	return &WorkerConsumer{
 		env:     env,
@@ -121,7 +125,7 @@ func (c *WorkerConsumer) Start() error {
 	)
 
 	for message := range messages {
-		if err := c.handler.HandleMessage(&message); err != nil {
+		if err := c.handler.HandleMessage(context.Background(), &message); err != nil {
 			log.Printf(
 				"rejected message (routing key: %q): %v",
 				message.RoutingKey,

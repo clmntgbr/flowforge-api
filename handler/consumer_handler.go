@@ -2,11 +2,13 @@ package handler
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+
 	"flowforge-api/infrastructure/config"
 	consumerDTO "flowforge-api/infrastructure/consumer"
 	"flowforge-api/infrastructure/messaging/rabbitmq"
 	"flowforge-api/usecase/consumer"
-	"fmt"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -28,6 +30,8 @@ func NewConsumerHandler(
 		env:                         env,
 		completeWorkflowStepUseCase: completeWorkflowStepUseCase,
 		failWorkflowStepUseCase:     failWorkflowStepUseCase,
+		parser:                      rabbitmq.NewWorkerParser(env),
+		securityValidator:           rabbitmq.NewWorkerSecurityValidator(env),
 	}
 }
 
@@ -41,7 +45,11 @@ func (h *ConsumerHandler) HandleMessage(ctx context.Context, message *amqp.Deliv
 		if err := h.securityValidator.Validate(payload.SecretKey); err != nil {
 			return err
 		}
-		if err := h.completeWorkflowStepUseCase.Execute(payload.Message); err != nil {
+		var completed consumerDTO.ConsumerCompletedMessage
+		if err := json.Unmarshal(payload.Message, &completed); err != nil {
+			return fmt.Errorf("decode completed message: %w", err)
+		}
+		if err := h.completeWorkflowStepUseCase.Execute(ctx, completed); err != nil {
 			return err
 		}
 
@@ -53,7 +61,11 @@ func (h *ConsumerHandler) HandleMessage(ctx context.Context, message *amqp.Deliv
 		if err := h.securityValidator.Validate(payload.SecretKey); err != nil {
 			return err
 		}
-		if err := h.failWorkflowStepUseCase.Execute(payload.Message); err != nil {
+		var failed consumerDTO.ConsumerFailedMessage
+		if err := json.Unmarshal(payload.Message, &failed); err != nil {
+			return fmt.Errorf("decode failed message: %w", err)
+		}
+		if err := h.failWorkflowStepUseCase.Execute(ctx, failed); err != nil {
 			return err
 		}
 
