@@ -4,6 +4,9 @@
 
 dev:
 	docker-compose up -d
+
+lint:
+	docker-compose exec api golangci-lint run --fix
 	
 # ============================================
 # CLI Commands (via Docker)

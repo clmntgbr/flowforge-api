@@ -1,4 +1,4 @@
-package main
+package wire
 
 import (
 	"flowforge-api/handler"
@@ -30,6 +30,7 @@ type Container struct {
 	ConnexionHandler       *handler.ConnexionHandler
 	StepHandler            *handler.StepHandler
 	WorkflowHandler        *handler.WorkflowHandler
+	ConsumerHandler        *handler.ConsumerHandler
 }
 
 func NewContainer(db *gorm.DB, env *config.Config) *Container {
@@ -139,6 +140,8 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		getWorkflowRunsUseCase,
 	)
 
+	consumerHandler := handler.NewConsumerHandler()
+
 	return &Container{
 		AuthenticateMiddleware: authenticateMiddleware,
 		ClerkMiddleware:        clerkMiddleware,
@@ -149,5 +152,6 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		ConnexionHandler:       connexionHandler,
 		StepHandler:            stepHandler,
 		WorkflowHandler:        workflowHandler,
+		ConsumerHandler:        consumerHandler,
 	}
 }

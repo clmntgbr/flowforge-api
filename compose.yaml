@@ -67,6 +67,28 @@ services:
       - api
     restart: unless-stopped
 
+  consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: consumer
+    command: go run ./cmd/worker/consumer.go
+    volumes:
+      - .:/app
+      - go-modules:/go/pkg/mod
+    env_file:
+      - .env
+    environment:
+      - RABBITMQ_URL=${RABBITMQ_URL:?RABBITMQ_URL is required}
+      - CONSUMER_QUEUE_NAME=${CONSUMER_QUEUE_NAME:?CONSUMER_QUEUE_NAME is required}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - api
+    restart: unless-stopped
+
 volumes:
   go-modules:
   database_data:

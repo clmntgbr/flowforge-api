@@ -1,6 +1,7 @@
 package main
 
 import (
+	mainWire "flowforge-api/cmd/wire"
 	"flowforge-api/infrastructure/config"
 	"log"
 	"time"
@@ -58,17 +59,17 @@ func main() {
 		return err
 	})
 
-	deps := NewContainer(db, env)
+	container := mainWire.NewContainer(db, env)
 
 	setupHealthChecks(app)
-	setupWebhooks(app, deps)
-	setupAPIRoutes(app, deps)
+	setupWebhooks(app, container)
+	setupAPIRoutes(app, container)
 
 	log.Println("🚀 Server is running on port", env.Port)
 	log.Fatal(app.Listen(":" + env.Port))
 }
 
-func setupWebhooks(app *fiber.App, container *Container) {
+func setupWebhooks(app *fiber.App, container *mainWire.Container) {
 	webhooks := app.Group("/webhook")
 
 	webhooks.Post("/clerk", container.ClerkMiddleware.Protected(), container.ClerkHandler.Execute)
@@ -80,7 +81,7 @@ func setupHealthChecks(app *fiber.App) {
 	app.Get(healthcheck.StartupEndpoint, healthcheck.New())
 }
 
-func setupAPIRoutes(app *fiber.App, container *Container) {
+func setupAPIRoutes(app *fiber.App, container *mainWire.Container) {
 	api := app.Group("/api")
 
 	api.Use(container.AuthenticateMiddleware.Protected())
@@ -92,11 +93,11 @@ func setupAPIRoutes(app *fiber.App, container *Container) {
 	setupWorkflowsRoutes(api, container)
 }
 
-func setupUsersRoutes(api fiber.Router, container *Container) {
+func setupUsersRoutes(api fiber.Router, container *mainWire.Container) {
 	api.Get("/users/me", container.UserHandler.GetUser)
 }
 
-func setupOrganizationsRoutes(api fiber.Router, container *Container) {
+func setupOrganizationsRoutes(api fiber.Router, container *mainWire.Container) {
 	api.Get("/organizations", container.OrganizationHandler.GetOrganizations)
 	api.Post("/organizations", container.OrganizationHandler.CreateOrganization)
 	api.Get("/organizations/:id", container.OrganizationHandler.GetOrganizationByID)
@@ -104,25 +105,25 @@ func setupOrganizationsRoutes(api fiber.Router, container *Container) {
 	api.Put("/organizations/:id/activate", container.OrganizationHandler.ActivateOrganization)
 }
 
-func setupEndpointsRoutes(api fiber.Router, container *Container) {
+func setupEndpointsRoutes(api fiber.Router, container *mainWire.Container) {
 	api.Get("/endpoints", container.EndpointHandler.GetEndpoints)
 	api.Post("/endpoints", container.EndpointHandler.CreateEndpoint)
 	api.Get("/endpoints/:id", container.EndpointHandler.GetEndpointByID)
 	api.Put("/endpoints/:id", container.EndpointHandler.UpdateEndpoint)
 }
 
-func setupConnexionsRoutes(api fiber.Router, container *Container) {
+func setupConnexionsRoutes(api fiber.Router, container *mainWire.Container) {
 	api.Delete("/connexions/:id", container.ConnexionHandler.DeleteConnexion)
 	api.Post("/connexions", container.ConnexionHandler.CreateConnexion)
 }
 
-func setupStepsRoutes(api fiber.Router, container *Container) {
+func setupStepsRoutes(api fiber.Router, container *mainWire.Container) {
 	api.Get("/workflows/:workflowId/steps/:id", container.StepHandler.GetStepByID)
 	api.Put("/workflows/:workflowId/steps/:id", container.StepHandler.UpdateStep)
 	api.Delete("/workflows/:workflowId/steps/:id", container.StepHandler.DeleteStep)
 }
 
-func setupWorkflowsRoutes(api fiber.Router, container *Container) {
+func setupWorkflowsRoutes(api fiber.Router, container *mainWire.Container) {
 	api.Get("/workflows", container.WorkflowHandler.GetWorkflows)
 	api.Post("/workflows", container.WorkflowHandler.CreateWorkflow)
 	api.Get("/workflows/:id", container.WorkflowHandler.GetWorkflowByID)
