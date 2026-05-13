@@ -73,7 +73,7 @@ services:
       dockerfile: Dockerfile
       target: development
     container_name: consumer
-    command: go run ./cmd/worker/consumer.go
+    command: go run ./cmd/consumer
     volumes:
       - .:/app
       - go-modules:/go/pkg/mod
@@ -82,6 +82,28 @@ services:
     environment:
       - RABBITMQ_URL=${RABBITMQ_URL:?RABBITMQ_URL is required}
       - CONSUMER_QUEUE_NAME=${CONSUMER_QUEUE_NAME:?CONSUMER_QUEUE_NAME is required}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - api
+    restart: unless-stopped
+
+  runner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: runner
+    command: go run ./cmd/runner
+    volumes:
+      - .:/app
+      - go-modules:/go/pkg/mod
+    env_file:
+      - .env
+    environment:
+      - RABBITMQ_URL=${RABBITMQ_URL:?RABBITMQ_URL is required}
+      - RUNNER_QUEUE_NAME=${RUNNER_QUEUE_NAME:?RUNNER_QUEUE_NAME is required}
     depends_on:
       rabbitmq:
         condition: service_healthy

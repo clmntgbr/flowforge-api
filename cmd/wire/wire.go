@@ -31,6 +31,7 @@ type Container struct {
 	StepHandler            *handler.StepHandler
 	WorkflowHandler        *handler.WorkflowHandler
 	ConsumerHandler        *handler.ConsumerHandler
+	RunnerHandler          *handler.RunnerHandler
 }
 
 func NewContainer(db *gorm.DB, env *config.Config) *Container {
@@ -141,6 +142,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	)
 
 	consumerHandler := handler.NewConsumerHandler()
+	runnerHandler := handler.NewRunnerHandler()
 
 	return &Container{
 		AuthenticateMiddleware: authenticateMiddleware,
@@ -153,5 +155,6 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		StepHandler:            stepHandler,
 		WorkflowHandler:        workflowHandler,
 		ConsumerHandler:        consumerHandler,
+		RunnerHandler:          runnerHandler,
 	}
 }

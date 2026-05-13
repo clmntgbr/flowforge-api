@@ -53,7 +53,14 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
     -a -installsuffix cgo \
     -ldflags="-w -s" \
     -o consumer \
-    ./cmd/worker/consumer.go
+    ./cmd/consumer
+
+# Build the runner application
+RUN CGO_ENABLED=0 GOOS=linux go build \
+    -a -installsuffix cgo \
+    -ldflags="-w -s" \
+    -o runner \
+    ./cmd/runner
 
 # ============================================
 # Production stage - Minimal runtime
@@ -72,6 +79,7 @@ WORKDIR /home/appuser
 # Copy binaries from builder
 COPY --from=builder --chown=appuser:appuser /app/api .
 COPY --from=builder --chown=appuser:appuser /app/consumer .
+COPY --from=builder --chown=appuser:appuser /app/runner .
 
 # Switch to non-root user
 USER appuser

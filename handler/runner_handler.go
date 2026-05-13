@@ -6,14 +6,14 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-type ConsumerHandler struct {
+type RunnerHandler struct {
 }
 
-func NewConsumerHandler() *ConsumerHandler {
-	return &ConsumerHandler{}
+func NewRunnerHandler() *RunnerHandler {
+	return &RunnerHandler{}
 }
 
-func (h *ConsumerHandler) HandleMessage(message *amqp.Delivery) error {
+func (h *RunnerHandler) HandleMessage(message *amqp.Delivery) error {
 	log.Println("received message: ", message.RoutingKey)
 	log.Println("message body: ", string(message.Body))
 	return nil
