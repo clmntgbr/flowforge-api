@@ -41,3 +41,47 @@ func (r *stepRepository) GetByIDAndOrganizationIDAndWorkflowID(ctx context.Conte
 	}
 	return step, nil
 }
+
+func (r *stepRepository) DeleteByIDs(ctx context.Context, stepIDs []uuid.UUID) error {
+	if len(stepIDs) == 0 {
+		return nil
+	}
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		return tx.Where("id IN ?", stepIDs).Delete(&entity.Step{}).Error
+	})
+}
+
+func (r *stepRepository) GetByWorkflowID(ctx context.Context, workflowID uuid.UUID) ([]entity.Step, error) {
+	var steps []entity.Step
+	err := r.db.WithContext(ctx).
+		Where("workflow_id = ?", workflowID).
+		Find(&steps).Error
+	return steps, err
+}
+
+func (r *stepRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.Step, error) {
+	var step entity.Step
+	err := r.db.WithContext(ctx).
+		Where("id = ?", id).
+		Preload("Endpoint").
+		First(&step).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &step, nil
+}
+
+func (r *stepRepository) UpdatePositionAndIndex(ctx context.Context, stepID uuid.UUID, workflowID uuid.UUID, position entity.Position, index string, executionOrder int) error {
+	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		return tx.Model(&entity.Step{}).
+			Where("id = ? AND workflow_id = ?", stepID, workflowID).
+			Updates(map[string]interface{}{
+				"position_x":      position.X,
+				"position_y":      position.Y,
+				"index":           index,
+				"execution_order": executionOrder,
+			}).Error
+	})
+}

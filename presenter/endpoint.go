@@ -7,15 +7,11 @@ import (
 )
 
 type EndpointListResponse struct {
-	ID             string `json:"id"`
-	Name           string `json:"name"`
-	BaseURI        string `json:"baseUri"`
-	Path           string `json:"path"`
-	Method         string `json:"method"`
-	Timeout        int    `json:"timeout"`
-	RetryOnFailure bool   `json:"retryOnFailure"`
-	RetryCount     int    `json:"retryCount"`
-	RetryDelay     int    `json:"retryDelay"`
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	BaseURI string `json:"baseUri"`
+	Path    string `json:"path"`
+	Method  string `json:"method"`
 }
 
 type EndpointDetailResponse struct {
@@ -37,8 +33,11 @@ type EndpointDetailResponse struct {
 
 func NewEndpointListResponse(endpoint entity.Endpoint) EndpointListResponse {
 	return EndpointListResponse{
-		ID:   endpoint.ID.String(),
-		Name: endpoint.Name,
+		ID:      endpoint.ID.String(),
+		Name:    endpoint.Name,
+		BaseURI: endpoint.BaseURI,
+		Path:    endpoint.Path,
+		Method:  endpoint.Method,
 	}
 }
 

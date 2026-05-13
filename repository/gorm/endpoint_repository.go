@@ -66,3 +66,17 @@ func (r *endpointRepository) GetByIDAndOrganizationID(ctx context.Context, id uu
 
 	return endpoint, nil
 }
+
+func (r *endpointRepository) GetByID(ctx context.Context, id uuid.UUID) (entity.Endpoint, error) {
+	var endpoint entity.Endpoint
+
+	err := r.db.WithContext(ctx).
+		Where("id = ?", id).
+		First(&endpoint).Error
+
+	if err != nil {
+		return entity.Endpoint{}, err
+	}
+
+	return endpoint, nil
+}

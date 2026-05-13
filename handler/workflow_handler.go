@@ -6,6 +6,7 @@ import (
 	workflowDTO "flowforge-api/infrastructure/workflow"
 	"flowforge-api/presenter"
 	"flowforge-api/usecase/workflow"
+	"log"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
@@ -256,8 +257,9 @@ func (h *WorkflowHandler) UpsertWorkflow(c fiber.Ctx) error {
 		})
 	}
 
-	_, err = h.upsertWorkflowUseCase.Execute(c.Context(), activeOrganizationID, workflowUUID, request)
+	err = h.upsertWorkflowUseCase.Execute(c.Context(), activeOrganizationID, workflowUUID, request)
 	if err != nil {
+		log.Println("Failed to upsert workflow", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to upsert workflow",
 		})

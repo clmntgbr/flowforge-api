@@ -14,4 +14,5 @@ type EndpointRepository interface {
 	Update(ctx context.Context, endpoint *entity.Endpoint) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	GetByIDAndOrganizationID(ctx context.Context, id uuid.UUID, organizationID uuid.UUID) (entity.Endpoint, error)
+	GetByID(ctx context.Context, id uuid.UUID) (entity.Endpoint, error)
 }

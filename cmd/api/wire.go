@@ -68,13 +68,15 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	listWorkflowsUseCase := workflow.NewListWorkflowsUseCase(workflowRepo)
 	createWorkflowUseCase := workflow.NewCreateWorkflowUseCase(workflowRepo)
 
+	calculateExecutionOrderUseCase := step.NewCalculateExecutionOrderUseCase()
+
 	getStepUseCase := step.NewGetStepUseCase(stepRepo)
 	updateStepUseCase := step.NewUpdateStepUseCase(stepRepo)
 	getWorkflowUseCase := workflow.NewGetWorkflowUseCase(workflowRepo)
 	updateWorkflowUseCase := workflow.NewUpdateWorkflowUseCase(workflowRepo)
 	activateWorkflowUseCase := workflow.NewActivateWorkflowUseCase(workflowRepo)
 	deactivateWorkflowUseCase := workflow.NewDeactivateWorkflowUseCase(workflowRepo)
-	upsertWorkflowUseCase := workflow.NewUpsertWorkflowUseCase(workflowRepo)
+	upsertWorkflowUseCase := workflow.NewUpsertWorkflowUseCase(workflowRepo, stepRepo, endpointRepo, *calculateExecutionOrderUseCase)
 
 	clerkMiddleware := middleware.NewClerkMiddleware(
 		env.ClerkWebhookSecret,
