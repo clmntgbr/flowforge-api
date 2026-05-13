@@ -3,6 +3,7 @@ package handler
 import (
 	"flowforge-api/handler/context"
 	connexionDTO "flowforge-api/infrastructure/connexion"
+	"flowforge-api/presenter"
 	"flowforge-api/usecase/connexion"
 
 	"github.com/go-playground/validator/v10"
@@ -47,16 +48,14 @@ func (h *ConnexionHandler) CreateConnexion(c fiber.Ctx) error {
 		})
 	}
 
-	_, err = h.createConnexionUseCase.Execute(c.Context(), activeOrganizationID, request)
+	connexion, err := h.createConnexionUseCase.Execute(c.Context(), activeOrganizationID, request)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to create connexion",
 		})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"success": true,
-	})
+	return c.Status(fiber.StatusCreated).JSON(presenter.NewConnexionDetailResponse(connexion))
 }
 
 func (h *ConnexionHandler) DeleteConnexion(c fiber.Ctx) error {
