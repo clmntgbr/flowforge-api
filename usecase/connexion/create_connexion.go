@@ -23,10 +23,6 @@ func (u *CreateConnexionUseCase) Execute(ctx context.Context, organizationID uui
 		return entity.Connexion{}, err
 	}
 
-	if err != nil {
-		return entity.Connexion{}, err
-	}
-
 	if len(connexions) > 0 {
 		return entity.Connexion{}, nil
 	}
