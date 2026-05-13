@@ -11,6 +11,7 @@ import (
 	"flowforge-api/usecase/connexion"
 	"flowforge-api/usecase/endpoint"
 	"flowforge-api/usecase/organization"
+	"flowforge-api/usecase/step"
 	"flowforge-api/usecase/user"
 	"log"
 
@@ -25,6 +26,7 @@ type Container struct {
 	OrganizationHandler    *handler.OrganizationHandler
 	EndpointHandler        *handler.EndpointHandler
 	ConnexionHandler       *handler.ConnexionHandler
+	StepHandler            *handler.StepHandler
 }
 
 func NewContainer(db *gorm.DB, env *config.Config) *Container {
@@ -37,6 +39,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	organizationRepo := repoGorm.NewOrganizationRepository(db)
 	endpointRepo := repoGorm.NewEndpointRepository(db)
 	connexionRepo := repoGorm.NewConnexionRepository(db)
+	stepRepo := repoGorm.NewStepRepository(db)
 
 	validateTokenUseCase := auth.NewValidateTokenUseCase(jwksProvider, userRepo)
 	fetchUserUseCase := clerk.NewFetchUserUseCase(env)
@@ -58,6 +61,9 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 
 	createConnexionUseCase := connexion.NewCreateConnexionUseCase(connexionRepo)
 	deleteConnexionUseCase := connexion.NewDeleteConnexionUseCase(connexionRepo)
+
+	getStepUseCase := step.NewGetStepUseCase(stepRepo)
+	updateStepUseCase := step.NewUpdateStepUseCase(stepRepo)
 
 	clerkMiddleware := middleware.NewClerkMiddleware(
 		env.ClerkWebhookSecret,
@@ -101,6 +107,11 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		deleteConnexionUseCase,
 	)
 
+	stepHandler := handler.NewStepHandler(
+		getStepUseCase,
+		updateStepUseCase,
+	)
+
 	return &Container{
 		AuthenticateMiddleware: authenticateMiddleware,
 		ClerkMiddleware:        clerkMiddleware,
@@ -109,5 +120,6 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		OrganizationHandler:    organizationHandler,
 		EndpointHandler:        endpointHandler,
 		ConnexionHandler:       connexionHandler,
+		StepHandler:            stepHandler,
 	}
 }
