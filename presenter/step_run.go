@@ -14,12 +14,6 @@ type StepRunListResponse struct {
 	StartedAt   *time.Time         `json:"started_at"`
 	CompletedAt *time.Time         `json:"completed_at"`
 	FailedAt    *time.Time         `json:"failed_at"`
-	Error       string             `json:"error"`
-	Response    string             `json:"response"`
-	Insight     InsightResponse    `json:"insight"`
-	Step        StepDetailResponse `json:"step"`
-	CreatedAt   time.Time          `json:"created_at"`
-	UpdatedAt   time.Time          `json:"updated_at"`
 }
 
 type StepRunDetailResponse struct {
@@ -42,13 +36,7 @@ func NewStepRunListResponse(stepRun entity.StepRun) StepRunListResponse {
 		Status:      stepRun.Status,
 		StartedAt:   stepRun.StartedAt,
 		CompletedAt: stepRun.CompletedAt,
-		Error:       stepRun.Error,
 		FailedAt:    stepRun.FailedAt,
-		CreatedAt:   stepRun.CreatedAt,
-		UpdatedAt:   stepRun.UpdatedAt,
-		Insight:     NewInsightResponse(stepRun.Insight),
-		Step:        NewStepDetailResponse(stepRun.Step),
-		Response:    stepRun.Response,
 	}
 }
 
