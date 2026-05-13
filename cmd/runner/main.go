@@ -3,7 +3,7 @@ package main
 import (
 	mainWire "flowforge-api/cmd/wire"
 	"flowforge-api/infrastructure/config"
-	"flowforge-api/infrastructure/rabbitmq"
+	"flowforge-api/infrastructure/messaging/rabbitmq"
 	"log"
 	"os"
 	"os/signal"

@@ -1,16 +1,25 @@
 package handler
 
 import (
+	"flowforge-api/usecase/consumer"
 	"log"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type ConsumerHandler struct {
+	completeWorkflowStepUseCase *consumer.CompleteWorkflowStepUseCase
+	failWorkflowStepUseCase     *consumer.FailWorkflowStepUseCase
 }
 
-func NewConsumerHandler() *ConsumerHandler {
-	return &ConsumerHandler{}
+func NewConsumerHandler(
+	completeWorkflowStepUseCase *consumer.CompleteWorkflowStepUseCase,
+	failWorkflowStepUseCase *consumer.FailWorkflowStepUseCase,
+) *ConsumerHandler {
+	return &ConsumerHandler{
+		completeWorkflowStepUseCase: completeWorkflowStepUseCase,
+		failWorkflowStepUseCase:     failWorkflowStepUseCase,
+	}
 }
 
 func (h *ConsumerHandler) HandleMessage(message *amqp.Delivery) error {

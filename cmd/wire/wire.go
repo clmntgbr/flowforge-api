@@ -9,6 +9,7 @@ import (
 	"flowforge-api/usecase/auth"
 	"flowforge-api/usecase/clerk"
 	"flowforge-api/usecase/connexion"
+	"flowforge-api/usecase/consumer"
 	"flowforge-api/usecase/endpoint"
 	"flowforge-api/usecase/organization"
 	"flowforge-api/usecase/step"
@@ -83,6 +84,9 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	upsertWorkflowUseCase := workflow.NewUpsertWorkflowUseCase(workflowRepo, stepRepo, endpointRepo, *calculateExecutionOrderUseCase)
 	getWorkflowRunsUseCase := workflow_run.NewGetWorkflowRunsUseCase(workflowRepo, workflowRunRepo)
 
+	completeWorkflowStepUseCase := consumer.NewCompleteWorkflowStepUseCase()
+	failWorkflowStepUseCase := consumer.NewFailWorkflowStepUseCase()
+
 	clerkMiddleware := middleware.NewClerkMiddleware(
 		env.ClerkWebhookSecret,
 	)
@@ -141,7 +145,10 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		getWorkflowRunsUseCase,
 	)
 
-	consumerHandler := handler.NewConsumerHandler()
+	consumerHandler := handler.NewConsumerHandler(
+		completeWorkflowStepUseCase,
+		failWorkflowStepUseCase,
+	)
 	runnerHandler := handler.NewRunnerHandler()
 
 	return &Container{
