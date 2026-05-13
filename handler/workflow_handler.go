@@ -19,6 +19,7 @@ type WorkflowHandler struct {
 	updateWorkflowUseCase     *workflow.UpdateWorkflowUseCase
 	activateWorkflowUseCase   *workflow.ActivateWorkflowUseCase
 	deactivateWorkflowUseCase *workflow.DeactivateWorkflowUseCase
+	upsertWorkflowUseCase     *workflow.UpsertWorkflowUseCase
 }
 
 func NewWorkflowHandler(
@@ -28,6 +29,7 @@ func NewWorkflowHandler(
 	updateWorkflowUseCase *workflow.UpdateWorkflowUseCase,
 	activateWorkflowUseCase *workflow.ActivateWorkflowUseCase,
 	deactivateWorkflowUseCase *workflow.DeactivateWorkflowUseCase,
+	upsertWorkflowUseCase *workflow.UpsertWorkflowUseCase,
 ) *WorkflowHandler {
 	return &WorkflowHandler{
 		listWorkflowsUseCase:      listWorkflowsUseCase,
@@ -36,6 +38,7 @@ func NewWorkflowHandler(
 		updateWorkflowUseCase:     updateWorkflowUseCase,
 		activateWorkflowUseCase:   activateWorkflowUseCase,
 		deactivateWorkflowUseCase: deactivateWorkflowUseCase,
+		upsertWorkflowUseCase:     upsertWorkflowUseCase,
 	}
 }
 
@@ -215,6 +218,48 @@ func (h *WorkflowHandler) DeactivateWorkflow(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to deactivate workflow",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"success": true,
+	})
+}
+
+func (h *WorkflowHandler) UpsertWorkflow(c fiber.Ctx) error {
+	activeOrganizationID, err := context.GetOrganizationID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+
+	workflowID := c.Params("id")
+	workflowUUID, err := uuid.Parse(workflowID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid workflow ID",
+		})
+	}
+
+	var request workflowDTO.UpsertWorkflowInput
+	if err := c.Bind().JSON(&request); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid request body",
+		})
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid request body",
+			"errors":  err.Error(),
+		})
+	}
+
+	_, err = h.upsertWorkflowUseCase.Execute(c.Context(), activeOrganizationID, workflowUUID, request)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to upsert workflow",
 		})
 	}
 

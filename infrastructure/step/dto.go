@@ -19,7 +19,7 @@ type UpdateStepInput struct {
 	RetryDelay     int          `json:"retryDelay" validate:"min=0,max=600,number"`
 }
 
-type UpdateWorkflowStepInput struct {
+type UpsertWorkflowStepInput struct {
 	ID         string   `json:"id" validate:"required,uuid"`
 	EndpointID string   `json:"endpointId" validate:"required,uuid"`
 	Position   Position `json:"position" validate:"required"`
