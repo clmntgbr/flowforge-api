@@ -57,6 +57,11 @@ func (r *workflowRepository) GetByIDAndOrganizationID(ctx context.Context, organ
 	var workflow entity.Workflow
 
 	err := r.db.WithContext(ctx).Model(&entity.Workflow{}).
+		Preload("Steps", func(db *gorm.DB) *gorm.DB {
+			return db.Order("index ASC")
+		}).
+		Preload("Steps.Endpoint").
+		Preload("Connexions").
 		Where("organization_id = ? AND id = ?", organizationID, workflowID).
 		First(&workflow).Error
 
