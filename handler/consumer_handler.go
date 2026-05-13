@@ -7,7 +7,7 @@ import (
 
 	"flowforge-api/infrastructure/config"
 	consumerDTO "flowforge-api/infrastructure/consumer"
-	"flowforge-api/infrastructure/messaging/rabbitmq"
+	"flowforge-api/infrastructure/messaging/security"
 	"flowforge-api/usecase/consumer"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -17,8 +17,8 @@ type ConsumerHandler struct {
 	env                         *config.Config
 	completeWorkflowStepUseCase *consumer.CompleteWorkflowStepUseCase
 	failWorkflowStepUseCase     *consumer.FailWorkflowStepUseCase
-	securityValidator           *rabbitmq.WorkerSecurityValidator
-	parser                      *rabbitmq.WorkerParser
+	securityValidator           *security.WorkerSecurityValidator
+	parser                      *security.WorkerParser
 }
 
 func NewConsumerHandler(
@@ -30,8 +30,8 @@ func NewConsumerHandler(
 		env:                         env,
 		completeWorkflowStepUseCase: completeWorkflowStepUseCase,
 		failWorkflowStepUseCase:     failWorkflowStepUseCase,
-		parser:                      rabbitmq.NewWorkerParser(env),
-		securityValidator:           rabbitmq.NewWorkerSecurityValidator(env),
+		parser:                      security.NewWorkerParser(env),
+		securityValidator:           security.NewWorkerSecurityValidator(env),
 	}
 }
 

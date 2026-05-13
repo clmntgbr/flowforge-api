@@ -5,18 +5,15 @@ import (
 	"fmt"
 	"log"
 
+	"flowforge-api/handler"
 	"flowforge-api/infrastructure/config"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-type ConsumerMessageHandler interface {
-	HandleMessage(ctx context.Context, delivery *amqp.Delivery) error
-}
-
 type WorkerConsumer struct {
 	env     *config.Config
-	handler ConsumerMessageHandler
+	handler *handler.ConsumerHandler
 
 	conn    *amqp.Connection
 	channel *amqp.Channel
@@ -24,7 +21,7 @@ type WorkerConsumer struct {
 
 func NewWorkerConsumer(
 	env *config.Config,
-	handler ConsumerMessageHandler,
+	handler *handler.ConsumerHandler,
 ) *WorkerConsumer {
 	return &WorkerConsumer{
 		env:     env,
