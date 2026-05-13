@@ -8,6 +8,7 @@ import (
 	repoGorm "flowforge-api/repository/gorm"
 	"flowforge-api/usecase/auth"
 	"flowforge-api/usecase/clerk"
+	"flowforge-api/usecase/connexion"
 	"flowforge-api/usecase/endpoint"
 	"flowforge-api/usecase/organization"
 	"flowforge-api/usecase/user"
@@ -23,6 +24,7 @@ type Container struct {
 	UserHandler            *handler.UserHandler
 	OrganizationHandler    *handler.OrganizationHandler
 	EndpointHandler        *handler.EndpointHandler
+	ConnexionHandler       *handler.ConnexionHandler
 }
 
 func NewContainer(db *gorm.DB, env *config.Config) *Container {
@@ -34,6 +36,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	userRepo := repoGorm.NewUserRepository(db)
 	organizationRepo := repoGorm.NewOrganizationRepository(db)
 	endpointRepo := repoGorm.NewEndpointRepository(db)
+	connexionRepo := repoGorm.NewConnexionRepository(db)
 
 	validateTokenUseCase := auth.NewValidateTokenUseCase(jwksProvider, userRepo)
 	fetchUserUseCase := clerk.NewFetchUserUseCase(env)
@@ -52,6 +55,9 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	createEndpointUseCase := endpoint.NewCreateEndpointUseCase(endpointRepo)
 	updateEndpointUseCase := endpoint.NewUpdateEndpointUseCase(endpointRepo)
 	getEndpointUseCase := endpoint.NewGetEndpointUseCase(endpointRepo)
+
+	createConnexionUseCase := connexion.NewCreateConnexionUseCase(connexionRepo)
+	deleteConnexionUseCase := connexion.NewDeleteConnexionUseCase(connexionRepo)
 
 	clerkMiddleware := middleware.NewClerkMiddleware(
 		env.ClerkWebhookSecret,
@@ -90,6 +96,11 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		getEndpointUseCase,
 	)
 
+	connexionHandler := handler.NewConnexionHandler(
+		createConnexionUseCase,
+		deleteConnexionUseCase,
+	)
+
 	return &Container{
 		AuthenticateMiddleware: authenticateMiddleware,
 		ClerkMiddleware:        clerkMiddleware,
@@ -97,5 +108,6 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		UserHandler:            userHandler,
 		OrganizationHandler:    organizationHandler,
 		EndpointHandler:        endpointHandler,
+		ConnexionHandler:       connexionHandler,
 	}
 }

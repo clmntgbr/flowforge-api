@@ -107,3 +107,8 @@ func setupEndpointsRoutes(api fiber.Router, container *Container) {
 	api.Get("/endpoints/:id", container.EndpointHandler.GetEndpointByID)
 	api.Put("/endpoints/:id", container.EndpointHandler.UpdateEndpoint)
 }
+
+func setupConnexionsRoutes(api fiber.Router, container *Container) {
+	api.Delete("/connexions/:id", container.ConnexionHandler.DeleteConnexion)
+	api.Post("/connexions", container.ConnexionHandler.CreateConnexion)
+}
