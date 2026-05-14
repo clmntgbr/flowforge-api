@@ -2,7 +2,9 @@ package gorm
 
 import (
 	"context"
+	"errors"
 	"flowforge-api/domain/entity"
+	"flowforge-api/domain/enum"
 	"flowforge-api/domain/repository"
 	"flowforge-api/infrastructure/paginate"
 
@@ -52,4 +54,27 @@ func (r *workflowRunRepository) GetByWorkflowID(ctx context.Context, workflowID 
 	}
 
 	return workflowRuns, total, nil
+}
+
+func (r *workflowRunRepository) GetByWorkflowIDAndNotEnded(ctx context.Context, workflowID uuid.UUID) (*entity.WorkflowRun, error) {
+	var workflowRun entity.WorkflowRun
+
+	err := r.db.WithContext(ctx).
+		Where("workflow_id = ?",
+			workflowID,
+		).
+		Where("status != ?", enum.WorkflowRunStatusCompleted).
+		Where("status != ?", enum.WorkflowRunStatusFailed).
+		Preload("Workflow").
+		First(&workflowRun).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &workflowRun, nil
 }

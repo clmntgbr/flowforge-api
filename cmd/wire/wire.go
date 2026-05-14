@@ -13,6 +13,7 @@ import (
 	"flowforge-api/usecase/endpoint"
 	"flowforge-api/usecase/organization"
 	"flowforge-api/usecase/step"
+	"flowforge-api/usecase/step_run"
 	"flowforge-api/usecase/user"
 	"flowforge-api/usecase/workflow"
 	"flowforge-api/usecase/workflow_run"
@@ -50,6 +51,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	stepRepo := repoGorm.NewStepRepository(db)
 	workflowRepo := repoGorm.NewWorkflowRepository(db)
 	workflowRunRepo := repoGorm.NewWorkflowRunRepository(db)
+	stepRunRepo := repoGorm.NewStepRunRepository(db)
 
 	validateTokenUseCase := auth.NewValidateTokenUseCase(jwksProvider, userRepo)
 	fetchUserUseCase := clerk.NewFetchUserUseCase(env)
@@ -83,13 +85,32 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	updateWorkflowUseCase := workflow.NewUpdateWorkflowUseCase(workflowRepo)
 	activateWorkflowUseCase := workflow.NewActivateWorkflowUseCase(workflowRepo)
 	deactivateWorkflowUseCase := workflow.NewDeactivateWorkflowUseCase(workflowRepo)
-	upsertWorkflowUseCase := workflow.NewUpsertWorkflowUseCase(workflowRepo, stepRepo, endpointRepo, *calculateExecutionOrderUseCase)
-	getWorkflowRunsUseCase := workflow_run.NewGetWorkflowRunsUseCase(workflowRepo, workflowRunRepo)
+	upsertWorkflowUseCase := workflow.NewUpsertWorkflowUseCase(
+		workflowRepo,
+		stepRepo,
+		endpointRepo,
+		*calculateExecutionOrderUseCase,
+	)
+
+	getWorkflowRunsUseCase := workflow_run.NewGetWorkflowRunsUseCase(
+		workflowRepo,
+		workflowRunRepo,
+	)
 
 	completeWorkflowStepUseCase := consumer.NewCompleteWorkflowStepUseCase()
 	failWorkflowStepUseCase := consumer.NewFailWorkflowStepUseCase()
 
-	executeWorkflowUseCase := workflow.NewExecuteWorkflowUseCase(workflowRepo)
+	createWorkflowRunUseCase := workflow_run.NewCreateWorkflowRunUseCase(workflowRunRepo)
+
+	hasStepRunUseCase := step_run.NewHasStepRunUseCase(stepRunRepo)
+
+	executeWorkflowUseCase := workflow.NewExecuteWorkflowUseCase(
+		workflowRepo,
+		workflowRunRepo,
+		stepRepo,
+		createWorkflowRunUseCase,
+		hasStepRunUseCase,
+	)
 
 	clerkMiddleware := middleware.NewClerkMiddleware(
 		env.ClerkWebhookSecret,

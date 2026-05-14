@@ -3,6 +3,7 @@ package gorm
 import (
 	"context"
 	"flowforge-api/domain/entity"
+	"flowforge-api/domain/enum"
 	"flowforge-api/domain/repository"
 	"flowforge-api/infrastructure/paginate"
 
@@ -74,4 +75,16 @@ func (r *workflowRepository) GetByIDAndOrganizationID(ctx context.Context, organ
 
 func (r *workflowRepository) Transaction(ctx context.Context, fn func(tx *gorm.DB) error) error {
 	return r.db.WithContext(ctx).Transaction(fn)
+}
+
+func (r *workflowRepository) GetWorkflowsForExecution(ctx context.Context) ([]entity.Workflow, error) {
+	var workflows []entity.Workflow
+
+	err := r.db.WithContext(ctx).
+		Where("status = ?", enum.WorkflowStatusActive).
+		Find(&workflows).Error
+	if err != nil {
+		return nil, err
+	}
+	return workflows, nil
 }

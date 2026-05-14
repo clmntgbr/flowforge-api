@@ -2,6 +2,7 @@ package gorm
 
 import (
 	"context"
+	"errors"
 	"flowforge-api/domain/entity"
 	"flowforge-api/domain/repository"
 
@@ -84,4 +85,23 @@ func (r *stepRepository) UpdatePositionAndIndex(ctx context.Context, stepID uuid
 				"execution_order": executionOrder,
 			}).Error
 	})
+}
+
+func (r *stepRepository) GetFirstStepByWorkflowID(ctx context.Context, workflowID uuid.UUID) (*entity.Step, error) {
+	var step entity.Step
+	err := r.db.WithContext(ctx).
+		Where("workflow_id = ?", workflowID).
+		Order("execution_order ASC, id ASC").
+		Preload("Endpoint").
+		First(&step).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &step, nil
 }
