@@ -64,7 +64,6 @@ func (u *ExecuteWorkflowUseCase) Execute(ctx context.Context) error {
 	}
 
 	for _, wf := range workflows {
-		wf := wf
 		err := u.workflowRepo.Transaction(ctx, func(tx *gorm.DB) error {
 			txCtx := repogorm.ContextWithTx(ctx, tx)
 			return u.runExecuteWorkflowIteration(txCtx, wf)
@@ -78,8 +77,6 @@ func (u *ExecuteWorkflowUseCase) Execute(ctx context.Context) error {
 }
 
 func (u *ExecuteWorkflowUseCase) runExecuteWorkflowIteration(txCtx context.Context, workflow entity.Workflow) error {
-	log.Println("🔄 Executing workflow", workflow.ID)
-
 	workflowRun, err := u.workflowRunRepo.GetByWorkflowIDAndNotEnded(txCtx, workflow.ID)
 	if err != nil {
 		return fmt.Errorf("🚨 failed to get workflow run by workflow ID and not ended: %w", err)
@@ -96,8 +93,6 @@ func (u *ExecuteWorkflowUseCase) runExecuteWorkflowIteration(txCtx context.Conte
 		return nil
 	}
 
-	fmt.Println("🔄 Workflow run", workflowRun)
-	fmt.Println("🔄 Workflow run status", workflowRun.Status)
 	if workflowRun.Status == enum.WorkflowRunStatusRunning {
 		return nil
 	}
@@ -113,7 +108,6 @@ func (u *ExecuteWorkflowUseCase) runExecuteWorkflowIteration(txCtx context.Conte
 
 	hasStepRun := u.hasStepRunUseCase.Execute(txCtx, workflowRun.ID)
 	if hasStepRun {
-		fmt.Println("🔄 Step run already exists")
 		return nil
 	}
 
@@ -143,9 +137,6 @@ func (u *ExecuteWorkflowUseCase) runExecuteWorkflowIteration(txCtx context.Conte
 	if err := u.stepRunPublisher.PublishStepRunEvent(txCtx, u.env, event); err != nil {
 		return fmt.Errorf("🚨 failed to publish step run: %w", err)
 	}
-
-	fmt.Println("🔄 Step", step)
-	log.Println("🔄 Creating workflow run", workflow.ID)
 
 	return nil
 }

@@ -8,6 +8,11 @@ import (
 	"github.com/google/uuid"
 )
 
+type MessagePayload struct {
+	SecretKey    string       `json:"secret_key"`
+	StepRunEvent StepRunEvent `json:"step_run_event"`
+}
+
 type StepRunEvent struct {
 	WorkflowRunID uuid.UUID                        `json:"workflow_run_id" validate:"required,uuid"`
 	StepRunID     uuid.UUID                        `json:"step_run_id" validate:"required,uuid"`

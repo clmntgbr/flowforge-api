@@ -25,7 +25,6 @@ func NewExecuteWorkflowCommand() *cobra.Command {
 				return fmt.Errorf("🚨 failed to execute workflow command: %w", err)
 			}
 
-			fmt.Println("🎉 Execute workflow command executed successfully")
 			return nil
 		},
 	}

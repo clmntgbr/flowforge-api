@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"flowforge-api/infrastructure/config"
-	"fmt"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -37,15 +36,15 @@ func NewPublisherFromEnv(env *config.Config) Publisher {
 }
 
 func (p *publisher) PublishStepRunEvent(ctx context.Context, config *config.Config, event StepRunEvent) error {
-	body, err := json.Marshal(event)
+	message := MessagePayload{
+		SecretKey:    config.RabbitMQSecretKey,
+		StepRunEvent: event,
+	}
+
+	body, err := json.Marshal(message)
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("🔄 Publishing step run event", event)
-	fmt.Println("🔄 Exchange name", config.ExchangeName)
-	fmt.Println("🔄 Runner queue name", config.RunnerQueueName)
-	fmt.Println("🔄 Body", string(body))
 
 	return p.channel.PublishWithContext(
 		ctx,
