@@ -19,11 +19,15 @@ func NewHasStepRunUseCase(
 	}
 }
 
-func (u *HasStepRunUseCase) Execute(ctx context.Context, workflowRunID uuid.UUID) (bool, error) {
+func (u *HasStepRunUseCase) Execute(ctx context.Context, workflowRunID uuid.UUID) bool {
 	stepRun, err := u.stepRunRepo.GetByWorkflowRunID(ctx, workflowRunID)
 	if err != nil {
-		return false, err
+		return false
 	}
 
-	return stepRun != nil, nil
+	if stepRun == nil {
+		return false
+	}
+
+	return true
 }

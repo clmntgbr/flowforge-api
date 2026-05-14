@@ -82,6 +82,7 @@ func (r *workflowRepository) GetWorkflowsForExecution(ctx context.Context) ([]en
 
 	err := r.db.WithContext(ctx).
 		Where("status = ?", enum.WorkflowStatusActive).
+		Where("EXISTS (SELECT 1 FROM steps WHERE steps.workflow_id = workflows.id)").
 		Find(&workflows).Error
 	if err != nil {
 		return nil, err

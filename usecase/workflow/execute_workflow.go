@@ -84,12 +84,9 @@ func (u *ExecuteWorkflowUseCase) Execute(ctx context.Context) error {
 			continue
 		}
 
-		hasStepRun, err := u.hasStepRunUseCase.Execute(ctx, workflowRun.ID)
-		if err != nil {
-			return fmt.Errorf("🚨 failed to check if step run exists: %w", err)
-		}
-
+		hasStepRun := u.hasStepRunUseCase.Execute(ctx, workflowRun.ID)
 		if hasStepRun {
+			fmt.Println("🔄 Step run already exists")
 			continue
 		}
 
@@ -103,10 +100,13 @@ func (u *ExecuteWorkflowUseCase) Execute(ctx context.Context) error {
 			return fmt.Errorf("🚨 failed to execute step run: %w", err)
 		}
 
-		workflowRun, err = u.executeWorkflowRunUseCase.Execute(ctx, workflowRun)
+		_, err = u.executeWorkflowRunUseCase.Execute(ctx, *workflowRun)
 		if err != nil {
 			return fmt.Errorf("🚨 failed to execute workflow run: %w", err)
 		}
+
+		stepRun.Step = *step
+		stepRun.WorkflowRun = *workflowRun
 
 		fmt.Println("🔄 Step", step)
 		log.Println("🔄 Creating workflow run", workflow.ID)
