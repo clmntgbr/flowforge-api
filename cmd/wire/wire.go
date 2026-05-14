@@ -5,6 +5,7 @@ import (
 	"flowforge-api/handler/middleware"
 	infraClerk "flowforge-api/infrastructure/clerk"
 	"flowforge-api/infrastructure/config"
+	rmq "flowforge-api/infrastructure/messaging/rabbitmq"
 	repoGorm "flowforge-api/repository/gorm"
 	"flowforge-api/usecase/auth"
 	"flowforge-api/usecase/clerk"
@@ -106,6 +107,8 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	executeStepRunUseCase := step_run.NewExecuteStepRunUseCase(stepRunRepo, stepRepo)
 	executeWorkflowRunUseCase := workflow_run.NewExecuteWorkflowRunUseCase(workflowRunRepo)
 
+	stepRunPublisher, _ := rmq.NewPublisherFromEnv(env)
+
 	executeWorkflowUseCase := workflow.NewExecuteWorkflowUseCase(
 		workflowRepo,
 		workflowRunRepo,
@@ -115,6 +118,8 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		createStepRunUseCase,
 		executeStepRunUseCase,
 		executeWorkflowRunUseCase,
+		env,
+		stepRunPublisher,
 	)
 
 	clerkMiddleware := middleware.NewClerkMiddleware(

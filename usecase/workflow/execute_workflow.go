@@ -3,8 +3,9 @@ package workflow
 import (
 	"context"
 	"flowforge-api/domain/enum"
-	"flowforge-api/domain/port"
 	"flowforge-api/domain/repository"
+	"flowforge-api/infrastructure/config"
+	"flowforge-api/infrastructure/messaging/rabbitmq"
 	"flowforge-api/usecase/step_run"
 	"flowforge-api/usecase/workflow_run"
 	"fmt"
@@ -20,7 +21,8 @@ type ExecuteWorkflowUseCase struct {
 	createStepRunUseCase      *step_run.CreateStepRunUseCase
 	executeStepRunUseCase     *step_run.ExecuteStepRunUseCase
 	executeWorkflowRunUseCase *workflow_run.ExecuteWorkflowRunUseCase
-	stepRunPublisher          port.StepRunPublisher
+	env                       *config.Config
+	stepRunPublisher          rabbitmq.Publisher
 }
 
 func NewExecuteWorkflowUseCase(
@@ -32,7 +34,8 @@ func NewExecuteWorkflowUseCase(
 	createStepRunUseCase *step_run.CreateStepRunUseCase,
 	executeStepRunUseCase *step_run.ExecuteStepRunUseCase,
 	executeWorkflowRunUseCase *workflow_run.ExecuteWorkflowRunUseCase,
-	stepRunPublisher port.StepRunPublisher,
+	env *config.Config,
+	stepRunPublisher rabbitmq.Publisher,
 ) *ExecuteWorkflowUseCase {
 	return &ExecuteWorkflowUseCase{
 		workflowRepo:              workflowRepo,
@@ -43,6 +46,7 @@ func NewExecuteWorkflowUseCase(
 		createStepRunUseCase:      createStepRunUseCase,
 		executeStepRunUseCase:     executeStepRunUseCase,
 		executeWorkflowRunUseCase: executeWorkflowRunUseCase,
+		env:                       env,
 		stepRunPublisher:          stepRunPublisher,
 	}
 }
@@ -112,8 +116,11 @@ func (u *ExecuteWorkflowUseCase) Execute(ctx context.Context) error {
 		stepRun.Step = *step
 		stepRun.WorkflowRun = *workflowRun
 
-		if err := u.stepRunPublisher.Publish(ctx, stepRun); err != nil {
-			return fmt.Errorf("🚨 failed to publish step run: %w", err)
+		if u.stepRunPublisher != nil {
+			event := rabbitmq.NewStepRunEvent(stepRun)
+			if err := u.stepRunPublisher.PublishStepRunEvent(ctx, u.env, event); err != nil {
+				return fmt.Errorf("🚨 failed to publish step run: %w", err)
+			}
 		}
 
 		fmt.Println("🔄 Step", step)
