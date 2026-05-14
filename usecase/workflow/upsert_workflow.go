@@ -5,6 +5,7 @@ import (
 	"flowforge-api/domain/entity"
 	"flowforge-api/domain/repository"
 	workflowDTO "flowforge-api/infrastructure/workflow"
+	repogorm "flowforge-api/repository/gorm"
 	usecase "flowforge-api/usecase/step"
 
 	"github.com/google/uuid"
@@ -39,7 +40,8 @@ func (u *UpsertWorkflowUseCase) Execute(ctx context.Context, organizationID uuid
 	}
 
 	return u.workflowRepo.Transaction(ctx, func(tx *gorm.DB) error {
-		existingSteps, err := u.stepRepo.GetByWorkflowID(ctx, workflow.ID)
+		txCtx := repogorm.ContextWithTx(ctx, tx)
+		existingSteps, err := u.stepRepo.GetByWorkflowID(txCtx, workflow.ID)
 		if err != nil {
 			return err
 		}
@@ -61,7 +63,7 @@ func (u *UpsertWorkflowUseCase) Execute(ctx context.Context, organizationID uuid
 		}
 
 		if len(stepsToDelete) > 0 {
-			if err := u.stepRepo.DeleteByIDs(ctx, stepsToDelete); err != nil {
+			if err := u.stepRepo.DeleteByIDs(txCtx, stepsToDelete); err != nil {
 				return err
 			}
 		}
@@ -77,17 +79,17 @@ func (u *UpsertWorkflowUseCase) Execute(ctx context.Context, organizationID uuid
 				return err
 			}
 
-			endpoint, err := u.endpointRepo.GetByID(ctx, endpointUUID)
+			endpoint, err := u.endpointRepo.GetByID(txCtx, endpointUUID)
 			if err != nil {
 				return err
 			}
 
 			index := stepInput.Index
-			executionOrder := u.calculateExecutionOrderUseCase.Execute(ctx, index)
+			executionOrder := u.calculateExecutionOrderUseCase.Execute(txCtx, index)
 
 			position := entity.Position{X: stepInput.Position.X, Y: stepInput.Position.Y}
 
-			existingStep, _ := u.stepRepo.GetByID(ctx, stepUUID)
+			existingStep, _ := u.stepRepo.GetByID(txCtx, stepUUID)
 
 			if existingStep == nil {
 				newStep := &entity.Step{
@@ -107,11 +109,11 @@ func (u *UpsertWorkflowUseCase) Execute(ctx context.Context, organizationID uuid
 					RetryCount:     endpoint.RetryCount,
 					RetryDelay:     endpoint.RetryDelay,
 				}
-				if err := u.stepRepo.Create(ctx, newStep); err != nil {
+				if err := u.stepRepo.Create(txCtx, newStep); err != nil {
 					return err
 				}
 			} else {
-				if err := u.stepRepo.UpdatePositionAndIndex(ctx, existingStep.ID, workflowID, position, index, executionOrder); err != nil {
+				if err := u.stepRepo.UpdatePositionAndIndex(txCtx, existingStep.ID, workflowID, position, index, executionOrder); err != nil {
 					return err
 				}
 			}

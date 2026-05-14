@@ -23,17 +23,17 @@ func NewPublisher(channel *amqp.Channel) Publisher {
 	}
 }
 
-func NewPublisherFromEnv(env *config.Config) (Publisher, error) {
+func NewPublisherFromEnv(env *config.Config) Publisher {
 	conn, err := amqp.Dial(env.RabbitMQURL)
 	if err != nil {
-		return nil, fmt.Errorf("dial: %w", err)
+		return nil
 	}
 	ch, err := conn.Channel()
 	if err != nil {
 		_ = conn.Close()
-		return nil, fmt.Errorf("channel: %w", err)
+		return nil
 	}
-	return NewPublisher(ch), nil
+	return NewPublisher(ch)
 }
 
 func (p *publisher) PublishStepRunEvent(ctx context.Context, config *config.Config, event StepRunEvent) error {

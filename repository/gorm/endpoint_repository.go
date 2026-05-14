@@ -19,21 +19,21 @@ func NewEndpointRepository(db *gorm.DB) repository.EndpointRepository {
 }
 
 func (r *endpointRepository) Create(ctx context.Context, endpoint *entity.Endpoint) error {
-	return r.db.WithContext(ctx).Create(endpoint).Error
+	return dbWithContext(ctx, r.db).Create(endpoint).Error
 }
 
 func (r *endpointRepository) Update(ctx context.Context, endpoint *entity.Endpoint) error {
-	return r.db.WithContext(ctx).Save(endpoint).Error
+	return dbWithContext(ctx, r.db).Save(endpoint).Error
 }
 
 func (r *endpointRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	return r.db.WithContext(ctx).Delete(&entity.Endpoint{}, id).Error
+	return dbWithContext(ctx, r.db).Delete(&entity.Endpoint{}, id).Error
 }
 
 func (r *endpointRepository) List(ctx context.Context, organizationID uuid.UUID, query paginate.PaginateQuery) ([]entity.Endpoint, int64, error) {
 	var endpoints []entity.Endpoint
 
-	db := r.db.WithContext(ctx).Model(&entity.Endpoint{}).
+	db := dbWithContext(ctx, r.db).Model(&entity.Endpoint{}).
 		Where("organization_id = ?", organizationID)
 
 	if query.Search != "" {
@@ -56,7 +56,7 @@ func (r *endpointRepository) List(ctx context.Context, organizationID uuid.UUID,
 func (r *endpointRepository) GetByIDAndOrganizationID(ctx context.Context, id uuid.UUID, organizationID uuid.UUID) (entity.Endpoint, error) {
 	var endpoint entity.Endpoint
 
-	err := r.db.WithContext(ctx).
+	err := dbWithContext(ctx, r.db).
 		Where("organization_id = ? AND id = ?", organizationID, id).
 		First(&endpoint).Error
 
@@ -70,7 +70,7 @@ func (r *endpointRepository) GetByIDAndOrganizationID(ctx context.Context, id uu
 func (r *endpointRepository) GetByID(ctx context.Context, id uuid.UUID) (entity.Endpoint, error) {
 	var endpoint entity.Endpoint
 
-	err := r.db.WithContext(ctx).
+	err := dbWithContext(ctx, r.db).
 		Where("id = ?", id).
 		First(&endpoint).Error
 

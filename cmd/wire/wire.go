@@ -107,7 +107,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	executeStepRunUseCase := step_run.NewExecuteStepRunUseCase(stepRunRepo, stepRepo)
 	executeWorkflowRunUseCase := workflow_run.NewExecuteWorkflowRunUseCase(workflowRunRepo)
 
-	stepRunPublisher, _ := rmq.NewPublisherFromEnv(env)
+	stepRunPublisher := rmq.NewPublisherFromEnv(env)
 
 	executeWorkflowUseCase := workflow.NewExecuteWorkflowUseCase(
 		workflowRepo,

@@ -19,21 +19,21 @@ func NewStepRepository(db *gorm.DB) repository.StepRepository {
 }
 
 func (r *stepRepository) Create(ctx context.Context, step *entity.Step) error {
-	return r.db.WithContext(ctx).Create(step).Error
+	return dbWithContext(ctx, r.db).Create(step).Error
 }
 
 func (r *stepRepository) Update(ctx context.Context, step *entity.Step) error {
-	return r.db.WithContext(ctx).Save(step).Error
+	return dbWithContext(ctx, r.db).Save(step).Error
 }
 
 func (r *stepRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	return r.db.WithContext(ctx).Delete(&entity.Step{}, id).Error
+	return dbWithContext(ctx, r.db).Delete(&entity.Step{}, id).Error
 }
 
 func (r *stepRepository) GetByIDAndOrganizationIDAndWorkflowID(ctx context.Context, organizationID uuid.UUID, workflowID uuid.UUID, id uuid.UUID) (entity.Step, error) {
 	var step entity.Step
 
-	err := r.db.WithContext(ctx).
+	err := dbWithContext(ctx, r.db).
 		Joins("JOIN workflows ON workflows.id = steps.workflow_id").
 		Where("steps.id = ? AND workflows.organization_id = ? AND workflows.id = ?", id, organizationID, workflowID).
 		First(&step).Error
@@ -47,14 +47,14 @@ func (r *stepRepository) DeleteByIDs(ctx context.Context, stepIDs []uuid.UUID) e
 	if len(stepIDs) == 0 {
 		return nil
 	}
-	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	return dbWithContext(ctx, r.db).Transaction(func(tx *gorm.DB) error {
 		return tx.Where("id IN ?", stepIDs).Delete(&entity.Step{}).Error
 	})
 }
 
 func (r *stepRepository) GetByWorkflowID(ctx context.Context, workflowID uuid.UUID) ([]entity.Step, error) {
 	var steps []entity.Step
-	err := r.db.WithContext(ctx).
+	err := dbWithContext(ctx, r.db).
 		Where("workflow_id = ?", workflowID).
 		Find(&steps).Error
 	return steps, err
@@ -62,7 +62,7 @@ func (r *stepRepository) GetByWorkflowID(ctx context.Context, workflowID uuid.UU
 
 func (r *stepRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.Step, error) {
 	var step entity.Step
-	err := r.db.WithContext(ctx).
+	err := dbWithContext(ctx, r.db).
 		Where("id = ?", id).
 		Preload("Endpoint").
 		First(&step).Error
@@ -75,7 +75,7 @@ func (r *stepRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.Ste
 }
 
 func (r *stepRepository) UpdatePositionAndIndex(ctx context.Context, stepID uuid.UUID, workflowID uuid.UUID, position entity.Position, index string, executionOrder int) error {
-	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+	return dbWithContext(ctx, r.db).Transaction(func(tx *gorm.DB) error {
 		return tx.Model(&entity.Step{}).
 			Where("id = ? AND workflow_id = ?", stepID, workflowID).
 			Updates(map[string]interface{}{
@@ -89,7 +89,7 @@ func (r *stepRepository) UpdatePositionAndIndex(ctx context.Context, stepID uuid
 
 func (r *stepRepository) GetFirstStepByWorkflowID(ctx context.Context, workflowID uuid.UUID) (*entity.Step, error) {
 	var step entity.Step
-	err := r.db.WithContext(ctx).
+	err := dbWithContext(ctx, r.db).
 		Where("workflow_id = ?", workflowID).
 		Order("execution_order ASC, id ASC").
 		Preload("Endpoint").

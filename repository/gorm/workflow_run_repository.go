@@ -21,21 +21,21 @@ func NewWorkflowRunRepository(db *gorm.DB) repository.WorkflowRunRepository {
 }
 
 func (r *workflowRunRepository) Create(ctx context.Context, workflowRun *entity.WorkflowRun) error {
-	return r.db.WithContext(ctx).Create(workflowRun).Error
+	return dbWithContext(ctx, r.db).Create(workflowRun).Error
 }
 
 func (r *workflowRunRepository) Update(ctx context.Context, workflowRun *entity.WorkflowRun) error {
-	return r.db.WithContext(ctx).Save(workflowRun).Error
+	return dbWithContext(ctx, r.db).Save(workflowRun).Error
 }
 
 func (r *workflowRunRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	return r.db.WithContext(ctx).Delete(&entity.Workflow{}, id).Error
+	return dbWithContext(ctx, r.db).Delete(&entity.Workflow{}, id).Error
 }
 
 func (r *workflowRunRepository) GetByWorkflowID(ctx context.Context, workflowID uuid.UUID, query paginate.PaginateQuery) ([]entity.WorkflowRun, int64, error) {
 	var workflowRuns []entity.WorkflowRun
 
-	db := r.db.WithContext(ctx).Model(&entity.WorkflowRun{}).
+	db := dbWithContext(ctx, r.db).Model(&entity.WorkflowRun{}).
 		Where("workflow_id = ?", workflowID)
 
 	db, total, err := Paginate(db, query)
@@ -59,7 +59,7 @@ func (r *workflowRunRepository) GetByWorkflowID(ctx context.Context, workflowID 
 func (r *workflowRunRepository) GetByWorkflowIDAndNotEnded(ctx context.Context, workflowID uuid.UUID) (*entity.WorkflowRun, error) {
 	var workflowRun entity.WorkflowRun
 
-	err := r.db.WithContext(ctx).
+	err := dbWithContext(ctx, r.db).
 		Where("workflow_id = ?",
 			workflowID,
 		).

@@ -20,21 +20,21 @@ func NewWorkflowRepository(db *gorm.DB) repository.WorkflowRepository {
 }
 
 func (r *workflowRepository) Create(ctx context.Context, workflow *entity.Workflow) error {
-	return r.db.WithContext(ctx).Create(workflow).Error
+	return dbWithContext(ctx, r.db).Create(workflow).Error
 }
 
 func (r *workflowRepository) Update(ctx context.Context, workflow *entity.Workflow) error {
-	return r.db.WithContext(ctx).Save(workflow).Error
+	return dbWithContext(ctx, r.db).Save(workflow).Error
 }
 
 func (r *workflowRepository) Delete(ctx context.Context, id uuid.UUID) error {
-	return r.db.WithContext(ctx).Delete(&entity.Workflow{}, id).Error
+	return dbWithContext(ctx, r.db).Delete(&entity.Workflow{}, id).Error
 }
 
 func (r *workflowRepository) List(ctx context.Context, organizationID uuid.UUID, query paginate.PaginateQuery) ([]entity.Workflow, int64, error) {
 	var workflows []entity.Workflow
 
-	db := r.db.WithContext(ctx).Model(&entity.Workflow{}).
+	db := dbWithContext(ctx, r.db).Model(&entity.Workflow{}).
 		Where("organization_id = ?", organizationID)
 
 	if query.Search != "" {
@@ -57,7 +57,7 @@ func (r *workflowRepository) List(ctx context.Context, organizationID uuid.UUID,
 func (r *workflowRepository) GetByIDAndOrganizationID(ctx context.Context, organizationID uuid.UUID, workflowID uuid.UUID) (entity.Workflow, error) {
 	var workflow entity.Workflow
 
-	err := r.db.WithContext(ctx).Model(&entity.Workflow{}).
+	err := dbWithContext(ctx, r.db).Model(&entity.Workflow{}).
 		Preload("Steps", func(db *gorm.DB) *gorm.DB {
 			return db.Order("index ASC")
 		}).
@@ -80,7 +80,7 @@ func (r *workflowRepository) Transaction(ctx context.Context, fn func(tx *gorm.D
 func (r *workflowRepository) GetWorkflowsForExecution(ctx context.Context) ([]entity.Workflow, error) {
 	var workflows []entity.Workflow
 
-	err := r.db.WithContext(ctx).
+	err := dbWithContext(ctx, r.db).
 		Where("status = ?", enum.WorkflowStatusActive).
 		Where("EXISTS (SELECT 1 FROM steps WHERE steps.workflow_id = workflows.id)").
 		Find(&workflows).Error
