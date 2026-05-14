@@ -3,6 +3,7 @@ package workflow
 import (
 	"context"
 	"flowforge-api/domain/enum"
+	"flowforge-api/domain/port"
 	"flowforge-api/domain/repository"
 	"flowforge-api/usecase/step_run"
 	"flowforge-api/usecase/workflow_run"
@@ -19,6 +20,7 @@ type ExecuteWorkflowUseCase struct {
 	createStepRunUseCase      *step_run.CreateStepRunUseCase
 	executeStepRunUseCase     *step_run.ExecuteStepRunUseCase
 	executeWorkflowRunUseCase *workflow_run.ExecuteWorkflowRunUseCase
+	stepRunPublisher          port.StepRunPublisher
 }
 
 func NewExecuteWorkflowUseCase(
@@ -30,6 +32,7 @@ func NewExecuteWorkflowUseCase(
 	createStepRunUseCase *step_run.CreateStepRunUseCase,
 	executeStepRunUseCase *step_run.ExecuteStepRunUseCase,
 	executeWorkflowRunUseCase *workflow_run.ExecuteWorkflowRunUseCase,
+	stepRunPublisher port.StepRunPublisher,
 ) *ExecuteWorkflowUseCase {
 	return &ExecuteWorkflowUseCase{
 		workflowRepo:              workflowRepo,
@@ -40,6 +43,7 @@ func NewExecuteWorkflowUseCase(
 		createStepRunUseCase:      createStepRunUseCase,
 		executeStepRunUseCase:     executeStepRunUseCase,
 		executeWorkflowRunUseCase: executeWorkflowRunUseCase,
+		stepRunPublisher:          stepRunPublisher,
 	}
 }
 
@@ -107,6 +111,10 @@ func (u *ExecuteWorkflowUseCase) Execute(ctx context.Context) error {
 
 		stepRun.Step = *step
 		stepRun.WorkflowRun = *workflowRun
+
+		if err := u.stepRunPublisher.Publish(ctx, stepRun); err != nil {
+			return fmt.Errorf("🚨 failed to publish step run: %w", err)
+		}
 
 		fmt.Println("🔄 Step", step)
 		log.Println("🔄 Creating workflow run", workflow.ID)
