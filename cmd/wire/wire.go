@@ -185,7 +185,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		completeWorkflowStepUseCase,
 		failWorkflowStepUseCase,
 	)
-	runnerHandler := handler.NewRunnerHandler()
+	runnerHandler := handler.NewRunnerHandler(env)
 
 	return &Container{
 		AuthenticateMiddleware: authenticateMiddleware,

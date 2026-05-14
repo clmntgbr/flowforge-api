@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -10,7 +11,7 @@ import (
 )
 
 type RunnerMessageHandler interface {
-	HandleMessage(delivery *amqp.Delivery) error
+	HandleMessage(ctx context.Context, delivery *amqp.Delivery) error
 }
 
 type WorkerRunner struct {
@@ -102,7 +103,7 @@ func (c *WorkerRunner) Start() error {
 	)
 
 	for message := range messages {
-		if err := c.handler.HandleMessage(&message); err != nil {
+		if err := c.handler.HandleMessage(context.Background(), &message); err != nil {
 			log.Printf(
 				"rejected message (routing key: %q): %v",
 				message.RoutingKey,

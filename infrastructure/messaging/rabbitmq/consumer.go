@@ -10,7 +10,6 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-// ConsumerMessageHandler handles AMQP deliveries for the workflow consumer worker.
 type ConsumerMessageHandler interface {
 	HandleMessage(ctx context.Context, delivery *amqp.Delivery) error
 }
