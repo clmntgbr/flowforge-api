@@ -101,8 +101,8 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	failWorkflowStepUseCase := consumer.NewFailWorkflowStepUseCase()
 
 	createWorkflowRunUseCase := workflow_run.NewCreateWorkflowRunUseCase(workflowRunRepo)
-
 	hasStepRunUseCase := step_run.NewHasStepRunUseCase(stepRunRepo)
+	createStepRunUseCase := step_run.NewCreateStepRunUseCase(stepRunRepo, stepRepo)
 
 	executeWorkflowUseCase := workflow.NewExecuteWorkflowUseCase(
 		workflowRepo,
@@ -110,6 +110,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		stepRepo,
 		createWorkflowRunUseCase,
 		hasStepRunUseCase,
+		createStepRunUseCase,
 	)
 
 	clerkMiddleware := middleware.NewClerkMiddleware(

@@ -39,3 +39,14 @@ func (r *stepRunRepository) GetByWorkflowRunID(ctx context.Context, workflowRunI
 	}
 	return &stepRun, nil
 }
+
+func (r *stepRunRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.StepRun, error) {
+	var stepRun entity.StepRun
+	err := r.db.WithContext(ctx).
+		Where("id = ?", id).
+		First(&stepRun).Error
+	if err != nil {
+		return nil, err
+	}
+	return &stepRun, nil
+}

@@ -11,11 +11,14 @@ import (
 )
 
 type ExecuteWorkflowUseCase struct {
-	workflowRepo             repository.WorkflowRepository
-	workflowRunRepo          repository.WorkflowRunRepository
-	stepRepo                 repository.StepRepository
-	createWorkflowRunUseCase *workflow_run.CreateWorkflowRunUseCase
-	hasStepRunUseCase        *step_run.HasStepRunUseCase
+	workflowRepo              repository.WorkflowRepository
+	workflowRunRepo           repository.WorkflowRunRepository
+	stepRepo                  repository.StepRepository
+	createWorkflowRunUseCase  *workflow_run.CreateWorkflowRunUseCase
+	hasStepRunUseCase         *step_run.HasStepRunUseCase
+	createStepRunUseCase      *step_run.CreateStepRunUseCase
+	executeStepRunUseCase     *step_run.ExecuteStepRunUseCase
+	executeWorkflowRunUseCase *workflow_run.ExecuteWorkflowRunUseCase
 }
 
 func NewExecuteWorkflowUseCase(
@@ -24,13 +27,19 @@ func NewExecuteWorkflowUseCase(
 	stepRepo repository.StepRepository,
 	createWorkflowRunUseCase *workflow_run.CreateWorkflowRunUseCase,
 	hasStepRunUseCase *step_run.HasStepRunUseCase,
+	createStepRunUseCase *step_run.CreateStepRunUseCase,
+	executeStepRunUseCase *step_run.ExecuteStepRunUseCase,
+	executeWorkflowRunUseCase *workflow_run.ExecuteWorkflowRunUseCase,
 ) *ExecuteWorkflowUseCase {
 	return &ExecuteWorkflowUseCase{
-		workflowRepo:             workflowRepo,
-		workflowRunRepo:          workflowRunRepo,
-		stepRepo:                 stepRepo,
-		createWorkflowRunUseCase: createWorkflowRunUseCase,
-		hasStepRunUseCase:        hasStepRunUseCase,
+		workflowRepo:              workflowRepo,
+		workflowRunRepo:           workflowRunRepo,
+		stepRepo:                  stepRepo,
+		createWorkflowRunUseCase:  createWorkflowRunUseCase,
+		hasStepRunUseCase:         hasStepRunUseCase,
+		createStepRunUseCase:      createStepRunUseCase,
+		executeStepRunUseCase:     executeStepRunUseCase,
+		executeWorkflowRunUseCase: executeWorkflowRunUseCase,
 	}
 }
 
@@ -56,6 +65,10 @@ func (u *ExecuteWorkflowUseCase) Execute(ctx context.Context) error {
 			}
 		}
 
+		if workflowRun == nil {
+			continue
+		}
+
 		fmt.Println("🔄 Workflow run", workflowRun)
 		fmt.Println("🔄 Workflow run status", workflowRun.Status)
 		if workflowRun.Status == enum.WorkflowRunStatusRunning {
@@ -78,6 +91,21 @@ func (u *ExecuteWorkflowUseCase) Execute(ctx context.Context) error {
 
 		if hasStepRun {
 			continue
+		}
+
+		stepRun, err := u.createStepRunUseCase.Execute(ctx, workflowRun.ID, step.ID)
+		if err != nil {
+			return fmt.Errorf("🚨 failed to create step run: %w", err)
+		}
+
+		stepRun, err = u.executeStepRunUseCase.Execute(ctx, &stepRun)
+		if err != nil {
+			return fmt.Errorf("🚨 failed to execute step run: %w", err)
+		}
+
+		workflowRun, err = u.executeWorkflowRunUseCase.Execute(ctx, workflowRun)
+		if err != nil {
+			return fmt.Errorf("🚨 failed to execute workflow run: %w", err)
 		}
 
 		fmt.Println("🔄 Step", step)
