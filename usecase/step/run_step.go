@@ -40,7 +40,7 @@ func (u *RunStepUseCase) Execute(ctx context.Context, stepRunEvent *rabbitmq.Ste
 	endpoint := stepRunEvent.Endpoint
 	stepStartTime := time.Now()
 
-	config := u.resolveConfig(step, endpoint)
+	config := ResolveConfig(step, endpoint)
 
 	maxAttempts := 1
 	if config.RetryOnFailure && config.RetryCount > 0 {
@@ -60,9 +60,9 @@ func (u *RunStepUseCase) Execute(ctx context.Context, stepRunEvent *rabbitmq.Ste
 			QueueTime:     queueTime,
 		}
 
-		response, err := u.executeRequest(config, &attemptInsights)
+		response, err := ExecuteRequest(config, &attemptInsights)
 		lastResponse = response
-		aggregatedInsights = u.aggregateInsights(aggregatedInsights, attemptInsights)
+		aggregatedInsights = AggregateInsights(aggregatedInsights, attemptInsights)
 
 		if err == nil {
 			aggregatedInsights.Duration = time.Since(stepStartTime)
@@ -80,7 +80,7 @@ func (u *RunStepUseCase) Execute(ctx context.Context, stepRunEvent *rabbitmq.Ste
 	return lastResponse, fmt.Errorf("execution failed after %d attempts", maxAttempts)
 }
 
-func (u *RunStepUseCase) resolveConfig(step presenter.StepDetailResponse, endpoint presenter.EndpointDetailResponse) runner.ExecutionConfig {
+func ResolveConfig(step presenter.StepDetailResponse, endpoint presenter.EndpointDetailResponse) runner.ExecutionConfig {
 	config := runner.ExecutionConfig{
 		URL:    endpoint.BaseURI + endpoint.Path,
 		Method: endpoint.Method,
@@ -101,20 +101,20 @@ func (u *RunStepUseCase) resolveConfig(step presenter.StepDetailResponse, endpoi
 		config.RetryDelay = endpoint.RetryDelay
 	}
 
-	config.URL = u.buildURL(config.URL, step.Query, endpoint.Query)
+	config.URL = BuildURL(config.URL, step.Query, endpoint.Query)
 
-	config.Headers = u.mergeHeaders(endpoint.Header, step.Header)
+	config.Headers = MergeHeaders(endpoint.Header, step.Header)
 
-	if u.hasValidBody(step.Body) {
+	if HasValidBody(step.Body) {
 		config.Body = step.Body
-	} else if u.hasValidBody(endpoint.Body) {
+	} else if HasValidBody(endpoint.Body) {
 		config.Body = endpoint.Body
 	}
 
 	return config
 }
 
-func (u *RunStepUseCase) buildURL(baseURL string, stepQuery, endpointQuery types.Query) string {
+func BuildURL(baseURL string, stepQuery, endpointQuery types.Query) string {
 	parsedURL, err := url.Parse(baseURL)
 	if err != nil {
 		return baseURL
@@ -138,7 +138,7 @@ func (u *RunStepUseCase) buildURL(baseURL string, stepQuery, endpointQuery types
 	return parsedURL.String()
 }
 
-func (u *RunStepUseCase) mergeHeaders(endpointHeaders, stepHeaders types.Header) http.Header {
+func MergeHeaders(endpointHeaders, stepHeaders types.Header) http.Header {
 	headers := make(http.Header)
 
 	for _, h := range endpointHeaders {
@@ -156,7 +156,7 @@ func (u *RunStepUseCase) mergeHeaders(endpointHeaders, stepHeaders types.Header)
 	return headers
 }
 
-func (u *RunStepUseCase) hasValidBody(body types.Body) bool {
+func HasValidBody(body types.Body) bool {
 	if len(body) == 0 {
 		return false
 	}
@@ -165,14 +165,14 @@ func (u *RunStepUseCase) hasValidBody(body types.Body) bool {
 	return bodyStr != "null" && bodyStr != "[]" && bodyStr != "{}" && bodyStr != ""
 }
 
-func (u *RunStepUseCase) supportsBody(method string) bool {
+func SupportsBody(method string) bool {
 	return method != "GET" && method != "HEAD" && method != "DELETE"
 }
 
-func (u *RunStepUseCase) executeRequest(config runner.ExecutionConfig, insights *runner.RunnerInsights) (runner.RunnerResponse, error) {
+func ExecuteRequest(config runner.ExecutionConfig, insights *runner.RunnerInsights) (runner.RunnerResponse, error) {
 
 	var bodyReader io.Reader
-	if len(config.Body) > 0 && u.supportsBody(config.Method) {
+	if len(config.Body) > 0 && SupportsBody(config.Method) {
 		bodyReader = bytes.NewReader(config.Body)
 	}
 
@@ -273,7 +273,7 @@ func (u *RunStepUseCase) executeRequest(config runner.ExecutionConfig, insights 
 	}, nil
 }
 
-func (u *RunStepUseCase) aggregateInsights(total runner.RunnerInsights, attempt runner.RunnerInsights) runner.RunnerInsights {
+func AggregateInsights(total runner.RunnerInsights, attempt runner.RunnerInsights) runner.RunnerInsights {
 	if total.StartTime.IsZero() || (!attempt.StartTime.IsZero() && attempt.StartTime.Before(total.StartTime)) {
 		total.StartTime = attempt.StartTime
 	}

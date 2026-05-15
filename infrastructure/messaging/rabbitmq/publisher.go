@@ -10,6 +10,8 @@ import (
 
 type Publisher interface {
 	PublishStepRunEvent(ctx context.Context, config *config.Config, event StepRunEvent) error
+	PublishRunnerCompleted(ctx context.Context, config *config.Config, message RunnerCompletedMessage) error
+	PublishRunnerFailed(ctx context.Context, config *config.Config, message RunnerFailedMessage) error
 }
 
 type publisher struct {
@@ -50,6 +52,54 @@ func (p *publisher) PublishStepRunEvent(ctx context.Context, config *config.Conf
 		ctx,
 		"",
 		config.RunnerQueueName,
+		false,
+		false,
+		amqp.Publishing{
+			ContentType: "application/json",
+			Body:        body,
+		},
+	)
+}
+
+func (p *publisher) PublishRunnerCompleted(ctx context.Context, config *config.Config, message RunnerCompletedMessage) error {
+	response := MessageResponse{
+		SecretKey: config.RabbitMQSecretKey,
+		Message:   message,
+	}
+
+	body, err := json.Marshal(response)
+	if err != nil {
+		return err
+	}
+
+	return p.channel.PublishWithContext(
+		ctx,
+		config.ExchangeName,
+		config.ConsumerRoutingKeyCompleted,
+		false,
+		false,
+		amqp.Publishing{
+			ContentType: "application/json",
+			Body:        body,
+		},
+	)
+}
+
+func (p *publisher) PublishRunnerFailed(ctx context.Context, config *config.Config, message RunnerFailedMessage) error {
+	response := MessageResponse{
+		SecretKey: config.RabbitMQSecretKey,
+		Message:   message,
+	}
+
+	body, err := json.Marshal(response)
+	if err != nil {
+		return err
+	}
+
+	return p.channel.PublishWithContext(
+		ctx,
+		config.ExchangeName,
+		config.ConsumerRoutingKeyFailed,
 		false,
 		false,
 		amqp.Publishing{
