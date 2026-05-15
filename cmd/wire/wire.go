@@ -19,6 +19,7 @@ import (
 	"flowforge-api/usecase/workflow"
 	"flowforge-api/usecase/workflow_run"
 	"log"
+	"net/http"
 
 	"gorm.io/gorm"
 )
@@ -106,6 +107,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	createStepRunUseCase := step_run.NewCreateStepRunUseCase(stepRunRepo, stepRepo)
 	executeStepRunUseCase := step_run.NewExecuteStepRunUseCase(stepRunRepo, stepRepo)
 	executeWorkflowRunUseCase := workflow_run.NewExecuteWorkflowRunUseCase(workflowRunRepo)
+	runStepUseCase := step.NewRunStepUseCase(http.DefaultClient)
 
 	stepRunPublisher := rmq.NewPublisherFromEnv(env)
 
@@ -185,7 +187,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		completeWorkflowStepUseCase,
 		failWorkflowStepUseCase,
 	)
-	runnerHandler := handler.NewRunnerHandler(env)
+	runnerHandler := handler.NewRunnerHandler(env, runStepUseCase, stepRunPublisher)
 
 	return &Container{
 		AuthenticateMiddleware: authenticateMiddleware,
