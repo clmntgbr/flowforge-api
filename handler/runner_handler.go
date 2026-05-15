@@ -43,12 +43,15 @@ func (h *RunnerHandler) HandleMessage(ctx context.Context, message *amqp.Deliver
 		return err
 	}
 
+	log.Println("🔄 Received message", payload)
+
 	response, err := h.runStepUseCase.Execute(ctx, &payload.StepRunEvent)
 	if err != nil {
+		log.Println("🚨 Error executing step", err)
 		return h.PublishFailure(ctx, payload.StepRunEvent, response, err)
 	}
 
-	fmt.Println("🔄 Received message", payload)
+	log.Println("✅ Success executing step", response)
 	return h.PublishSuccess(ctx, payload.StepRunEvent, response)
 }
 

@@ -28,12 +28,18 @@ func NewRunStepUseCase(httpClient *http.Client) *RunStepUseCase {
 }
 
 func (u *RunStepUseCase) Execute(ctx context.Context, stepRunEvent *rabbitmq.StepRunEvent) (runner.RunnerResponse, error) {
+	fmt.Printf("[run_step] Execute START step_run_id=%s workflow_run_id=%s workflow_id=%s\n",
+		stepRunEvent.StepRunID, stepRunEvent.WorkflowRunID, stepRunEvent.WorkflowID)
+
 	queueTime := time.Duration(0)
 	if stepRunEvent.QueuedAt != nil {
 		queueTime = time.Since(*stepRunEvent.QueuedAt)
 		if queueTime < 0 {
 			queueTime = 0
 		}
+		fmt.Printf("[run_step] queue_time=%s queued_at=%s\n", queueTime, stepRunEvent.QueuedAt.Format(time.RFC3339))
+	} else {
+		fmt.Println("[run_step] no QueuedAt on event")
 	}
 
 	step := stepRunEvent.Step
@@ -41,11 +47,14 @@ func (u *RunStepUseCase) Execute(ctx context.Context, stepRunEvent *rabbitmq.Ste
 	stepStartTime := time.Now()
 
 	config := ResolveConfig(step, endpoint)
+	fmt.Printf("[run_step] config resolved method=%s url=%s timeout=%ds retry_on_failure=%v retry_count=%d retry_delay=%ds\n",
+		config.Method, config.URL, config.Timeout, config.RetryOnFailure, config.RetryCount, config.RetryDelay)
 
 	maxAttempts := 1
 	if config.RetryOnFailure && config.RetryCount > 0 {
 		maxAttempts = config.RetryCount + 1
 	}
+	fmt.Printf("[run_step] max_attempts=%d\n", maxAttempts)
 
 	var lastResponse runner.RunnerResponse
 	aggregatedInsights := runner.RunnerInsights{
@@ -54,6 +63,8 @@ func (u *RunStepUseCase) Execute(ctx context.Context, stepRunEvent *rabbitmq.Ste
 	}
 
 	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		fmt.Printf("[run_step] attempt %d/%d START\n", attempt, maxAttempts)
+
 		attemptInsights := runner.RunnerInsights{
 			AttemptNumber: attempt,
 			TotalAttempts: maxAttempts,
@@ -65,18 +76,28 @@ func (u *RunStepUseCase) Execute(ctx context.Context, stepRunEvent *rabbitmq.Ste
 		aggregatedInsights = AggregateInsights(aggregatedInsights, attemptInsights)
 
 		if err == nil {
+			fmt.Printf("[run_step] attempt %d/%d SUCCESS status=%d duration=%s response_len=%d\n",
+				attempt, maxAttempts, attemptInsights.StatusCode, attemptInsights.Duration, len(response.Response))
 			aggregatedInsights.Duration = time.Since(stepStartTime)
 			lastResponse.Insights = aggregatedInsights
+			fmt.Printf("[run_step] Execute DONE success total_duration=%s\n", aggregatedInsights.Duration)
 			return lastResponse, nil
 		}
 
+		fmt.Printf("[run_step] attempt %d/%d FAILED error_type=%q error_msg=%q status=%d\n",
+			attempt, maxAttempts, attemptInsights.ErrorType, attemptInsights.ErrorMessage, attemptInsights.StatusCode)
+
 		if attempt < maxAttempts && config.RetryDelay > 0 {
+			fmt.Printf("[run_step] sleeping %ds before retry\n", config.RetryDelay)
 			time.Sleep(time.Duration(config.RetryDelay) * time.Second)
+			fmt.Printf("[run_step] retry sleep done\n")
 		}
 	}
 
 	aggregatedInsights.Duration = time.Since(stepStartTime)
 	lastResponse.Insights = aggregatedInsights
+	fmt.Printf("[run_step] Execute DONE failed after %d attempts total_duration=%s last_error=%q\n",
+		maxAttempts, aggregatedInsights.Duration, aggregatedInsights.ErrorMessage)
 	return lastResponse, fmt.Errorf("execution failed after %d attempts", maxAttempts)
 }
 
@@ -170,6 +191,8 @@ func SupportsBody(method string) bool {
 }
 
 func ExecuteRequest(config runner.ExecutionConfig, insights *runner.RunnerInsights) (runner.RunnerResponse, error) {
+	fmt.Printf("[run_step] ExecuteRequest START attempt=%d %s %s body_len=%d\n",
+		insights.AttemptNumber, config.Method, config.URL, len(config.Body))
 
 	var bodyReader io.Reader
 	if len(config.Body) > 0 && SupportsBody(config.Method) {
@@ -178,6 +201,7 @@ func ExecuteRequest(config runner.ExecutionConfig, insights *runner.RunnerInsigh
 
 	req, err := http.NewRequest(config.Method, config.URL, bodyReader)
 	if err != nil {
+		fmt.Printf("[run_step] ExecuteRequest failed to create request: %v\n", err)
 		insights.ErrorType = "failed to create request"
 		insights.ErrorMessage = err.Error()
 		return runner.RunnerResponse{Insights: *insights}, fmt.Errorf("%s: %w", insights.ErrorType, err)
@@ -185,6 +209,7 @@ func ExecuteRequest(config runner.ExecutionConfig, insights *runner.RunnerInsigh
 
 	req.Header = config.Headers
 	insights.RequestSize = int64(len(config.Body))
+	fmt.Printf("[run_step] ExecuteRequest sending HTTP request timeout=%ds\n", config.Timeout)
 
 	var requestStartTime time.Time
 	var dnsStartTime time.Time
@@ -236,11 +261,14 @@ func ExecuteRequest(config runner.ExecutionConfig, insights *runner.RunnerInsigh
 
 	insights.StartTime = time.Now()
 	requestStartTime = insights.StartTime
+	fmt.Printf("[run_step] ExecuteRequest client.Do in progress...\n")
 	resp, err := client.Do(req)
 	insights.EndTime = time.Now()
 	insights.Duration = insights.EndTime.Sub(insights.StartTime)
+	fmt.Printf("[run_step] ExecuteRequest client.Do returned duration=%s err=%v\n", insights.Duration, err)
 
 	if err != nil {
+		fmt.Printf("[run_step] ExecuteRequest HTTP error: %v\n", err)
 		insights.ErrorType = fmt.Sprintf("HTTP request failed (%s %s)", config.Method, config.URL)
 		insights.ErrorMessage = err.Error()
 		return runner.RunnerResponse{Insights: *insights}, fmt.Errorf("%s: %w", insights.ErrorType, err)
@@ -248,17 +276,21 @@ func ExecuteRequest(config runner.ExecutionConfig, insights *runner.RunnerInsigh
 	defer resp.Body.Close()
 
 	insights.StatusCode = resp.StatusCode
+	fmt.Printf("[run_step] ExecuteRequest status=%d reading body...\n", resp.StatusCode)
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
+		fmt.Printf("[run_step] ExecuteRequest failed to read body: %v\n", err)
 		insights.ErrorType = "failed to read response body"
 		insights.ErrorMessage = err.Error()
 		return runner.RunnerResponse{Insights: *insights}, fmt.Errorf("%s: %w", insights.ErrorType, err)
 	}
 
 	insights.ResponseSize = int64(len(respBody))
+	fmt.Printf("[run_step] ExecuteRequest body read response_size=%d\n", insights.ResponseSize)
 
 	if resp.StatusCode >= 400 {
+		fmt.Printf("[run_step] ExecuteRequest HTTP error status=%d body_preview=%q\n", resp.StatusCode, truncateForLog(string(respBody), 200))
 		insights.ErrorType = fmt.Sprintf("HTTP %d response error", resp.StatusCode)
 		insights.ErrorMessage = string(respBody)
 		return runner.RunnerResponse{
@@ -267,10 +299,18 @@ func ExecuteRequest(config runner.ExecutionConfig, insights *runner.RunnerInsigh
 		}, fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(respBody))
 	}
 
+	fmt.Printf("[run_step] ExecuteRequest DONE success status=%d ttfb=%s\n", resp.StatusCode, insights.TTFB)
 	return runner.RunnerResponse{
 		Response: string(respBody),
 		Insights: *insights,
 	}, nil
+}
+
+func truncateForLog(s string, maxLen int) string {
+	if len(s) <= maxLen {
+		return s
+	}
+	return s[:maxLen] + "..."
 }
 
 func AggregateInsights(total runner.RunnerInsights, attempt runner.RunnerInsights) runner.RunnerInsights {
