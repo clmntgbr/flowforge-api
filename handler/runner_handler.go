@@ -20,10 +20,10 @@ type RunnerHandler struct {
 	securityValidator *security.WorkerSecurityValidator
 	parser            *security.WorkerParser
 	runStepUseCase    *step.RunStepUseCase
-	publisher         *rabbitmq.Publisher
+	publisher         rabbitmq.Publisher
 }
 
-func NewRunnerHandler(env *config.Config, runStepUseCase *step.RunStepUseCase, publisher *rabbitmq.Publisher) *RunnerHandler {
+func NewRunnerHandler(env *config.Config, runStepUseCase *step.RunStepUseCase, publisher rabbitmq.Publisher) *RunnerHandler {
 	return &RunnerHandler{
 		env:               env,
 		parser:            security.NewWorkerParser(env),
@@ -45,14 +45,14 @@ func (h *RunnerHandler) HandleMessage(ctx context.Context, message *amqp.Deliver
 
 	response, err := h.runStepUseCase.Execute(ctx, &payload.StepRunEvent)
 	if err != nil {
-		return h.PublishFailure(payload.StepRunEvent, response, err)
+		return h.PublishFailure(ctx, payload.StepRunEvent, response, err)
 	}
 
 	fmt.Println("🔄 Received message", payload)
-	return h.PublishSuccess(payload.StepRunEvent, response)
+	return h.PublishSuccess(ctx, payload.StepRunEvent, response)
 }
 
-func (h *RunnerHandler) PublishSuccess(event rabbitmqDTO.StepRunEvent, response runner.RunnerResponse) error {
+func (h *RunnerHandler) PublishSuccess(ctx context.Context, event rabbitmqDTO.StepRunEvent, response runner.RunnerResponse) error {
 	message := rabbitmqDTO.RunnerCompletedMessage{
 		WorkflowRunID: event.WorkflowRunID.String(),
 		StepRunID:     event.StepRunID.String(),
@@ -69,7 +69,7 @@ func (h *RunnerHandler) PublishSuccess(event rabbitmqDTO.StepRunEvent, response 
 	return nil
 }
 
-func (h *RunnerHandler) PublishFailure(event rabbitmqDTO.StepRunEvent, response runner.RunnerResponse, execError error) error {
+func (h *RunnerHandler) PublishFailure(ctx context.Context, event rabbitmqDTO.StepRunEvent, response runner.RunnerResponse, execError error) error {
 	message := rabbitmqDTO.RunnerFailedMessage{
 		WorkflowRunID: event.WorkflowRunID.String(),
 		StepRunID:     event.StepRunID.String(),
