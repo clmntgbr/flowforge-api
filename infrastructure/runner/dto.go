@@ -1,6 +1,9 @@
-package worker
+package runner
 
-import "time"
+import (
+	"net/http"
+	"time"
+)
 
 type RunnerInsights struct {
 	StartTime         time.Time
@@ -18,4 +21,20 @@ type RunnerInsights struct {
 	ErrorMessage      string
 	ErrorType         string
 	RequestSize       int64
+}
+
+type ExecutionConfig struct {
+	URL            string
+	Method         string
+	Headers        http.Header
+	Body           []byte
+	Timeout        int
+	RetryOnFailure bool
+	RetryCount     int
+	RetryDelay     int
+}
+
+type RunnerResponse struct {
+	Response string         `json:"response"`
+	Insights RunnerInsights `json:"insights"`
 }
