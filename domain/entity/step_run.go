@@ -10,7 +10,8 @@ import (
 type StepRun struct {
 	ID uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 
-	Status enum.StepRunStatus `gorm:"type:varchar(20);not null;check:status IN ('pending','running','completed','failed');index:idx_step_run_status;index:idx_step_run_workflow_status,priority:2" json:"status"`
+	Status   enum.StepRunStatus   `gorm:"type:varchar(20);not null;check:status IN ('pending','running','completed','failed');index:idx_step_run_status;index:idx_step_run_workflow_status,priority:2" json:"status"`
+	Statuses []enum.StepRunStatus `gorm:"serializer:json;type:jsonb;default:'[]'" json:"statuses"`
 
 	StepID uuid.UUID `gorm:"type:uuid;not null;index:idx_step_run_step" json:"step_id"`
 	Step   Step      `gorm:"foreignKey:StepID" json:"step"`

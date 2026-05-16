@@ -22,6 +22,7 @@ func NewExecuteWorkflowRunUseCase(
 
 func (u *ExecuteWorkflowRunUseCase) Execute(ctx context.Context, workflowRun entity.WorkflowRun) (entity.WorkflowRun, error) {
 	workflowRun.Status = enum.WorkflowRunStatusRunning
+	workflowRun.Statuses = append(workflowRun.Statuses, enum.WorkflowRunStatusRunning)
 	startedAt := time.Now().UTC()
 	workflowRun.StartedAt = &startedAt
 

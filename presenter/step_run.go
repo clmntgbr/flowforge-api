@@ -17,17 +17,18 @@ type StepRunListResponse struct {
 }
 
 type StepRunDetailResponse struct {
-	ID          uuid.UUID          `json:"id"`
-	Status      enum.StepRunStatus `json:"status"`
-	StartedAt   *time.Time         `json:"started_at"`
-	CompletedAt *time.Time         `json:"completed_at"`
-	FailedAt    *time.Time         `json:"failed_at"`
-	Error       string             `json:"error"`
-	Response    string             `json:"response"`
-	Insight     InsightResponse    `json:"insight"`
-	Step        StepDetailResponse `json:"step"`
-	CreatedAt   time.Time          `json:"created_at"`
-	UpdatedAt   time.Time          `json:"updated_at"`
+	ID          uuid.UUID            `json:"id"`
+	Status      enum.StepRunStatus   `json:"status"`
+	Statuses    []enum.StepRunStatus `json:"statuses"`
+	StartedAt   *time.Time           `json:"started_at"`
+	CompletedAt *time.Time           `json:"completed_at"`
+	FailedAt    *time.Time           `json:"failed_at"`
+	Error       string               `json:"error"`
+	Response    string               `json:"response"`
+	Insight     InsightResponse      `json:"insight"`
+	Step        StepDetailResponse   `json:"step"`
+	CreatedAt   time.Time            `json:"created_at"`
+	UpdatedAt   time.Time            `json:"updated_at"`
 }
 
 func NewStepRunListResponse(stepRun entity.StepRun) StepRunListResponse {
@@ -60,6 +61,7 @@ func NewStepRunDetailResponse(stepRun entity.StepRun) StepRunDetailResponse {
 	return StepRunDetailResponse{
 		ID:          stepRun.ID,
 		Status:      stepRun.Status,
+		Statuses:    stepRun.Statuses,
 		StartedAt:   stepRun.StartedAt,
 		CompletedAt: stepRun.CompletedAt,
 		Error:       stepRun.Error,

@@ -25,6 +25,7 @@ func NewExecuteStepRunUseCase(
 
 func (u *ExecuteStepRunUseCase) Execute(ctx context.Context, stepRun *entity.StepRun) (entity.StepRun, error) {
 	stepRun.Status = enum.StepRunStatusRunning
+	stepRun.Statuses = append(stepRun.Statuses, enum.StepRunStatusRunning)
 	startedAt := time.Now().UTC()
 	stepRun.StartedAt = &startedAt
 

@@ -25,6 +25,7 @@ func (u *CreateWorkflowRunUseCase) Execute(ctx context.Context, workflowID uuid.
 	workflowRun := &entity.WorkflowRun{
 		WorkflowID: workflowID,
 		Status:     enum.WorkflowRunStatusPending,
+		Statuses:   []enum.WorkflowRunStatus{enum.WorkflowRunStatusPending},
 	}
 
 	err := (*u.workflowRunRepo).Create(ctx, workflowRun)

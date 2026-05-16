@@ -91,6 +91,7 @@ func (u *CompletedStepUseCase) Execute(ctx context.Context, message consumerDTO.
 	}
 
 	stepRun.Status = enum.StepRunStatusCompleted
+	stepRun.Statuses = append(stepRun.Statuses, enum.StepRunStatusCompleted)
 	stepRun.CompletedAt = &completedAt
 	stepRun.Response = message.Response
 	stepRun.InsightID = &insight.ID
@@ -155,6 +156,7 @@ func (u *CompletedStepUseCase) completeWorkflowRun(ctx context.Context, workflow
 
 	workflowRun.CompletedAt = &completedAt
 	workflowRun.Status = enum.WorkflowRunStatusCompleted
+	workflowRun.Statuses = append(workflowRun.Statuses, enum.WorkflowRunStatusCompleted)
 
 	err = (*u.workflowRunRepo).Update(ctx, workflowRun)
 	if err != nil {

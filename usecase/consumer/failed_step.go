@@ -67,6 +67,7 @@ func (u *FailedStepUseCase) Execute(ctx context.Context, message consumerDTO.Con
 	}
 
 	stepRun.Status = enum.StepRunStatusFailed
+	stepRun.Statuses = append(stepRun.Statuses, enum.StepRunStatusFailed)
 	stepRun.FailedAt = &failedAt
 	stepRun.Error = message.Error
 	stepRun.Response = message.Response
@@ -88,6 +89,7 @@ func (u *FailedStepUseCase) Execute(ctx context.Context, message consumerDTO.Con
 
 	workflowRun.FailedAt = &failedAt
 	workflowRun.Status = enum.WorkflowRunStatusFailed
+	workflowRun.Statuses = append(workflowRun.Statuses, enum.WorkflowRunStatusFailed)
 	workflowRun.Error = stepRun.Error
 	workflowRun.ExecutedSteps = append(workflowRun.ExecutedSteps, stepRun.StepID.String())
 

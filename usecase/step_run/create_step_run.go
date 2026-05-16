@@ -29,6 +29,7 @@ func (u *CreateStepRunUseCase) Execute(ctx context.Context, workflowRunID uuid.U
 		StepID:        stepID,
 		WorkflowRunID: workflowRunID,
 		Status:        enum.StepRunStatusPending,
+		Statuses:      []enum.StepRunStatus{enum.StepRunStatusPending},
 	}
 
 	err := (*u.stepRunRepo).Create(ctx, stepRun)
