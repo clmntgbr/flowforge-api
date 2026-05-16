@@ -6,8 +6,11 @@ import (
 	"flowforge-api/domain/entity"
 	"flowforge-api/domain/enum"
 	"flowforge-api/domain/repository"
+	"flowforge-api/infrastructure/config"
 	consumerDTO "flowforge-api/infrastructure/consumer"
+	"flowforge-api/infrastructure/messaging/rabbitmq"
 	"flowforge-api/usecase/insight"
+	"flowforge-api/usecase/step_run"
 	"fmt"
 	"time"
 
@@ -19,14 +22,28 @@ type CompletedStepUseCase struct {
 	stepRunRepo          repository.StepRunRepository
 	workflowRunRepo      repository.WorkflowRunRepository
 	stepRepo             repository.StepRepository
+	createStepRunUseCase step_run.CreateStepRunUseCase
+	stepRunPublisher     rabbitmq.Publisher
+	env                  *config.Config
 }
 
-func NewCompletedStepUseCase(createInsightUseCase insight.CreateInsightUseCase, stepRunRepo repository.StepRunRepository, workflowRunRepo repository.WorkflowRunRepository, stepRepo repository.StepRepository) *CompletedStepUseCase {
+func NewCompletedStepUseCase(
+	createInsightUseCase insight.CreateInsightUseCase,
+	stepRunRepo repository.StepRunRepository,
+	workflowRunRepo repository.WorkflowRunRepository,
+	stepRepo repository.StepRepository,
+	createStepRunUseCase step_run.CreateStepRunUseCase,
+	stepRunPublisher rabbitmq.Publisher,
+	env *config.Config,
+) *CompletedStepUseCase {
 	return &CompletedStepUseCase{
 		createInsightUseCase: createInsightUseCase,
 		stepRunRepo:          stepRunRepo,
 		workflowRunRepo:      workflowRunRepo,
 		stepRepo:             stepRepo,
+		createStepRunUseCase: createStepRunUseCase,
+		stepRunPublisher:     stepRunPublisher,
+		env:                  env,
 	}
 }
 
@@ -102,15 +119,21 @@ func (u *CompletedStepUseCase) Execute(ctx context.Context, message consumerDTO.
 	}
 
 	if nextStep == nil {
-		return errors.New("no next step found")
-	}
-
-	if nextStep == nil {
 		err = u.completeWorkflowRun(ctx, workflowRun, message)
 		if err != nil {
 			return fmt.Errorf("failed to complete workflow run: %w", err)
 		}
 		return nil
+	}
+
+	nextStepRun, err := u.createStepRunUseCase.Execute(ctx, workflowRun.ID, nextStep.ID)
+	if err != nil {
+		return err
+	}
+
+	event := rabbitmq.NewStepRunEvent(nextStepRun)
+	if err := u.stepRunPublisher.PublishStepRunEvent(ctx, u.env, event); err != nil {
+		return fmt.Errorf("🚨 failed to publish step run: %w", err)
 	}
 
 	return nil
