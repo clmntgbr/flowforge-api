@@ -78,3 +78,21 @@ func (r *workflowRunRepository) GetByWorkflowIDAndNotEnded(ctx context.Context, 
 
 	return &workflowRun, nil
 }
+
+func (r *workflowRunRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.WorkflowRun, error) {
+	var workflowRun entity.WorkflowRun
+
+	err := dbWithContext(ctx, r.db).
+		Where("id = ?", id).
+		First(&workflowRun).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &workflowRun, nil
+}

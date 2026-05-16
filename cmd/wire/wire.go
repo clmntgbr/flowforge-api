@@ -12,6 +12,7 @@ import (
 	"flowforge-api/usecase/connexion"
 	"flowforge-api/usecase/consumer"
 	"flowforge-api/usecase/endpoint"
+	"flowforge-api/usecase/insight"
 	"flowforge-api/usecase/organization"
 	"flowforge-api/usecase/step"
 	"flowforge-api/usecase/step_run"
@@ -54,6 +55,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	workflowRepo := repoGorm.NewWorkflowRepository(db)
 	workflowRunRepo := repoGorm.NewWorkflowRunRepository(db)
 	stepRunRepo := repoGorm.NewStepRunRepository(db)
+	insightRepo := repoGorm.NewInsightRepository(db)
 
 	validateTokenUseCase := auth.NewValidateTokenUseCase(jwksProvider, userRepo)
 	fetchUserUseCase := clerk.NewFetchUserUseCase(env)
@@ -99,8 +101,10 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		workflowRunRepo,
 	)
 
+	createInsightUseCase := insight.NewCreateInsightUseCase(insightRepo)
+
 	completedStepUseCase := consumer.NewCompletedStepUseCase()
-	failedStepUseCase := consumer.NewFailedStepUseCase()
+	failedStepUseCase := consumer.NewFailedStepUseCase(*createInsightUseCase, stepRunRepo, workflowRunRepo)
 
 	createWorkflowRunUseCase := workflow_run.NewCreateWorkflowRunUseCase(workflowRunRepo)
 	hasStepRunUseCase := step_run.NewHasStepRunUseCase(stepRunRepo)

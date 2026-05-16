@@ -9,6 +9,7 @@ import (
 )
 
 type WorkflowRunRepository interface {
+	GetByID(ctx context.Context, id uuid.UUID) (*entity.WorkflowRun, error)
 	GetByWorkflowID(ctx context.Context, workflowID uuid.UUID, query paginate.PaginateQuery) ([]entity.WorkflowRun, int64, error)
 	GetByWorkflowIDAndNotEnded(ctx context.Context, workflowID uuid.UUID) (*entity.WorkflowRun, error)
 	Create(ctx context.Context, workflowRun *entity.WorkflowRun) error

@@ -73,7 +73,9 @@ func (h *ConsumerHandler) HandleMessage(ctx context.Context, message *amqp.Deliv
 		if err := json.Unmarshal(payload.Message, &failed); err != nil {
 			return fmt.Errorf("decode failed message: %w", err)
 		}
-		if err := h.failedStepUseCase.Execute(ctx, failed); err != nil {
+
+		err := h.failedStepUseCase.Execute(ctx, failed)
+		if err != nil {
 			fmt.Println("🚨 Error executing fail workflow step", err)
 			return err
 		}
