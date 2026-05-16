@@ -99,8 +99,8 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		workflowRunRepo,
 	)
 
-	completeWorkflowStepUseCase := consumer.NewCompleteWorkflowStepUseCase()
-	failWorkflowStepUseCase := consumer.NewFailWorkflowStepUseCase()
+	completedStepUseCase := consumer.NewCompletedStepUseCase()
+	failedStepUseCase := consumer.NewFailedStepUseCase()
 
 	createWorkflowRunUseCase := workflow_run.NewCreateWorkflowRunUseCase(workflowRunRepo)
 	hasStepRunUseCase := step_run.NewHasStepRunUseCase(stepRunRepo)
@@ -184,8 +184,8 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 
 	consumerHandler := handler.NewConsumerHandler(
 		env,
-		completeWorkflowStepUseCase,
-		failWorkflowStepUseCase,
+		completedStepUseCase,
+		failedStepUseCase,
 	)
 	runnerHandler := handler.NewRunnerHandler(env, runStepUseCase, stepRunPublisher)
 
