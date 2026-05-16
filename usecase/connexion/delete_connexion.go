@@ -8,20 +8,20 @@ import (
 )
 
 type DeleteConnexionUseCase struct {
-	connexionRepo repository.ConnexionRepository
+	connexionRepo *repository.ConnexionRepository
 }
 
-func NewDeleteConnexionUseCase(connexionRepo repository.ConnexionRepository) *DeleteConnexionUseCase {
+func NewDeleteConnexionUseCase(connexionRepo *repository.ConnexionRepository) *DeleteConnexionUseCase {
 	return &DeleteConnexionUseCase{connexionRepo: connexionRepo}
 }
 
 func (u *DeleteConnexionUseCase) Execute(ctx context.Context, organizationID uuid.UUID, id uuid.UUID) error {
-	connexion, err := u.connexionRepo.GetByIDAndOrganizationID(ctx, organizationID, id)
+	connexion, err := (*u.connexionRepo).GetByIDAndOrganizationID(ctx, organizationID, id)
 	if err != nil {
 		return err
 	}
 
-	if err := u.connexionRepo.Delete(ctx, connexion.ID); err != nil {
+	if err := (*u.connexionRepo).Delete(ctx, connexion.ID); err != nil {
 		return err
 	}
 

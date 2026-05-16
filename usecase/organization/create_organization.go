@@ -7,10 +7,10 @@ import (
 )
 
 type CreateOrganizationUseCase struct {
-	organizationRepo repository.OrganizationRepository
+	organizationRepo *repository.OrganizationRepository
 }
 
-func NewCreateOrganizationUseCase(organizationRepo repository.OrganizationRepository) *CreateOrganizationUseCase {
+func NewCreateOrganizationUseCase(organizationRepo *repository.OrganizationRepository) *CreateOrganizationUseCase {
 	return &CreateOrganizationUseCase{organizationRepo: organizationRepo}
 }
 
@@ -24,7 +24,7 @@ func (u *CreateOrganizationUseCase) Execute(ctx context.Context, user *entity.Us
 		},
 	}
 
-	if err := u.organizationRepo.Create(ctx, organization); err != nil {
+	if err := (*u.organizationRepo).Create(ctx, organization); err != nil {
 		return entity.Organization{}, err
 	}
 

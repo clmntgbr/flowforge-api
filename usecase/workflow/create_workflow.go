@@ -10,10 +10,10 @@ import (
 )
 
 type CreateWorkflowUseCase struct {
-	workflowRepo repository.WorkflowRepository
+	workflowRepo *repository.WorkflowRepository
 }
 
-func NewCreateWorkflowUseCase(workflowRepo repository.WorkflowRepository) *CreateWorkflowUseCase {
+func NewCreateWorkflowUseCase(workflowRepo *repository.WorkflowRepository) *CreateWorkflowUseCase {
 	return &CreateWorkflowUseCase{workflowRepo: workflowRepo}
 }
 
@@ -24,7 +24,7 @@ func (u *CreateWorkflowUseCase) Execute(ctx context.Context, organizationID uuid
 		Description:    request.Description,
 	}
 
-	err := u.workflowRepo.Create(ctx, workflow)
+	err := (*u.workflowRepo).Create(ctx, workflow)
 	if err != nil {
 		return entity.Workflow{}, err
 	}

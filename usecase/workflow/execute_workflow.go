@@ -17,29 +17,29 @@ import (
 )
 
 type ExecuteWorkflowUseCase struct {
-	workflowRepo              repository.WorkflowRepository
-	workflowRunRepo           repository.WorkflowRunRepository
-	stepRepo                  repository.StepRepository
+	workflowRepo              *repository.WorkflowRepository
+	workflowRunRepo           *repository.WorkflowRunRepository
+	stepRepo                  *repository.StepRepository
 	createWorkflowRunUseCase  *workflow_run.CreateWorkflowRunUseCase
 	hasStepRunUseCase         *step_run.HasStepRunUseCase
 	createStepRunUseCase      *step_run.CreateStepRunUseCase
 	executeStepRunUseCase     *step_run.ExecuteStepRunUseCase
 	executeWorkflowRunUseCase *workflow_run.ExecuteWorkflowRunUseCase
 	env                       *config.Config
-	stepRunPublisher          rabbitmq.Publisher
+	stepRunPublisher          *rabbitmq.Publisher
 }
 
 func NewExecuteWorkflowUseCase(
-	workflowRepo repository.WorkflowRepository,
-	workflowRunRepo repository.WorkflowRunRepository,
-	stepRepo repository.StepRepository,
+	workflowRepo *repository.WorkflowRepository,
+	workflowRunRepo *repository.WorkflowRunRepository,
+	stepRepo *repository.StepRepository,
 	createWorkflowRunUseCase *workflow_run.CreateWorkflowRunUseCase,
 	hasStepRunUseCase *step_run.HasStepRunUseCase,
 	createStepRunUseCase *step_run.CreateStepRunUseCase,
 	executeStepRunUseCase *step_run.ExecuteStepRunUseCase,
 	executeWorkflowRunUseCase *workflow_run.ExecuteWorkflowRunUseCase,
 	env *config.Config,
-	stepRunPublisher rabbitmq.Publisher,
+	stepRunPublisher *rabbitmq.Publisher,
 ) *ExecuteWorkflowUseCase {
 	return &ExecuteWorkflowUseCase{
 		workflowRepo:              workflowRepo,
@@ -58,13 +58,13 @@ func NewExecuteWorkflowUseCase(
 func (u *ExecuteWorkflowUseCase) Execute(ctx context.Context) error {
 	log.Println("🔄 Executing workflow use case")
 
-	workflows, err := u.workflowRepo.GetWorkflowsForExecution(ctx)
+	workflows, err := (*u.workflowRepo).GetWorkflowsForExecution(ctx)
 	if err != nil {
 		return fmt.Errorf("🚨 failed to get workflows for execution: %w", err)
 	}
 
 	for _, wf := range workflows {
-		err := u.workflowRepo.Transaction(ctx, func(tx *gorm.DB) error {
+		err := (*u.workflowRepo).Transaction(ctx, func(tx *gorm.DB) error {
 			txCtx := repogorm.ContextWithTx(ctx, tx)
 			return u.runExecuteWorkflowIteration(txCtx, wf)
 		})
@@ -77,7 +77,7 @@ func (u *ExecuteWorkflowUseCase) Execute(ctx context.Context) error {
 }
 
 func (u *ExecuteWorkflowUseCase) runExecuteWorkflowIteration(txCtx context.Context, workflow entity.Workflow) error {
-	workflowRun, err := u.workflowRunRepo.GetByWorkflowIDAndNotEnded(txCtx, workflow.ID)
+	workflowRun, err := (*u.workflowRunRepo).GetByWorkflowIDAndNotEnded(txCtx, workflow.ID)
 	if err != nil {
 		return fmt.Errorf("🚨 failed to get workflow run by workflow ID and not ended: %w", err)
 	}
@@ -97,7 +97,7 @@ func (u *ExecuteWorkflowUseCase) runExecuteWorkflowIteration(txCtx context.Conte
 		return nil
 	}
 
-	step, err := u.stepRepo.GetFirstStepByWorkflowID(txCtx, workflow.ID)
+	step, err := (*u.stepRepo).GetFirstStepByWorkflowID(txCtx, workflow.ID)
 	if err != nil {
 		return fmt.Errorf("🚨 failed to get steps by workflow ID: %w", err)
 	}
@@ -129,12 +129,12 @@ func (u *ExecuteWorkflowUseCase) runExecuteWorkflowIteration(txCtx context.Conte
 	stepRun.Step = *step
 	stepRun.WorkflowRun = *workflowRun
 
-	if u.stepRunPublisher == nil {
+	if u.stepRunPublisher == nil || *u.stepRunPublisher == nil {
 		return fmt.Errorf("🚨 step run publisher is not configured")
 	}
 
 	event := rabbitmq.NewStepRunEvent(stepRun)
-	if err := u.stepRunPublisher.PublishStepRunEvent(txCtx, u.env, event); err != nil {
+	if err := (*u.stepRunPublisher).PublishStepRunEvent(txCtx, u.env, event); err != nil {
 		return fmt.Errorf("🚨 failed to publish step run: %w", err)
 	}
 

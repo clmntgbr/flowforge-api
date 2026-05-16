@@ -10,10 +10,10 @@ import (
 )
 
 type CreateEndpointUseCase struct {
-	endpointRepo repository.EndpointRepository
+	endpointRepo *repository.EndpointRepository
 }
 
-func NewCreateEndpointUseCase(endpointRepo repository.EndpointRepository) *CreateEndpointUseCase {
+func NewCreateEndpointUseCase(endpointRepo *repository.EndpointRepository) *CreateEndpointUseCase {
 	return &CreateEndpointUseCase{endpointRepo: endpointRepo}
 }
 
@@ -33,7 +33,7 @@ func (u *CreateEndpointUseCase) Execute(ctx context.Context, organizationID uuid
 		RetryDelay:     input.RetryDelay,
 	}
 
-	if err := u.endpointRepo.Create(ctx, endpoint); err != nil {
+	if err := (*u.endpointRepo).Create(ctx, endpoint); err != nil {
 		return entity.Endpoint{}, err
 	}
 

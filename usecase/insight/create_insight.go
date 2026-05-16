@@ -8,10 +8,10 @@ import (
 )
 
 type CreateInsightUseCase struct {
-	insightRepository repository.InsightRepository
+	insightRepository *repository.InsightRepository
 }
 
-func NewCreateInsightUseCase(insightRepository repository.InsightRepository) *CreateInsightUseCase {
+func NewCreateInsightUseCase(insightRepository *repository.InsightRepository) *CreateInsightUseCase {
 	return &CreateInsightUseCase{
 		insightRepository: insightRepository,
 	}
@@ -53,7 +53,7 @@ func (u *CreateInsightUseCase) Execute(
 		RequestSize:       requestSize,
 	}
 
-	err := u.insightRepository.Create(ctx, insight)
+	err := (*u.insightRepository).Create(ctx, insight)
 	if err != nil {
 		return nil, err
 	}

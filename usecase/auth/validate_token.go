@@ -12,12 +12,12 @@ import (
 
 type ValidateTokenUseCase struct {
 	jwksProvider *clerk.JWKSProvider
-	userRepo     repository.UserRepository
+	userRepo     *repository.UserRepository
 }
 
 func NewValidateTokenUseCase(
 	jwksProvider *clerk.JWKSProvider,
-	userRepo repository.UserRepository,
+	userRepo *repository.UserRepository,
 ) *ValidateTokenUseCase {
 	return &ValidateTokenUseCase{
 		jwksProvider: jwksProvider,
@@ -43,7 +43,7 @@ func (uc *ValidateTokenUseCase) Execute(ctx context.Context, input authdto.Valid
 		return nil, errors.New("invalid token")
 	}
 
-	user, err := uc.userRepo.GetByClerkID(ctx, claims.UserID)
+	user, err := (*uc.userRepo).GetByClerkID(ctx, claims.UserID)
 	if err != nil {
 		return nil, errors.New("user not found")
 	}

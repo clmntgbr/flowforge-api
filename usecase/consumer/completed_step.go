@@ -18,22 +18,22 @@ import (
 )
 
 type CompletedStepUseCase struct {
-	createInsightUseCase insight.CreateInsightUseCase
-	stepRunRepo          repository.StepRunRepository
-	workflowRunRepo      repository.WorkflowRunRepository
-	stepRepo             repository.StepRepository
-	createStepRunUseCase step_run.CreateStepRunUseCase
-	stepRunPublisher     rabbitmq.Publisher
+	createInsightUseCase *insight.CreateInsightUseCase
+	stepRunRepo          *repository.StepRunRepository
+	workflowRunRepo      *repository.WorkflowRunRepository
+	stepRepo             *repository.StepRepository
+	createStepRunUseCase *step_run.CreateStepRunUseCase
+	stepRunPublisher     *rabbitmq.Publisher
 	env                  *config.Config
 }
 
 func NewCompletedStepUseCase(
-	createInsightUseCase insight.CreateInsightUseCase,
-	stepRunRepo repository.StepRunRepository,
-	workflowRunRepo repository.WorkflowRunRepository,
-	stepRepo repository.StepRepository,
-	createStepRunUseCase step_run.CreateStepRunUseCase,
-	stepRunPublisher rabbitmq.Publisher,
+	createInsightUseCase *insight.CreateInsightUseCase,
+	stepRunRepo *repository.StepRunRepository,
+	workflowRunRepo *repository.WorkflowRunRepository,
+	stepRepo *repository.StepRepository,
+	createStepRunUseCase *step_run.CreateStepRunUseCase,
+	stepRunPublisher *rabbitmq.Publisher,
 	env *config.Config,
 ) *CompletedStepUseCase {
 	return &CompletedStepUseCase{
@@ -73,7 +73,7 @@ func (u *CompletedStepUseCase) Execute(ctx context.Context, message consumerDTO.
 
 	stepRunID := uuid.MustParse(message.StepRunID)
 
-	stepRun, err := u.stepRunRepo.GetByID(ctx, stepRunID)
+	stepRun, err := (*u.stepRunRepo).GetByID(ctx, stepRunID)
 	if err != nil {
 		return err
 	}
@@ -92,12 +92,12 @@ func (u *CompletedStepUseCase) Execute(ctx context.Context, message consumerDTO.
 	stepRun.Response = message.Response
 	stepRun.InsightID = &insight.ID
 
-	err = u.stepRunRepo.Update(ctx, stepRun)
+	err = (*u.stepRunRepo).Update(ctx, stepRun)
 	if err != nil {
 		return err
 	}
 
-	workflowRun, err := u.workflowRunRepo.GetByID(ctx, stepRun.WorkflowRunID)
+	workflowRun, err := (*u.workflowRunRepo).GetByID(ctx, stepRun.WorkflowRunID)
 	if err != nil {
 		return err
 	}
@@ -108,12 +108,12 @@ func (u *CompletedStepUseCase) Execute(ctx context.Context, message consumerDTO.
 
 	workflowRun.ExecutedSteps = append(workflowRun.ExecutedSteps, stepRun.StepID.String())
 
-	err = u.workflowRunRepo.Update(ctx, workflowRun)
+	err = (*u.workflowRunRepo).Update(ctx, workflowRun)
 	if err != nil {
 		return err
 	}
 
-	nextStep, err := u.stepRepo.GetNextStepByWorkflowID(ctx, workflowRun.WorkflowID, workflowRun.ExecutedSteps)
+	nextStep, err := (*u.stepRepo).GetNextStepByWorkflowID(ctx, workflowRun.WorkflowID, workflowRun.ExecutedSteps)
 	if err != nil {
 		return err
 	}
@@ -132,7 +132,7 @@ func (u *CompletedStepUseCase) Execute(ctx context.Context, message consumerDTO.
 	}
 
 	event := rabbitmq.NewStepRunEvent(nextStepRun)
-	if err := u.stepRunPublisher.PublishStepRunEvent(ctx, u.env, event); err != nil {
+	if err := (*u.stepRunPublisher).PublishStepRunEvent(ctx, u.env, event); err != nil {
 		return fmt.Errorf("🚨 failed to publish step run: %w", err)
 	}
 
@@ -148,7 +148,7 @@ func (u *CompletedStepUseCase) completeWorkflowRun(ctx context.Context, workflow
 	workflowRun.CompletedAt = &completedAt
 	workflowRun.Status = enum.WorkflowRunStatusCompleted
 
-	err = u.workflowRunRepo.Update(ctx, workflowRun)
+	err = (*u.workflowRunRepo).Update(ctx, workflowRun)
 	if err != nil {
 		return err
 	}

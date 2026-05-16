@@ -10,11 +10,11 @@ import (
 )
 
 type CreateWorkflowRunUseCase struct {
-	workflowRunRepo repository.WorkflowRunRepository
+	workflowRunRepo *repository.WorkflowRunRepository
 }
 
 func NewCreateWorkflowRunUseCase(
-	workflowRunRepo repository.WorkflowRunRepository,
+	workflowRunRepo *repository.WorkflowRunRepository,
 ) *CreateWorkflowRunUseCase {
 	return &CreateWorkflowRunUseCase{
 		workflowRunRepo: workflowRunRepo,
@@ -27,7 +27,7 @@ func (u *CreateWorkflowRunUseCase) Execute(ctx context.Context, workflowID uuid.
 		Status:     enum.WorkflowRunStatusPending,
 	}
 
-	err := u.workflowRunRepo.Create(ctx, workflowRun)
+	err := (*u.workflowRunRepo).Create(ctx, workflowRun)
 	if err != nil {
 		return nil, err
 	}

@@ -8,10 +8,10 @@ import (
 )
 
 type CreateUserUseCase struct {
-	userRepo repository.UserRepository
+	userRepo *repository.UserRepository
 }
 
-func NewCreateUserUseCase(userRepo repository.UserRepository) *CreateUserUseCase {
+func NewCreateUserUseCase(userRepo *repository.UserRepository) *CreateUserUseCase {
 	return &CreateUserUseCase{userRepo: userRepo}
 }
 
@@ -23,7 +23,7 @@ func (u *CreateUserUseCase) Execute(ctx context.Context, clerkID string, firstNa
 		Banned:    banned,
 	}
 
-	err := u.userRepo.Create(ctx, &user)
+	err := (*u.userRepo).Create(ctx, &user)
 	if err != nil {
 		return nil, errors.New("failed to create user")
 	}

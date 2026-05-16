@@ -10,15 +10,15 @@ import (
 )
 
 type UpdateStepUseCase struct {
-	stepRepo repository.StepRepository
+	stepRepo *repository.StepRepository
 }
 
-func NewUpdateStepUseCase(stepRepo repository.StepRepository) *UpdateStepUseCase {
+func NewUpdateStepUseCase(stepRepo *repository.StepRepository) *UpdateStepUseCase {
 	return &UpdateStepUseCase{stepRepo: stepRepo}
 }
 
 func (u *UpdateStepUseCase) Execute(ctx context.Context, organizationID uuid.UUID, workflowID uuid.UUID, id uuid.UUID, input stepDTO.UpdateStepInput) (entity.Step, error) {
-	step, err := u.stepRepo.GetByIDAndOrganizationIDAndWorkflowID(ctx, organizationID, workflowID, id)
+	step, err := (*u.stepRepo).GetByIDAndOrganizationIDAndWorkflowID(ctx, organizationID, workflowID, id)
 	if err != nil {
 		return entity.Step{}, err
 	}
@@ -33,7 +33,7 @@ func (u *UpdateStepUseCase) Execute(ctx context.Context, organizationID uuid.UUI
 	step.RetryCount = input.RetryCount
 	step.RetryDelay = input.RetryDelay
 
-	if err := u.stepRepo.Update(ctx, &step); err != nil {
+	if err := (*u.stepRepo).Update(ctx, &step); err != nil {
 		return entity.Step{}, err
 	}
 

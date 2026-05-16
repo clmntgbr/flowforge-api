@@ -9,11 +9,11 @@ import (
 )
 
 type ExecuteWorkflowRunUseCase struct {
-	workflowRunRepo repository.WorkflowRunRepository
+	workflowRunRepo *repository.WorkflowRunRepository
 }
 
 func NewExecuteWorkflowRunUseCase(
-	workflowRunRepo repository.WorkflowRunRepository,
+	workflowRunRepo *repository.WorkflowRunRepository,
 ) *ExecuteWorkflowRunUseCase {
 	return &ExecuteWorkflowRunUseCase{
 		workflowRunRepo: workflowRunRepo,
@@ -25,7 +25,7 @@ func (u *ExecuteWorkflowRunUseCase) Execute(ctx context.Context, workflowRun ent
 	startedAt := time.Now().UTC()
 	workflowRun.StartedAt = &startedAt
 
-	err := u.workflowRunRepo.Update(ctx, &workflowRun)
+	err := (*u.workflowRunRepo).Update(ctx, &workflowRun)
 	if err != nil {
 		return entity.WorkflowRun{}, err
 	}

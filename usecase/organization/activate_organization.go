@@ -9,15 +9,15 @@ import (
 )
 
 type ActivateOrganizationUseCase struct {
-	organizationRepo repository.OrganizationRepository
+	organizationRepo *repository.OrganizationRepository
 }
 
-func NewActivateOrganizationUseCase(organizationRepo repository.OrganizationRepository) *ActivateOrganizationUseCase {
+func NewActivateOrganizationUseCase(organizationRepo *repository.OrganizationRepository) *ActivateOrganizationUseCase {
 	return &ActivateOrganizationUseCase{organizationRepo: organizationRepo}
 }
 
 func (u *ActivateOrganizationUseCase) Execute(ctx context.Context, user *entity.User, organizationID uuid.UUID) (entity.Organization, error) {
-	organization, err := u.organizationRepo.ActivateOrganization(ctx, user.ID, organizationID)
+	organization, err := (*u.organizationRepo).ActivateOrganization(ctx, user.ID, organizationID)
 	if err != nil {
 		return entity.Organization{}, err
 	}

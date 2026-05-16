@@ -13,12 +13,12 @@ import (
 )
 
 type FailedStepUseCase struct {
-	createInsightUseCase insight.CreateInsightUseCase
-	stepRunRepo          repository.StepRunRepository
-	workflowRunRepo      repository.WorkflowRunRepository
+	createInsightUseCase *insight.CreateInsightUseCase
+	stepRunRepo          *repository.StepRunRepository
+	workflowRunRepo      *repository.WorkflowRunRepository
 }
 
-func NewFailedStepUseCase(createInsightUseCase insight.CreateInsightUseCase, stepRunRepo repository.StepRunRepository, workflowRunRepo repository.WorkflowRunRepository) *FailedStepUseCase {
+func NewFailedStepUseCase(createInsightUseCase *insight.CreateInsightUseCase, stepRunRepo *repository.StepRunRepository, workflowRunRepo *repository.WorkflowRunRepository) *FailedStepUseCase {
 	return &FailedStepUseCase{
 		createInsightUseCase: createInsightUseCase,
 		stepRunRepo:          stepRunRepo,
@@ -52,7 +52,7 @@ func (u *FailedStepUseCase) Execute(ctx context.Context, message consumerDTO.Con
 
 	stepRunID := uuid.MustParse(message.StepRunID)
 
-	stepRun, err := u.stepRunRepo.GetByID(ctx, stepRunID)
+	stepRun, err := (*u.stepRunRepo).GetByID(ctx, stepRunID)
 	if err != nil {
 		return err
 	}
@@ -72,12 +72,12 @@ func (u *FailedStepUseCase) Execute(ctx context.Context, message consumerDTO.Con
 	stepRun.Response = message.Response
 	stepRun.InsightID = &insight.ID
 
-	err = u.stepRunRepo.Update(ctx, stepRun)
+	err = (*u.stepRunRepo).Update(ctx, stepRun)
 	if err != nil {
 		return err
 	}
 
-	workflowRun, err := u.workflowRunRepo.GetByID(ctx, stepRun.WorkflowRunID)
+	workflowRun, err := (*u.workflowRunRepo).GetByID(ctx, stepRun.WorkflowRunID)
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func (u *FailedStepUseCase) Execute(ctx context.Context, message consumerDTO.Con
 	workflowRun.Error = stepRun.Error
 	workflowRun.ExecutedSteps = append(workflowRun.ExecutedSteps, stepRun.StepID.String())
 
-	err = u.workflowRunRepo.Update(ctx, workflowRun)
+	err = (*u.workflowRunRepo).Update(ctx, workflowRun)
 	if err != nil {
 		return err
 	}

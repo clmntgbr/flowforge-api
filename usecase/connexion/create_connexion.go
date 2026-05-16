@@ -10,15 +10,15 @@ import (
 )
 
 type CreateConnexionUseCase struct {
-	connexionRepo repository.ConnexionRepository
+	connexionRepo *repository.ConnexionRepository
 }
 
-func NewCreateConnexionUseCase(connexionRepo repository.ConnexionRepository) *CreateConnexionUseCase {
+func NewCreateConnexionUseCase(connexionRepo *repository.ConnexionRepository) *CreateConnexionUseCase {
 	return &CreateConnexionUseCase{connexionRepo: connexionRepo}
 }
 
 func (u *CreateConnexionUseCase) Execute(ctx context.Context, organizationID uuid.UUID, input connexion.CreateConnexionInput) (entity.Connexion, error) {
-	connexions, err := u.connexionRepo.GetByFromStepIDAndToStepIDAndWorkflowID(ctx, organizationID, input.FromStepID, input.ToStepID, input.WorkflowID)
+	connexions, err := (*u.connexionRepo).GetByFromStepIDAndToStepIDAndWorkflowID(ctx, organizationID, input.FromStepID, input.ToStepID, input.WorkflowID)
 	if err != nil {
 		return entity.Connexion{}, err
 	}
@@ -34,7 +34,7 @@ func (u *CreateConnexionUseCase) Execute(ctx context.Context, organizationID uui
 		ToStepID:   input.ToStepID,
 	}
 
-	if err := u.connexionRepo.Create(ctx, connexion); err != nil {
+	if err := (*u.connexionRepo).Create(ctx, connexion); err != nil {
 		return entity.Connexion{}, err
 	}
 

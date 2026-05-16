@@ -20,10 +20,10 @@ type RunnerHandler struct {
 	securityValidator *security.WorkerSecurityValidator
 	parser            *security.WorkerParser
 	runStepUseCase    *step.RunStepUseCase
-	publisher         rabbitmq.Publisher
+	publisher         *rabbitmq.Publisher
 }
 
-func NewRunnerHandler(env *config.Config, runStepUseCase *step.RunStepUseCase, publisher rabbitmq.Publisher) *RunnerHandler {
+func NewRunnerHandler(env *config.Config, runStepUseCase *step.RunStepUseCase, publisher *rabbitmq.Publisher) *RunnerHandler {
 	return &RunnerHandler{
 		env:               env,
 		parser:            security.NewWorkerParser(env),
@@ -64,7 +64,7 @@ func (h *RunnerHandler) PublishSuccess(ctx context.Context, event rabbitmqDTO.St
 		Response:      response.Response,
 	}
 
-	if err := h.publisher.PublishRunnerCompleted(ctx, h.env, message); err != nil {
+	if err := (*h.publisher).PublishRunnerCompleted(ctx, h.env, message); err != nil {
 		log.Printf("client_handler: failed to publish success message (step_run_id=%s): %v", event.StepRunID, err)
 		return fmt.Errorf("failed to publish success message: %w", err)
 	}
@@ -82,7 +82,7 @@ func (h *RunnerHandler) PublishFailure(ctx context.Context, event rabbitmqDTO.St
 		Response:      response.Response,
 	}
 
-	if err := h.publisher.PublishRunnerFailed(ctx, h.env, message); err != nil {
+	if err := (*h.publisher).PublishRunnerFailed(ctx, h.env, message); err != nil {
 		log.Printf("client_handler: failed to publish failure message (step_run_id=%s): %v", event.StepRunID, err)
 		return fmt.Errorf("failed to publish failure message (original error: %v): %w", execError, err)
 	}

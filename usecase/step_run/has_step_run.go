@@ -8,11 +8,11 @@ import (
 )
 
 type HasStepRunUseCase struct {
-	stepRunRepo repository.StepRunRepository
+	stepRunRepo *repository.StepRunRepository
 }
 
 func NewHasStepRunUseCase(
-	stepRunRepo repository.StepRunRepository,
+	stepRunRepo *repository.StepRunRepository,
 ) *HasStepRunUseCase {
 	return &HasStepRunUseCase{
 		stepRunRepo: stepRunRepo,
@@ -20,7 +20,7 @@ func NewHasStepRunUseCase(
 }
 
 func (u *HasStepRunUseCase) Execute(ctx context.Context, workflowRunID uuid.UUID) bool {
-	stepRun, err := u.stepRunRepo.GetByWorkflowRunID(ctx, workflowRunID)
+	stepRun, err := (*u.stepRunRepo).GetByWorkflowRunID(ctx, workflowRunID)
 	if err != nil {
 		return false
 	}

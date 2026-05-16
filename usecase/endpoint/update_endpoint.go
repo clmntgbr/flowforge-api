@@ -10,15 +10,15 @@ import (
 )
 
 type UpdateEndpointUseCase struct {
-	endpointRepo repository.EndpointRepository
+	endpointRepo *repository.EndpointRepository
 }
 
-func NewUpdateEndpointUseCase(endpointRepo repository.EndpointRepository) *UpdateEndpointUseCase {
+func NewUpdateEndpointUseCase(endpointRepo *repository.EndpointRepository) *UpdateEndpointUseCase {
 	return &UpdateEndpointUseCase{endpointRepo: endpointRepo}
 }
 
 func (u *UpdateEndpointUseCase) Execute(ctx context.Context, organizationID uuid.UUID, endpointID uuid.UUID, input endpointDTO.UpdateEndpointInput) (entity.Endpoint, error) {
-	endpoint, err := u.endpointRepo.GetByIDAndOrganizationID(ctx, endpointID, organizationID)
+	endpoint, err := (*u.endpointRepo).GetByIDAndOrganizationID(ctx, endpointID, organizationID)
 	if err != nil {
 		return entity.Endpoint{}, err
 	}
@@ -35,7 +35,7 @@ func (u *UpdateEndpointUseCase) Execute(ctx context.Context, organizationID uuid
 	endpoint.RetryCount = input.RetryCount
 	endpoint.RetryDelay = input.RetryDelay
 
-	if err := u.endpointRepo.Update(ctx, &endpoint); err != nil {
+	if err := (*u.endpointRepo).Update(ctx, &endpoint); err != nil {
 		return entity.Endpoint{}, err
 	}
 

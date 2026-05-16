@@ -10,22 +10,22 @@ import (
 )
 
 type DeactivateWorkflowUseCase struct {
-	workflowRepo repository.WorkflowRepository
+	workflowRepo *repository.WorkflowRepository
 }
 
-func NewDeactivateWorkflowUseCase(workflowRepo repository.WorkflowRepository) *DeactivateWorkflowUseCase {
+func NewDeactivateWorkflowUseCase(workflowRepo *repository.WorkflowRepository) *DeactivateWorkflowUseCase {
 	return &DeactivateWorkflowUseCase{workflowRepo: workflowRepo}
 }
 
 func (u *DeactivateWorkflowUseCase) Execute(ctx context.Context, organizationID uuid.UUID, workflowID uuid.UUID) (entity.Workflow, error) {
-	workflow, err := u.workflowRepo.GetByIDAndOrganizationID(ctx, organizationID, workflowID)
+	workflow, err := (*u.workflowRepo).GetByIDAndOrganizationID(ctx, organizationID, workflowID)
 	if err != nil {
 		return entity.Workflow{}, err
 	}
 
 	workflow.Status = enum.WorkflowStatusInactive
 
-	err = u.workflowRepo.Update(ctx, &workflow)
+	err = (*u.workflowRepo).Update(ctx, &workflow)
 	if err != nil {
 		return entity.Workflow{}, err
 	}

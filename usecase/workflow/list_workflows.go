@@ -10,15 +10,15 @@ import (
 )
 
 type ListWorkflowsUseCase struct {
-	workflowRepo repository.WorkflowRepository
+	workflowRepo *repository.WorkflowRepository
 }
 
-func NewListWorkflowsUseCase(workflowRepo repository.WorkflowRepository) *ListWorkflowsUseCase {
+func NewListWorkflowsUseCase(workflowRepo *repository.WorkflowRepository) *ListWorkflowsUseCase {
 	return &ListWorkflowsUseCase{workflowRepo: workflowRepo}
 }
 
 func (u *ListWorkflowsUseCase) Execute(ctx context.Context, organizationID uuid.UUID, query paginate.PaginateQuery) ([]entity.Workflow, int64, error) {
-	workflows, total, err := u.workflowRepo.List(ctx, organizationID, query)
+	workflows, total, err := (*u.workflowRepo).List(ctx, organizationID, query)
 	if err != nil {
 		return []entity.Workflow{}, 0, err
 	}

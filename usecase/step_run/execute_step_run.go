@@ -9,13 +9,13 @@ import (
 )
 
 type ExecuteStepRunUseCase struct {
-	stepRunRepo repository.StepRunRepository
-	stepRepo    repository.StepRepository
+	stepRunRepo *repository.StepRunRepository
+	stepRepo    *repository.StepRepository
 }
 
 func NewExecuteStepRunUseCase(
-	stepRunRepo repository.StepRunRepository,
-	stepRepo repository.StepRepository,
+	stepRunRepo *repository.StepRunRepository,
+	stepRepo *repository.StepRepository,
 ) *ExecuteStepRunUseCase {
 	return &ExecuteStepRunUseCase{
 		stepRunRepo: stepRunRepo,
@@ -28,7 +28,7 @@ func (u *ExecuteStepRunUseCase) Execute(ctx context.Context, stepRun *entity.Ste
 	startedAt := time.Now().UTC()
 	stepRun.StartedAt = &startedAt
 
-	err := u.stepRunRepo.Update(ctx, stepRun)
+	err := (*u.stepRunRepo).Update(ctx, stepRun)
 	if err != nil {
 		return entity.StepRun{}, err
 	}

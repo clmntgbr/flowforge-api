@@ -10,13 +10,13 @@ import (
 )
 
 type CreateStepRunUseCase struct {
-	stepRunRepo repository.StepRunRepository
-	stepRepo    repository.StepRepository
+	stepRunRepo *repository.StepRunRepository
+	stepRepo    *repository.StepRepository
 }
 
 func NewCreateStepRunUseCase(
-	stepRunRepo repository.StepRunRepository,
-	stepRepo repository.StepRepository,
+	stepRunRepo *repository.StepRunRepository,
+	stepRepo *repository.StepRepository,
 ) *CreateStepRunUseCase {
 	return &CreateStepRunUseCase{
 		stepRunRepo: stepRunRepo,
@@ -31,12 +31,12 @@ func (u *CreateStepRunUseCase) Execute(ctx context.Context, workflowRunID uuid.U
 		Status:        enum.StepRunStatusPending,
 	}
 
-	err := u.stepRunRepo.Create(ctx, stepRun)
+	err := (*u.stepRunRepo).Create(ctx, stepRun)
 	if err != nil {
 		return entity.StepRun{}, err
 	}
 
-	step, err := u.stepRepo.GetByID(ctx, stepRun.StepID)
+	step, err := (*u.stepRepo).GetByID(ctx, stepRun.StepID)
 	if err != nil {
 		return entity.StepRun{}, err
 	}
