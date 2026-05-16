@@ -132,6 +132,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		&workflowRunRepo,
 		&stepRepo,
 		createStepRunUseCase,
+		executeStepRunUseCase,
 		&stepRunPublisher,
 		env,
 	)

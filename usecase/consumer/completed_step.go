@@ -18,13 +18,14 @@ import (
 )
 
 type CompletedStepUseCase struct {
-	createInsightUseCase *insight.CreateInsightUseCase
-	stepRunRepo          *repository.StepRunRepository
-	workflowRunRepo      *repository.WorkflowRunRepository
-	stepRepo             *repository.StepRepository
-	createStepRunUseCase *step_run.CreateStepRunUseCase
-	stepRunPublisher     *rabbitmq.Publisher
-	env                  *config.Config
+	createInsightUseCase  *insight.CreateInsightUseCase
+	stepRunRepo           *repository.StepRunRepository
+	workflowRunRepo       *repository.WorkflowRunRepository
+	stepRepo              *repository.StepRepository
+	createStepRunUseCase  *step_run.CreateStepRunUseCase
+	executeStepRunUseCase *step_run.ExecuteStepRunUseCase
+	stepRunPublisher      *rabbitmq.Publisher
+	env                   *config.Config
 }
 
 func NewCompletedStepUseCase(
@@ -33,17 +34,19 @@ func NewCompletedStepUseCase(
 	workflowRunRepo *repository.WorkflowRunRepository,
 	stepRepo *repository.StepRepository,
 	createStepRunUseCase *step_run.CreateStepRunUseCase,
+	executeStepRunUseCase *step_run.ExecuteStepRunUseCase,
 	stepRunPublisher *rabbitmq.Publisher,
 	env *config.Config,
 ) *CompletedStepUseCase {
 	return &CompletedStepUseCase{
-		createInsightUseCase: createInsightUseCase,
-		stepRunRepo:          stepRunRepo,
-		workflowRunRepo:      workflowRunRepo,
-		stepRepo:             stepRepo,
-		createStepRunUseCase: createStepRunUseCase,
-		stepRunPublisher:     stepRunPublisher,
-		env:                  env,
+		createInsightUseCase:  createInsightUseCase,
+		stepRunRepo:           stepRunRepo,
+		workflowRunRepo:       workflowRunRepo,
+		stepRepo:              stepRepo,
+		createStepRunUseCase:  createStepRunUseCase,
+		executeStepRunUseCase: executeStepRunUseCase,
+		stepRunPublisher:      stepRunPublisher,
+		env:                   env,
 	}
 }
 
@@ -127,6 +130,11 @@ func (u *CompletedStepUseCase) Execute(ctx context.Context, message consumerDTO.
 	}
 
 	nextStepRun, err := u.createStepRunUseCase.Execute(ctx, workflowRun.ID, nextStep.ID)
+	if err != nil {
+		return err
+	}
+
+	nextStepRun, err = u.executeStepRunUseCase.Execute(ctx, &nextStepRun)
 	if err != nil {
 		return err
 	}
