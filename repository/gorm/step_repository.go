@@ -105,3 +105,26 @@ func (r *stepRepository) GetFirstStepByWorkflowID(ctx context.Context, workflowI
 
 	return &step, nil
 }
+
+func (r *stepRepository) GetNextStepByWorkflowID(ctx context.Context, workflowID uuid.UUID, executedStepIDs []string) (*entity.Step, error) {
+	var step entity.Step
+
+	query := r.db.WithContext(ctx).
+		Where("workflow_id = ?", workflowID).
+		Order("execution_order ASC, id ASC").
+		Preload("Endpoint")
+
+	if len(executedStepIDs) > 0 {
+		query = query.Where("id NOT IN ?", executedStepIDs)
+	}
+
+	err := query.First(&step).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &step, nil
+}

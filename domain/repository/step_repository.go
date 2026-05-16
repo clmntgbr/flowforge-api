@@ -17,4 +17,5 @@ type StepRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*entity.Step, error)
 	UpdatePositionAndIndex(ctx context.Context, id uuid.UUID, workflowID uuid.UUID, position entity.Position, index string, executionOrder int) error
 	GetFirstStepByWorkflowID(ctx context.Context, workflowID uuid.UUID) (*entity.Step, error)
+	GetNextStepByWorkflowID(ctx context.Context, workflowID uuid.UUID, executedStepIDs []string) (*entity.Step, error)
 }
