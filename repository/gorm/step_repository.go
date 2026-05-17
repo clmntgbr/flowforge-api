@@ -92,7 +92,7 @@ func (r *stepRepository) GetFirstStepByWorkflowID(ctx context.Context, workflowI
 	var step entity.Step
 	err := dbWithContext(ctx, r.db).
 		Where("workflow_id = ?", workflowID).
-		Order("execution_order ASC, id ASC").
+		Order("execution_order ASC, position_y ASC").
 		Preload("Endpoint").
 		First(&step).Error
 
