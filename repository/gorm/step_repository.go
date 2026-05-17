@@ -34,6 +34,7 @@ func (r *stepRepository) GetByIDAndOrganizationIDAndWorkflowID(ctx context.Conte
 	var step entity.Step
 
 	err := dbWithContext(ctx, r.db).
+		Preload("Endpoint").
 		Joins("JOIN workflows ON workflows.id = steps.workflow_id").
 		Where("steps.id = ? AND workflows.organization_id = ? AND workflows.id = ?", id, organizationID, workflowID).
 		First(&step).Error
