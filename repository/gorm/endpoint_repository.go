@@ -37,7 +37,10 @@ func (r *endpointRepository) List(ctx context.Context, organizationID uuid.UUID,
 		Where("organization_id = ?", organizationID)
 
 	if query.Search != "" {
-		db = db.Where("name ILIKE ?", "%"+query.Search+"%")
+		db = db.Where("name ILIKE ?", "%"+query.Search+"%").
+			Or("base_uri ILIKE ?", "%"+query.Search+"%").
+			Or("path ILIKE ?", "%"+query.Search+"%").
+			Or("method ILIKE ?", "%"+query.Search+"%")
 	}
 
 	db, total, err := Paginate(db, query)
