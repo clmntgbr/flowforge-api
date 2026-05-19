@@ -1,7 +1,9 @@
 package main
 
 import (
-	"flowforge-api/cmd/cli/command"
+	cliCommand "flowforge-api/cmd/cli/command"
+	cliWire "flowforge-api/cmd/cli/wire"
+	"flowforge-api/infrastructure/config"
 	"fmt"
 	"os"
 
@@ -9,6 +11,11 @@ import (
 )
 
 func main() {
+	env := config.Load()
+	db := config.ConnectDatabase(env)
+
+	container := cliWire.NewContainer(db, env)
+
 	rootCmd := &cobra.Command{
 		Use:   "cli",
 		Short: "Flowforge CLI - cmd commands",
@@ -16,8 +23,8 @@ func main() {
 	}
 
 	rootCmd.AddCommand(
-		command.NewMigrateCommand(),
-		command.NewExecuteWorkflowCommand(),
+		cliCommand.NewMigrateCommand(),
+		cliCommand.NewExecuteWorkflowCommand(container),
 	)
 
 	if err := rootCmd.Execute(); err != nil {

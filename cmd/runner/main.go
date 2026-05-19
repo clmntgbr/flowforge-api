@@ -1,7 +1,7 @@
 package main
 
 import (
-	mainWire "flowforge-api/cmd/wire"
+	"flowforge-api/cmd/runner/wire"
 	"flowforge-api/infrastructure/config"
 	"flowforge-api/infrastructure/messaging/rabbitmq"
 	"log"
@@ -14,7 +14,7 @@ func main() {
 	env := config.Load()
 	db := config.ConnectDatabase(env)
 
-	container := mainWire.NewContainer(db, env)
+	container := wire.NewContainer(db, env)
 
 	runner := rabbitmq.NewWorkerRunner(
 		env,
