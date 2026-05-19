@@ -5,22 +5,17 @@ import (
 	"flowforge-api/handler/middleware"
 	infraClerk "flowforge-api/infrastructure/clerk"
 	"flowforge-api/infrastructure/config"
-	rmq "flowforge-api/infrastructure/messaging/rabbitmq"
 	repoGorm "flowforge-api/repository/gorm"
 	"flowforge-api/usecase/auth"
 	"flowforge-api/usecase/clerk"
 	"flowforge-api/usecase/connexion"
-	"flowforge-api/usecase/consumer"
 	"flowforge-api/usecase/endpoint"
-	"flowforge-api/usecase/insight"
 	"flowforge-api/usecase/organization"
 	"flowforge-api/usecase/step"
-	"flowforge-api/usecase/step_run"
 	"flowforge-api/usecase/user"
 	"flowforge-api/usecase/workflow"
 	"flowforge-api/usecase/workflow_run"
 	"log"
-	"net/http"
 
 	"gorm.io/gorm"
 )
@@ -35,10 +30,6 @@ type Container struct {
 	ConnexionHandler       *handler.ConnexionHandler
 	StepHandler            *handler.StepHandler
 	WorkflowHandler        *handler.WorkflowHandler
-	ConsumerHandler        *handler.ConsumerHandler
-	RunnerHandler          *handler.RunnerHandler
-
-	ExecuteWorkflowUseCase *workflow.ExecuteWorkflowUseCase
 }
 
 func NewContainer(db *gorm.DB, env *config.Config) *Container {
@@ -54,8 +45,6 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	stepRepo := repoGorm.NewStepRepository(db)
 	workflowRepo := repoGorm.NewWorkflowRepository(db)
 	workflowRunRepo := repoGorm.NewWorkflowRunRepository(db)
-	stepRunRepo := repoGorm.NewStepRunRepository(db)
-	insightRepo := repoGorm.NewInsightRepository(db)
 
 	validateTokenUseCase := auth.NewValidateTokenUseCase(jwksProvider, &userRepo)
 	fetchUserUseCase := clerk.NewFetchUserUseCase(env)
@@ -80,9 +69,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 
 	listWorkflowsUseCase := workflow.NewListWorkflowsUseCase(&workflowRepo)
 	createWorkflowUseCase := workflow.NewCreateWorkflowUseCase(&workflowRepo)
-
 	calculateExecutionOrderUseCase := step.NewCalculateExecutionOrderUseCase()
-
 	getStepUseCase := step.NewGetStepUseCase(&stepRepo)
 	updateStepUseCase := step.NewUpdateStepUseCase(&stepRepo)
 	getWorkflowUseCase := workflow.NewGetWorkflowUseCase(&workflowRepo)
@@ -95,52 +82,12 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		&endpointRepo,
 		calculateExecutionOrderUseCase,
 	)
-
 	getWorkflowRunsUseCase := workflow_run.NewGetWorkflowRunsUseCase(
 		&workflowRepo,
 		&workflowRunRepo,
 	)
 
-	createInsightUseCase := insight.NewCreateInsightUseCase(&insightRepo)
-	failedStepUseCase := consumer.NewFailedStepUseCase(createInsightUseCase, &stepRunRepo, &workflowRunRepo)
-
-	createWorkflowRunUseCase := workflow_run.NewCreateWorkflowRunUseCase(&workflowRunRepo)
-	hasStepRunUseCase := step_run.NewHasStepRunUseCase(&stepRunRepo)
-	createStepRunUseCase := step_run.NewCreateStepRunUseCase(&stepRunRepo, &stepRepo)
-	executeStepRunUseCase := step_run.NewExecuteStepRunUseCase(&stepRunRepo, &stepRepo)
-	executeWorkflowRunUseCase := workflow_run.NewExecuteWorkflowRunUseCase(&workflowRunRepo)
-	runStepUseCase := step.NewRunStepUseCase(http.DefaultClient)
-
-	stepRunPublisher := rmq.NewPublisherFromEnv(env)
-
-	executeWorkflowUseCase := workflow.NewExecuteWorkflowUseCase(
-		&workflowRepo,
-		&workflowRunRepo,
-		&stepRepo,
-		createWorkflowRunUseCase,
-		hasStepRunUseCase,
-		createStepRunUseCase,
-		executeStepRunUseCase,
-		executeWorkflowRunUseCase,
-		env,
-		&stepRunPublisher,
-	)
-
-	completedStepUseCase := consumer.NewCompletedStepUseCase(
-		createInsightUseCase,
-		&stepRunRepo,
-		&workflowRunRepo,
-		&stepRepo,
-		createStepRunUseCase,
-		executeStepRunUseCase,
-		&stepRunPublisher,
-		env,
-	)
-
-	clerkMiddleware := middleware.NewClerkMiddleware(
-		env.ClerkWebhookSecret,
-	)
-
+	clerkMiddleware := middleware.NewClerkMiddleware(env.ClerkWebhookSecret)
 	authenticateMiddleware := middleware.NewAuthenticateMiddleware(
 		validateTokenUseCase,
 		fetchUserUseCase,
@@ -149,71 +96,47 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		updateUserUseCase,
 	)
 
-	clerkHandler := handler.NewClerkHandler(
-		getUserByClerkIDUseCase,
-		createUserUseCase,
-		createOrganizationUseCase,
-		updateUserUseCase,
-		deleteUserByClerkIDUseCase,
-	)
-
-	userHandler := handler.NewUserHandler()
-
-	organizationHandler := handler.NewOrganizationHandler(
-		listOrganizationsUseCase,
-		createOrganizationUseCase,
-		getOrganizationByIDUseCase,
-		updateOrganizationUseCase,
-		activateOrganizationUseCase,
-	)
-
-	endpointHandler := handler.NewEndpointHandler(
-		listEndpointsUseCase,
-		createEndpointUseCase,
-		updateEndpointUseCase,
-		getEndpointUseCase,
-	)
-
-	connexionHandler := handler.NewConnexionHandler(
-		createConnexionUseCase,
-		deleteConnexionUseCase,
-	)
-
-	stepHandler := handler.NewStepHandler(
-		getStepUseCase,
-		updateStepUseCase,
-	)
-
-	workflowHandler := handler.NewWorkflowHandler(
-		listWorkflowsUseCase,
-		createWorkflowUseCase,
-		getWorkflowUseCase,
-		updateWorkflowUseCase,
-		activateWorkflowUseCase,
-		deactivateWorkflowUseCase,
-		upsertWorkflowUseCase,
-		getWorkflowRunsUseCase,
-	)
-
-	consumerHandler := handler.NewConsumerHandler(
-		env,
-		completedStepUseCase,
-		failedStepUseCase,
-	)
-	runnerHandler := handler.NewRunnerHandler(env, runStepUseCase, &stepRunPublisher)
-
 	return &Container{
 		AuthenticateMiddleware: authenticateMiddleware,
 		ClerkMiddleware:        clerkMiddleware,
-		ClerkHandler:           clerkHandler,
-		UserHandler:            userHandler,
-		OrganizationHandler:    organizationHandler,
-		EndpointHandler:        endpointHandler,
-		ConnexionHandler:       connexionHandler,
-		StepHandler:            stepHandler,
-		WorkflowHandler:        workflowHandler,
-		ConsumerHandler:        consumerHandler,
-		RunnerHandler:          runnerHandler,
-		ExecuteWorkflowUseCase: executeWorkflowUseCase,
+		ClerkHandler: handler.NewClerkHandler(
+			getUserByClerkIDUseCase,
+			createUserUseCase,
+			createOrganizationUseCase,
+			updateUserUseCase,
+			deleteUserByClerkIDUseCase,
+		),
+		UserHandler: handler.NewUserHandler(),
+		OrganizationHandler: handler.NewOrganizationHandler(
+			listOrganizationsUseCase,
+			createOrganizationUseCase,
+			getOrganizationByIDUseCase,
+			updateOrganizationUseCase,
+			activateOrganizationUseCase,
+		),
+		EndpointHandler: handler.NewEndpointHandler(
+			listEndpointsUseCase,
+			createEndpointUseCase,
+			updateEndpointUseCase,
+			getEndpointUseCase,
+		),
+		ConnexionHandler: handler.NewConnexionHandler(
+			createConnexionUseCase,
+			deleteConnexionUseCase,
+		),
+		StepHandler: handler.NewStepHandler(
+			getStepUseCase,
+			updateStepUseCase,
+		),
+		WorkflowHandler: handler.NewWorkflowHandler(
+			listWorkflowsUseCase,
+			createWorkflowUseCase,
+			getWorkflowUseCase,
+			updateWorkflowUseCase,
+			activateWorkflowUseCase,
+			deactivateWorkflowUseCase,
+			upsertWorkflowUseCase,
+			getWorkflowRunsUseCase,
+		),
 	}
 }
