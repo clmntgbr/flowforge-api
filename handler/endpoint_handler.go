@@ -6,6 +6,8 @@ import (
 	"flowforge-api/infrastructure/paginate"
 	"flowforge-api/presenter"
 	"flowforge-api/usecase/endpoint"
+	"net/url"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
@@ -13,10 +15,11 @@ import (
 )
 
 type EndpointHandler struct {
-	listEndpointsUseCase  *endpoint.ListEndpointsUseCase
-	createEndpointUseCase *endpoint.CreateEndpointUseCase
-	updateEndpointUseCase *endpoint.UpdateEndpointUseCase
-	getEndpointUseCase    *endpoint.GetEndpointUseCase
+	listEndpointsUseCase     *endpoint.ListEndpointsUseCase
+	createEndpointUseCase    *endpoint.CreateEndpointUseCase
+	updateEndpointUseCase    *endpoint.UpdateEndpointUseCase
+	getEndpointUseCase       *endpoint.GetEndpointUseCase
+	importFromOpenAPIUseCase *endpoint.ImportFromOpenAPIUseCase
 }
 
 func NewEndpointHandler(
@@ -24,12 +27,14 @@ func NewEndpointHandler(
 	createEndpointUseCase *endpoint.CreateEndpointUseCase,
 	updateEndpointUseCase *endpoint.UpdateEndpointUseCase,
 	getEndpointUseCase *endpoint.GetEndpointUseCase,
+	importFromOpenAPIUseCase *endpoint.ImportFromOpenAPIUseCase,
 ) *EndpointHandler {
 	return &EndpointHandler{
-		listEndpointsUseCase:  listEndpointsUseCase,
-		createEndpointUseCase: createEndpointUseCase,
-		updateEndpointUseCase: updateEndpointUseCase,
-		getEndpointUseCase:    getEndpointUseCase,
+		listEndpointsUseCase:     listEndpointsUseCase,
+		createEndpointUseCase:    createEndpointUseCase,
+		updateEndpointUseCase:    updateEndpointUseCase,
+		getEndpointUseCase:       getEndpointUseCase,
+		importFromOpenAPIUseCase: importFromOpenAPIUseCase,
 	}
 }
 
@@ -158,5 +163,49 @@ func (h *EndpointHandler) UpdateEndpoint(c fiber.Ctx) error {
 
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"success": true,
+	})
+}
+
+func (h *EndpointHandler) ImportEndpoints(c fiber.Ctx) error {
+	activeOrganizationID, err := context.GetOrganizationID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+
+	baseURL := c.FormValue("baseUrl")
+	file, err := c.FormFile("file")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "file is required",
+		})
+	}
+
+	if baseURL == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "baseUrl is required",
+		})
+	}
+
+	parsedURL, err := url.Parse(baseURL)
+	if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "baseUrl must be a valid URL (e.g., https://api.example.com)",
+		})
+	}
+
+	baseURL = strings.TrimSuffix(parsedURL.String(), "/")
+
+	err = h.importFromOpenAPIUseCase.Execute(c.Context(), activeOrganizationID, baseURL, file)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to import endpoints",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Endpoints imported successfully",
+		"baseUrl": baseURL,
 	})
 }

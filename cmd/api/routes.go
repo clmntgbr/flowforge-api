@@ -54,6 +54,7 @@ func setupEndpointsRoutes(api fiber.Router, container *wire.Container) {
 	api.Post("/endpoints", container.EndpointHandler.CreateEndpoint)
 	api.Get("/endpoints/:id", container.EndpointHandler.GetEndpointByID)
 	api.Put("/endpoints/:id", container.EndpointHandler.UpdateEndpoint)
+	api.Post("/endpoints/import", container.EndpointHandler.ImportEndpoints)
 }
 
 func setupConnexionsRoutes(api fiber.Router, container *wire.Container) {

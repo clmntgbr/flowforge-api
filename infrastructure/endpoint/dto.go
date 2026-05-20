@@ -16,6 +16,22 @@ type CreateEndpointInput struct {
 	RetryDelay     int          `json:"retryDelay" validate:"min=0,max=600,number"`
 }
 
+type OpenAPI struct {
+	OpenAPI string `json:"openapi"`
+	Info    struct {
+		Title   string `json:"title"`
+		Version string `json:"version"`
+	} `json:"info"`
+	Servers []struct {
+		URL string `json:"url"`
+	} `json:"servers"`
+	Paths map[string]map[string]struct {
+		OperationID string   `json:"operationId"`
+		Tags        []string `json:"tags"`
+		Summary     string   `json:"summary"`
+	} `json:"paths"`
+}
+
 type UpdateEndpointInput struct {
 	CreateEndpointInput
 }
