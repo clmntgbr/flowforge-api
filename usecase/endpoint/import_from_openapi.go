@@ -61,7 +61,7 @@ func (u *ImportFromOpenAPIUseCase) Execute(ctx context.Context, organizationID u
 			}
 
 			u.createEndpointUseCase.Execute(ctx, organizationID, endpointDTO.CreateEndpointInput{
-				Name:           op.OperationID,
+				Name:           op.Summary,
 				Description:    op.Description,
 				BaseURI:        baseURI,
 				Path:           path,
