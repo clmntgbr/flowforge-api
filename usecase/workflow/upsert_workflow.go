@@ -17,6 +17,7 @@ type UpsertWorkflowUseCase struct {
 	stepRepo                       *repository.StepRepository
 	endpointRepo                   *repository.EndpointRepository
 	calculateExecutionOrderUseCase *usecase.CalculateExecutionOrderUseCase
+	createStepUseCase              *usecase.CreateStepUseCase
 }
 
 func NewUpsertWorkflowUseCase(
@@ -24,12 +25,14 @@ func NewUpsertWorkflowUseCase(
 	stepRepo *repository.StepRepository,
 	endpointRepo *repository.EndpointRepository,
 	calculateExecutionOrderUseCase *usecase.CalculateExecutionOrderUseCase,
+	createStepUseCase *usecase.CreateStepUseCase,
 ) *UpsertWorkflowUseCase {
 	return &UpsertWorkflowUseCase{
 		workflowRepo:                   workflowRepo,
 		stepRepo:                       stepRepo,
 		endpointRepo:                   endpointRepo,
 		calculateExecutionOrderUseCase: calculateExecutionOrderUseCase,
+		createStepUseCase:              createStepUseCase,
 	}
 }
 
@@ -92,24 +95,8 @@ func (u *UpsertWorkflowUseCase) Execute(ctx context.Context, organizationID uuid
 			existingStep, _ := (*u.stepRepo).GetByID(txCtx, stepUUID)
 
 			if existingStep == nil {
-				newStep := &entity.Step{
-					ID:             stepUUID,
-					Name:           endpoint.Name,
-					Description:    endpoint.BaseURI + endpoint.Path,
-					Timeout:        endpoint.Timeout,
-					Query:          endpoint.Query,
-					Header:         endpoint.Header,
-					Body:           endpoint.Body,
-					Position:       position,
-					Index:          index,
-					ExecutionOrder: executionOrder,
-					EndpointID:     endpointUUID,
-					WorkflowID:     workflowID,
-					RetryOnFailure: endpoint.RetryOnFailure,
-					RetryCount:     endpoint.RetryCount,
-					RetryDelay:     endpoint.RetryDelay,
-				}
-				if err := (*u.stepRepo).Create(txCtx, newStep); err != nil {
+				_, err := u.createStepUseCase.Execute(txCtx, workflowID, stepUUID, endpoint, position, index, executionOrder, endpointUUID)
+				if err != nil {
 					return err
 				}
 			} else {
