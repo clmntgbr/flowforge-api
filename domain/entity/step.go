@@ -35,6 +35,8 @@ type Step struct {
 	RetryCount     int  `gorm:"not null;default:0" json:"retryCount"`
 	RetryDelay     int  `gorm:"not null;default:0" json:"retryDelay"`
 
+	IsEnabled bool `gorm:"not null;default:true" json:"is_enabled"`
+
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }

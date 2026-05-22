@@ -4,6 +4,7 @@ import (
 	"context"
 	"flowforge-api/domain/entity"
 	"flowforge-api/domain/repository"
+	"flowforge-api/domain/types"
 
 	"github.com/google/uuid"
 )
@@ -26,6 +27,17 @@ func (u *CreateStepUseCase) Execute(
 	executionOrder int,
 	endpointUUID uuid.UUID,
 ) (entity.Step, error) {
+
+	if len(endpoint.Header) == 0 {
+		endpoint.Header = types.Header{
+			{
+				ID:    uuid.New().String(),
+				Key:   "Content-Type",
+				Value: "application/json",
+			},
+		}
+	}
+
 	step := &entity.Step{
 		ID:             stepUUID,
 		Name:           endpoint.Name,
@@ -42,6 +54,7 @@ func (u *CreateStepUseCase) Execute(
 		RetryOnFailure: endpoint.RetryOnFailure,
 		RetryCount:     endpoint.RetryCount,
 		RetryDelay:     endpoint.RetryDelay,
+		IsEnabled:      true,
 	}
 
 	if err := (*u.stepRepo).Create(ctx, step); err != nil {

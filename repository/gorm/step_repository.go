@@ -94,6 +94,7 @@ func (r *stepRepository) GetFirstStepByWorkflowID(ctx context.Context, workflowI
 		Where("workflow_id = ?", workflowID).
 		Order("execution_order ASC, position_y ASC").
 		Preload("Endpoint").
+		Where("is_enabled = ?", true).
 		First(&step).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -112,6 +113,7 @@ func (r *stepRepository) GetNextStepByWorkflowID(ctx context.Context, workflowID
 
 	query := r.db.WithContext(ctx).
 		Where("workflow_id = ?", workflowID).
+		Where("is_enabled = ?", true).
 		Order("execution_order ASC, id ASC").
 		Preload("Endpoint")
 

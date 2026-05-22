@@ -77,6 +77,15 @@ func (u *ExecuteWorkflowUseCase) Execute(ctx context.Context) error {
 }
 
 func (u *ExecuteWorkflowUseCase) runExecuteWorkflowIteration(txCtx context.Context, workflow entity.Workflow) error {
+	step, err := (*u.stepRepo).GetFirstStepByWorkflowID(txCtx, workflow.ID)
+	if err != nil {
+		return fmt.Errorf("🚨 failed to get steps by workflow ID: %w", err)
+	}
+
+	if step == nil {
+		return nil
+	}
+
 	workflowRun, err := (*u.workflowRunRepo).GetByWorkflowIDAndNotEnded(txCtx, workflow.ID)
 	if err != nil {
 		return fmt.Errorf("🚨 failed to get workflow run by workflow ID and not ended: %w", err)
@@ -94,15 +103,6 @@ func (u *ExecuteWorkflowUseCase) runExecuteWorkflowIteration(txCtx context.Conte
 	}
 
 	if workflowRun.Status == enum.WorkflowRunStatusRunning {
-		return nil
-	}
-
-	step, err := (*u.stepRepo).GetFirstStepByWorkflowID(txCtx, workflow.ID)
-	if err != nil {
-		return fmt.Errorf("🚨 failed to get steps by workflow ID: %w", err)
-	}
-
-	if step == nil {
 		return nil
 	}
 

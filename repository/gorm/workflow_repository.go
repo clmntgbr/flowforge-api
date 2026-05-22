@@ -59,7 +59,7 @@ func (r *workflowRepository) GetByIDAndOrganizationID(ctx context.Context, organ
 
 	err := dbWithContext(ctx, r.db).Model(&entity.Workflow{}).
 		Preload("Steps", func(db *gorm.DB) *gorm.DB {
-			return db.Order("index ASC")
+			return db.Where("is_enabled = ?", true).Order("index ASC")
 		}).
 		Preload("Steps.Endpoint").
 		Preload("Connexions").

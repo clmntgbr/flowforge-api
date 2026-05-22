@@ -40,7 +40,8 @@ func (u *DeleteStepUseCase) Execute(
 		return err
 	}
 
-	if err := (*u.stepRepo).Delete(ctx, step.ID); err != nil {
+	step.IsEnabled = false
+	if err := (*u.stepRepo).Update(ctx, &step); err != nil {
 		return err
 	}
 
