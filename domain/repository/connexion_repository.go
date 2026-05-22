@@ -10,6 +10,7 @@ import (
 type ConnexionRepository interface {
 	Create(ctx context.Context, connexion *entity.Connexion) error
 	Delete(ctx context.Context, id uuid.UUID) error
+	DeleteByStepID(ctx context.Context, stepID uuid.UUID) error
 	GetByFromStepIDAndToStepIDAndWorkflowID(ctx context.Context, organizationID uuid.UUID, fromStepID uuid.UUID, toStepID uuid.UUID, workflowID uuid.UUID) ([]entity.Connexion, error)
 	GetByIDAndOrganizationID(ctx context.Context, organizationID uuid.UUID, id uuid.UUID) (entity.Connexion, error)
 }

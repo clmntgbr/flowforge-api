@@ -55,3 +55,7 @@ func (r *connexionRepository) GetByIDAndOrganizationID(ctx context.Context, orga
 	}
 	return connexion, nil
 }
+
+func (r *connexionRepository) DeleteByStepID(ctx context.Context, stepID uuid.UUID) error {
+	return dbWithContext(ctx, r.db).Delete(&entity.Connexion{}, "from_step_id = ? OR to_step_id = ?", stepID, stepID).Error
+}

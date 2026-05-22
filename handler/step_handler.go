@@ -14,10 +14,11 @@ import (
 type StepHandler struct {
 	getStepUseCase    *step.GetStepUseCase
 	updateStepUseCase *step.UpdateStepUseCase
+	deleteStepUseCase *step.DeleteStepUseCase
 }
 
-func NewStepHandler(getStepUseCase *step.GetStepUseCase, updateStepUseCase *step.UpdateStepUseCase) *StepHandler {
-	return &StepHandler{getStepUseCase: getStepUseCase, updateStepUseCase: updateStepUseCase}
+func NewStepHandler(getStepUseCase *step.GetStepUseCase, updateStepUseCase *step.UpdateStepUseCase, deleteStepUseCase *step.DeleteStepUseCase) *StepHandler {
+	return &StepHandler{getStepUseCase: getStepUseCase, updateStepUseCase: updateStepUseCase, deleteStepUseCase: deleteStepUseCase}
 }
 
 func (h *StepHandler) GetStepByID(c fiber.Ctx) error {
@@ -105,5 +106,37 @@ func (h *StepHandler) UpdateStep(c fiber.Ctx) error {
 }
 
 func (h *StepHandler) DeleteStep(c fiber.Ctx) error {
-	return nil
+	activeOrganizationID, err := context.GetOrganizationID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+
+	stepID := c.Params("id")
+	stepUUID, err := uuid.Parse(stepID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid step ID",
+		})
+	}
+
+	workflowID := c.Params("workflowId")
+	workflowUUID, err := uuid.Parse(workflowID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid workflow ID",
+		})
+	}
+
+	err = h.deleteStepUseCase.Execute(c.Context(), activeOrganizationID, workflowUUID, stepUUID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to delete step",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Step deleted successfully",
+	})
 }
