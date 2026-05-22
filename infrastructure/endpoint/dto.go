@@ -1,6 +1,9 @@
 package endpoint
 
-import "flowforge-api/domain/types"
+import (
+	"flowforge-api/domain/types"
+	"mime/multipart"
+)
 
 type CreateEndpointInput struct {
 	Name           string       `json:"name" validate:"required,min=2,max=255"`
@@ -34,4 +37,13 @@ type OpenAPI struct {
 
 type UpdateEndpointInput struct {
 	CreateEndpointInput
+}
+
+type ImportEndpointsInput struct {
+	BaseURL        string                `form:"baseUrl" validate:"required,url"`
+	Timeout        int                   `json:"timeout" validate:"required,min=1,max=60,number"`
+	RetryOnFailure bool                  `json:"retryOnFailure"`
+	RetryCount     int                   `json:"retryCount" validate:"min=0,max=10,number"`
+	RetryDelay     int                   `json:"retryDelay" validate:"min=0,max=600,number"`
+	File           *multipart.FileHeader `form:"file" validate:"required"`
 }

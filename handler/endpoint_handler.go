@@ -6,8 +6,6 @@ import (
 	"flowforge-api/infrastructure/paginate"
 	"flowforge-api/presenter"
 	"flowforge-api/usecase/endpoint"
-	"net/url"
-	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
@@ -174,30 +172,21 @@ func (h *EndpointHandler) ImportEndpoints(c fiber.Ctx) error {
 		})
 	}
 
-	baseURL := c.FormValue("baseUrl")
-	file, err := c.FormFile("file")
-	if err != nil {
+	var request endpointDTO.ImportEndpointsInput
+	if err := c.Bind().Form(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "file is required",
+			"message": "Invalid request body",
 		})
 	}
 
-	if baseURL == "" {
+	if err := validator.New().Struct(request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "baseUrl is required",
+			"message": "Invalid request body",
+			"errors":  err.Error(),
 		})
 	}
 
-	parsedURL, err := url.Parse(baseURL)
-	if err != nil || parsedURL.Scheme == "" || parsedURL.Host == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "baseUrl must be a valid URL (e.g., https://api.example.com)",
-		})
-	}
-
-	baseURL = strings.TrimSuffix(parsedURL.String(), "/")
-
-	err = h.importFromOpenAPIUseCase.Execute(c.Context(), activeOrganizationID, baseURL, file)
+	err = h.importFromOpenAPIUseCase.Execute(c.Context(), activeOrganizationID, request)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to import endpoints",
@@ -206,6 +195,5 @@ func (h *EndpointHandler) ImportEndpoints(c fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Endpoints imported successfully",
-		"baseUrl": baseURL,
 	})
 }
