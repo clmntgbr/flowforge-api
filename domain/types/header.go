@@ -9,9 +9,13 @@ type Header []Param
 
 func (h Header) Value() (driver.Value, error) {
 	if h == nil {
-		return []byte("[]"), nil
+		return "[]", nil
 	}
-	return json.Marshal(h)
+	bytes, err := json.Marshal(h)
+	if err != nil {
+		return nil, err
+	}
+	return string(bytes), nil
 }
 
 func (h *Header) Scan(value interface{}) error {

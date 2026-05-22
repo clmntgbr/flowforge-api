@@ -9,9 +9,13 @@ type Query []Param
 
 func (q Query) Value() (driver.Value, error) {
 	if q == nil {
-		return []byte("[]"), nil
+		return "[]", nil
 	}
-	return json.Marshal(q)
+	bytes, err := json.Marshal(q)
+	if err != nil {
+		return nil, err
+	}
+	return string(bytes), nil
 }
 
 func (q *Query) Scan(value interface{}) error {

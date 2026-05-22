@@ -20,9 +20,9 @@ func (b *Body) UnmarshalJSON(data []byte) error {
 
 func (b Body) Value() (driver.Value, error) {
 	if len(b) == 0 {
-		return []byte("[]"), nil
+		return "[]", nil
 	}
-	return []byte(b), nil
+	return string(b), nil
 }
 
 func (b *Body) Scan(value interface{}) error {
