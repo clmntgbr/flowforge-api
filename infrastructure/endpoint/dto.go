@@ -7,6 +7,7 @@ import (
 
 type CreateEndpointInput struct {
 	Name           string       `json:"name" validate:"required,min=2,max=255"`
+	Description    string       `json:"description"`
 	BaseURI        string       `json:"baseUri" validate:"required,url"`
 	Path           string       `json:"path" validate:"required"`
 	Method         string       `json:"method" validate:"required"`
@@ -32,6 +33,7 @@ type OpenAPI struct {
 		OperationID string   `json:"operationId"`
 		Tags        []string `json:"tags"`
 		Summary     string   `json:"summary"`
+		Description string   `json:"description"`
 	} `json:"paths"`
 }
 

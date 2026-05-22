@@ -21,6 +21,7 @@ func (u *CreateEndpointUseCase) Execute(ctx context.Context, organizationID uuid
 	endpoint := &entity.Endpoint{
 		Name:           input.Name,
 		OrganizationID: organizationID,
+		Description:    input.Description,
 		BaseURI:        input.BaseURI,
 		Path:           input.Path,
 		Method:         input.Method,
