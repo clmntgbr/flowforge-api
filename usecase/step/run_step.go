@@ -208,6 +208,9 @@ func ExecuteRequest(config runner.ExecutionConfig, insights *runner.RunnerInsigh
 	}
 
 	req.Header = config.Headers
+	if len(config.Body) > 0 && SupportsBody(config.Method) && req.Header.Get("Content-Type") == "" {
+		req.Header.Set("Content-Type", "application/json")
+	}
 	insights.RequestSize = int64(len(config.Body))
 	fmt.Printf("[run_step] ExecuteRequest sending HTTP request timeout=%ds\n", config.Timeout)
 
