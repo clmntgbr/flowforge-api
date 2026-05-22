@@ -18,6 +18,8 @@ type EndpointHandler struct {
 	updateEndpointUseCase    *endpoint.UpdateEndpointUseCase
 	getEndpointUseCase       *endpoint.GetEndpointUseCase
 	importFromOpenAPIUseCase *endpoint.ImportFromOpenAPIUseCase
+	endpointHasStepUseCase   *endpoint.EndpointHasStepUseCase
+	deleteEndpointUseCase    *endpoint.DeleteEndpointUseCase
 }
 
 func NewEndpointHandler(
@@ -26,6 +28,8 @@ func NewEndpointHandler(
 	updateEndpointUseCase *endpoint.UpdateEndpointUseCase,
 	getEndpointUseCase *endpoint.GetEndpointUseCase,
 	importFromOpenAPIUseCase *endpoint.ImportFromOpenAPIUseCase,
+	endpointHasStepUseCase *endpoint.EndpointHasStepUseCase,
+	deleteEndpointUseCase *endpoint.DeleteEndpointUseCase,
 ) *EndpointHandler {
 	return &EndpointHandler{
 		listEndpointsUseCase:     listEndpointsUseCase,
@@ -33,6 +37,8 @@ func NewEndpointHandler(
 		updateEndpointUseCase:    updateEndpointUseCase,
 		getEndpointUseCase:       getEndpointUseCase,
 		importFromOpenAPIUseCase: importFromOpenAPIUseCase,
+		endpointHasStepUseCase:   endpointHasStepUseCase,
+		deleteEndpointUseCase:    deleteEndpointUseCase,
 	}
 }
 
@@ -195,5 +201,46 @@ func (h *EndpointHandler) ImportEndpoints(c fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "Endpoints imported successfully",
+	})
+}
+
+func (h *EndpointHandler) DeleteEndpoint(c fiber.Ctx) error {
+	_, err := context.GetOrganizationID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+
+	endpointID := c.Params("id")
+	endpointUUID, err := uuid.Parse(endpointID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid endpoint ID",
+		})
+	}
+
+	hasSteps, err := h.endpointHasStepUseCase.Execute(c.Context(), endpointUUID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to check if endpoint has steps",
+		})
+	}
+
+	if hasSteps {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Endpoint has steps",
+		})
+	}
+
+	err = h.deleteEndpointUseCase.Execute(c.Context(), endpointUUID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to delete endpoint",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"success": true,
 	})
 }

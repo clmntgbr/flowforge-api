@@ -129,3 +129,12 @@ func (r *stepRepository) GetNextStepByWorkflowID(ctx context.Context, workflowID
 
 	return &step, nil
 }
+
+func (r *stepRepository) HasStepsByEndpointID(ctx context.Context, endpointID uuid.UUID) (bool, error) {
+	var count int64
+	err := r.db.WithContext(ctx).
+		Model(&entity.Step{}).
+		Where("endpoint_id = ?", endpointID).
+		Count(&count).Error
+	return count > 0, err
+}
