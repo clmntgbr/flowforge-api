@@ -7,7 +7,6 @@ import (
 	"flowforge-api/domain/repository"
 	consumerDTO "flowforge-api/infrastructure/consumer"
 	"flowforge-api/usecase/insight"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -61,11 +60,7 @@ func (u *FailedStepUseCase) Execute(ctx context.Context, message consumerDTO.Con
 		return errors.New("step run not found")
 	}
 
-	failedAt, err := time.Parse(time.RFC3339, message.FailedAt)
-	if err != nil {
-		return err
-	}
-
+	failedAt := message.FailedAt.UTC()
 	stepRun.Status = enum.StepRunStatusFailed
 	stepRun.Statuses = append(stepRun.Statuses, enum.StepRunStatusFailed)
 	stepRun.FailedAt = &failedAt

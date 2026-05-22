@@ -12,7 +12,6 @@ import (
 	"flowforge-api/usecase/insight"
 	"flowforge-api/usecase/step_run"
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -85,11 +84,7 @@ func (u *CompletedStepUseCase) Execute(ctx context.Context, message consumerDTO.
 		return errors.New("step run not found")
 	}
 
-	completedAt, err := time.Parse(time.RFC3339, message.CompletedAt)
-	if err != nil {
-		return err
-	}
-
+	completedAt := message.CompletedAt.UTC()
 	stepRun.Status = enum.StepRunStatusCompleted
 	stepRun.Statuses = append(stepRun.Statuses, enum.StepRunStatusCompleted)
 	stepRun.CompletedAt = &completedAt
@@ -149,16 +144,12 @@ func (u *CompletedStepUseCase) Execute(ctx context.Context, message consumerDTO.
 }
 
 func (u *CompletedStepUseCase) completeWorkflowRun(ctx context.Context, workflowRun *entity.WorkflowRun, message consumerDTO.ConsumerCompletedMessage) error {
-	completedAt, err := time.Parse(time.RFC3339, message.CompletedAt)
-	if err != nil {
-		return err
-	}
-
+	completedAt := message.CompletedAt.UTC()
 	workflowRun.CompletedAt = &completedAt
 	workflowRun.Status = enum.WorkflowRunStatusCompleted
 	workflowRun.Statuses = append(workflowRun.Statuses, enum.WorkflowRunStatusCompleted)
 
-	err = (*u.workflowRunRepo).Update(ctx, workflowRun)
+	err := (*u.workflowRunRepo).Update(ctx, workflowRun)
 	if err != nil {
 		return err
 	}

@@ -38,7 +38,7 @@ func (RunnerFailedMessage) isMessage()    {}
 type RunnerCompletedMessage struct {
 	WorkflowRunID string                `json:"workflow_run_id" validate:"required,uuid"`
 	StepRunID     string                `json:"step_run_id" validate:"required,uuid"`
-	CompletedAt   string                `json:"completed_at" validate:"omitempty,datetime=2006-01-02T15:04:05Z07:00"`
+	CompletedAt   time.Time             `json:"completed_at" validate:"required"`
 	Insights      runner.RunnerInsights `json:"insights" validate:"required"`
 	Response      string                `json:"response" validate:"required"`
 }
@@ -47,7 +47,7 @@ type RunnerFailedMessage struct {
 	WorkflowRunID string                `json:"workflow_run_id" validate:"required,uuid"`
 	StepRunID     string                `json:"step_run_id" validate:"required,uuid"`
 	Error         string                `json:"error" validate:"required,max=2048"`
-	FailedAt      string                `json:"failed_at" validate:"omitempty,datetime=2006-01-02T15:04:05Z07:00"`
+	FailedAt      time.Time             `json:"failed_at" validate:"required"`
 	Insights      runner.RunnerInsights `json:"insights" validate:"required"`
 	Response      string                `json:"response"`
 }

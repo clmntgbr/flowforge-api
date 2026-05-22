@@ -59,7 +59,7 @@ func (h *RunnerHandler) PublishSuccess(ctx context.Context, event rabbitmqDTO.St
 	message := rabbitmqDTO.RunnerCompletedMessage{
 		WorkflowRunID: event.WorkflowRunID.String(),
 		StepRunID:     event.StepRunID.String(),
-		CompletedAt:   time.Now().Format(time.RFC3339),
+		CompletedAt:   time.Now().UTC(),
 		Insights:      response.Insights,
 		Response:      response.Response,
 	}
@@ -77,7 +77,7 @@ func (h *RunnerHandler) PublishFailure(ctx context.Context, event rabbitmqDTO.St
 		WorkflowRunID: event.WorkflowRunID.String(),
 		StepRunID:     event.StepRunID.String(),
 		Error:         execError.Error(),
-		FailedAt:      time.Now().Format(time.RFC3339),
+		FailedAt:      time.Now().UTC(),
 		Insights:      response.Insights,
 		Response:      response.Response,
 	}
