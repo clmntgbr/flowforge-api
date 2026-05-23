@@ -16,6 +16,7 @@ type UpsertWorkflowUseCase struct {
 	workflowRepo                   *repository.WorkflowRepository
 	stepRepo                       *repository.StepRepository
 	endpointRepo                   *repository.EndpointRepository
+	connexionRepo                  *repository.ConnexionRepository
 	calculateExecutionOrderUseCase *usecase.CalculateExecutionOrderUseCase
 	createStepUseCase              *usecase.CreateStepUseCase
 }
@@ -24,6 +25,7 @@ func NewUpsertWorkflowUseCase(
 	workflowRepo *repository.WorkflowRepository,
 	stepRepo *repository.StepRepository,
 	endpointRepo *repository.EndpointRepository,
+	connexionRepo *repository.ConnexionRepository,
 	calculateExecutionOrderUseCase *usecase.CalculateExecutionOrderUseCase,
 	createStepUseCase *usecase.CreateStepUseCase,
 ) *UpsertWorkflowUseCase {
@@ -31,6 +33,7 @@ func NewUpsertWorkflowUseCase(
 		workflowRepo:                   workflowRepo,
 		stepRepo:                       stepRepo,
 		endpointRepo:                   endpointRepo,
+		connexionRepo:                  connexionRepo,
 		calculateExecutionOrderUseCase: calculateExecutionOrderUseCase,
 		createStepUseCase:              createStepUseCase,
 	}
@@ -58,15 +61,21 @@ func (u *UpsertWorkflowUseCase) Execute(ctx context.Context, organizationID uuid
 			receivedStepIDs[stepUUID] = true
 		}
 
-		stepsToDelete := make([]uuid.UUID, 0)
+		stepsToDisable := make([]uuid.UUID, 0)
 		for _, existingStep := range existingSteps {
 			if !receivedStepIDs[existingStep.ID] {
-				stepsToDelete = append(stepsToDelete, existingStep.ID)
+				stepsToDisable = append(stepsToDisable, existingStep.ID)
 			}
 		}
 
-		if len(stepsToDelete) > 0 {
-			if err := (*u.stepRepo).DeleteByIDs(txCtx, stepsToDelete); err != nil {
+		for _, stepID := range stepsToDisable {
+			if err := (*u.connexionRepo).DeleteByStepID(txCtx, stepID); err != nil {
+				return err
+			}
+		}
+
+		if len(stepsToDisable) > 0 {
+			if err := (*u.stepRepo).DisableByIDs(txCtx, stepsToDisable); err != nil {
 				return err
 			}
 		}

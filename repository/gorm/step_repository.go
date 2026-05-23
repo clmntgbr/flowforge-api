@@ -44,6 +44,16 @@ func (r *stepRepository) GetByIDAndOrganizationIDAndWorkflowID(ctx context.Conte
 	return step, nil
 }
 
+func (r *stepRepository) DisableByIDs(ctx context.Context, stepIDs []uuid.UUID) error {
+	if len(stepIDs) == 0 {
+		return nil
+	}
+	return dbWithContext(ctx, r.db).
+		Model(&entity.Step{}).
+		Where("id IN ?", stepIDs).
+		Update("is_enabled", false).Error
+}
+
 func (r *stepRepository) DeleteByIDs(ctx context.Context, stepIDs []uuid.UUID) error {
 	if len(stepIDs) == 0 {
 		return nil
@@ -56,7 +66,7 @@ func (r *stepRepository) DeleteByIDs(ctx context.Context, stepIDs []uuid.UUID) e
 func (r *stepRepository) GetByWorkflowID(ctx context.Context, workflowID uuid.UUID) ([]entity.Step, error) {
 	var steps []entity.Step
 	err := dbWithContext(ctx, r.db).
-		Where("workflow_id = ?", workflowID).
+		Where("workflow_id = ? AND is_enabled = ?", workflowID, true).
 		Find(&steps).Error
 	return steps, err
 }
@@ -84,6 +94,7 @@ func (r *stepRepository) UpdatePositionAndIndex(ctx context.Context, stepID uuid
 				"position_y":      position.Y,
 				"index":           index,
 				"execution_order": executionOrder,
+				"is_enabled":      true,
 			}).Error
 	})
 }

@@ -85,6 +85,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		&workflowRepo,
 		&stepRepo,
 		&endpointRepo,
+		&connexionRepo,
 		calculateExecutionOrderUseCase,
 		createStepUseCase,
 	)
