@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"flowforge-api/domain/types"
 	"time"
 
 	"github.com/google/uuid"
@@ -9,16 +10,16 @@ import (
 type Insight struct {
 	ID uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 
-	StartTime time.Time     `gorm:"null" json:"start_time"`
-	EndTime   time.Time     `gorm:"null" json:"end_time"`
-	QueueTime time.Duration `gorm:"null" json:"queue_time"`
+	StartTime time.Time      `gorm:"null" json:"start_time"`
+	EndTime   time.Time      `gorm:"null" json:"end_time"`
+	QueueTime types.Duration `gorm:"type:bigint;null" json:"queue_time"`
 
-	DNSLookupDuration time.Duration `gorm:"null" json:"dns_lookup_duration"`
-	TCPConnectionTime time.Duration `gorm:"null" json:"tcp_connection_time"`
-	TLSHandshakeTime  time.Duration `gorm:"null" json:"tls_handshake_time"`
-	TTFB              time.Duration `gorm:"null" json:"ttfb"`
+	DNSLookupDuration types.Duration `gorm:"type:bigint;null" json:"dns_lookup_duration"`
+	TCPConnectionTime types.Duration `gorm:"type:bigint;null" json:"tcp_connection_time"`
+	TLSHandshakeTime  types.Duration `gorm:"type:bigint;null" json:"tls_handshake_time"`
+	TTFB              types.Duration `gorm:"type:bigint;null" json:"ttfb"`
 
-	Duration      time.Duration `gorm:"null" json:"duration"`
+	Duration types.Duration `gorm:"type:bigint;null" json:"duration"`
 	StatusCode    int           `gorm:"null;index:idx_insight_status" json:"status_code"`
 	ResponseSize  int64         `gorm:"null" json:"response_size"`
 	RequestSize   int64         `gorm:"null" json:"request_size"`

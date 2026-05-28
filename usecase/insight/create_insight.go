@@ -4,6 +4,7 @@ import (
 	"context"
 	"flowforge-api/domain/entity"
 	"flowforge-api/domain/repository"
+	"flowforge-api/domain/types"
 	"time"
 )
 
@@ -38,16 +39,16 @@ func (u *CreateInsightUseCase) Execute(
 	insight := &entity.Insight{
 		StartTime:         startTime,
 		EndTime:           endTime,
-		Duration:          duration,
+		Duration:          types.NewDuration(duration),
 		StatusCode:        statusCode,
 		ResponseSize:      responseSize,
 		AttemptNumber:     attemptNumber,
 		TotalAttempts:     totalAttempts,
-		QueueTime:         queueTime,
-		DNSLookupDuration: dnsLookupDuration,
-		TCPConnectionTime: tcpConnectionTime,
-		TLSHandshakeTime:  tlsHandshakeTime,
-		TTFB:              ttfb,
+		QueueTime:         types.NewDuration(queueTime),
+		DNSLookupDuration: types.NewDuration(dnsLookupDuration),
+		TCPConnectionTime: types.NewDuration(tcpConnectionTime),
+		TLSHandshakeTime:  types.NewDuration(tlsHandshakeTime),
+		TTFB:              types.NewDuration(ttfb),
 		ErrorMessage:      errorMessage,
 		ErrorType:         errorType,
 		RequestSize:       requestSize,

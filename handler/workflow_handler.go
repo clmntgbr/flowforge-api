@@ -251,6 +251,7 @@ func (h *WorkflowHandler) UpsertWorkflow(c fiber.Ctx) error {
 	if err := c.Bind().JSON(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -266,6 +267,7 @@ func (h *WorkflowHandler) UpsertWorkflow(c fiber.Ctx) error {
 		log.Println("Failed to upsert workflow", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to upsert workflow",
+			"errors":  err.Error(),
 		})
 	}
 
