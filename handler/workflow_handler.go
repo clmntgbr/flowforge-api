@@ -307,5 +307,5 @@ func (h *WorkflowHandler) GetWorkflowRuns(c fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(paginate.NewPaginateResponse(presenter.NewWorkflowRunListResponses(workflowRuns), int(total), query))
+	return c.JSON(paginate.NewPaginateResponse(presenter.NewWorkflowRunResponses(workflowRuns), int(total), query))
 }
