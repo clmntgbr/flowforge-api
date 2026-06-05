@@ -81,6 +81,10 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	updateWorkflowUseCase := workflow.NewUpdateWorkflowUseCase(&workflowRepo)
 	activateWorkflowUseCase := workflow.NewActivateWorkflowUseCase(&workflowRepo)
 	deactivateWorkflowUseCase := workflow.NewDeactivateWorkflowUseCase(&workflowRepo)
+	getWorkflowAnalyticsUseCase := workflow_run.NewGetWorkflowAnalyticsUseCase(
+		&workflowRepo,
+		&workflowRunRepo,
+	)
 	upsertWorkflowUseCase := workflow.NewUpsertWorkflowUseCase(
 		&workflowRepo,
 		&stepRepo,
@@ -148,6 +152,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 			deactivateWorkflowUseCase,
 			upsertWorkflowUseCase,
 			getWorkflowRunsUseCase,
+			getWorkflowAnalyticsUseCase,
 		),
 	}
 }

@@ -105,9 +105,10 @@ func (c *WorkerRunner) Start() error {
 	for message := range messages {
 		if err := c.handler.HandleMessage(context.Background(), &message); err != nil {
 			log.Printf(
-				"rejected message (routing key: %q): %v",
+				"rejected message (routing key: %q): %v, body: %s",
 				message.RoutingKey,
 				err,
+				message.Body,
 			)
 
 			if nackErr := message.Nack(false, false); nackErr != nil {

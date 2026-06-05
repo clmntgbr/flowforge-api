@@ -15,14 +15,15 @@ import (
 )
 
 type WorkflowHandler struct {
-	listWorkflowsUseCase      *workflow.ListWorkflowsUseCase
-	createWorkflowUseCase     *workflow.CreateWorkflowUseCase
-	getWorkflowUseCase        *workflow.GetWorkflowUseCase
-	updateWorkflowUseCase     *workflow.UpdateWorkflowUseCase
-	activateWorkflowUseCase   *workflow.ActivateWorkflowUseCase
-	deactivateWorkflowUseCase *workflow.DeactivateWorkflowUseCase
-	upsertWorkflowUseCase     *workflow.UpsertWorkflowUseCase
-	getWorkflowRunsUseCase    *workflow_run.GetWorkflowRunsUseCase
+	listWorkflowsUseCase        *workflow.ListWorkflowsUseCase
+	createWorkflowUseCase       *workflow.CreateWorkflowUseCase
+	getWorkflowUseCase          *workflow.GetWorkflowUseCase
+	updateWorkflowUseCase       *workflow.UpdateWorkflowUseCase
+	activateWorkflowUseCase     *workflow.ActivateWorkflowUseCase
+	deactivateWorkflowUseCase   *workflow.DeactivateWorkflowUseCase
+	upsertWorkflowUseCase       *workflow.UpsertWorkflowUseCase
+	getWorkflowRunsUseCase      *workflow_run.GetWorkflowRunsUseCase
+	getWorkflowAnalyticsUseCase *workflow_run.GetWorkflowAnalyticsUseCase
 }
 
 func NewWorkflowHandler(
@@ -34,16 +35,18 @@ func NewWorkflowHandler(
 	deactivateWorkflowUseCase *workflow.DeactivateWorkflowUseCase,
 	upsertWorkflowUseCase *workflow.UpsertWorkflowUseCase,
 	getWorkflowRunsUseCase *workflow_run.GetWorkflowRunsUseCase,
+	getWorkflowAnalyticsUseCase *workflow_run.GetWorkflowAnalyticsUseCase,
 ) *WorkflowHandler {
 	return &WorkflowHandler{
-		listWorkflowsUseCase:      listWorkflowsUseCase,
-		createWorkflowUseCase:     createWorkflowUseCase,
-		getWorkflowUseCase:        getWorkflowUseCase,
-		updateWorkflowUseCase:     updateWorkflowUseCase,
-		activateWorkflowUseCase:   activateWorkflowUseCase,
-		deactivateWorkflowUseCase: deactivateWorkflowUseCase,
-		upsertWorkflowUseCase:     upsertWorkflowUseCase,
-		getWorkflowRunsUseCase:    getWorkflowRunsUseCase,
+		listWorkflowsUseCase:        listWorkflowsUseCase,
+		createWorkflowUseCase:       createWorkflowUseCase,
+		getWorkflowUseCase:          getWorkflowUseCase,
+		updateWorkflowUseCase:       updateWorkflowUseCase,
+		activateWorkflowUseCase:     activateWorkflowUseCase,
+		deactivateWorkflowUseCase:   deactivateWorkflowUseCase,
+		upsertWorkflowUseCase:       upsertWorkflowUseCase,
+		getWorkflowRunsUseCase:      getWorkflowRunsUseCase,
+		getWorkflowAnalyticsUseCase: getWorkflowAnalyticsUseCase,
 	}
 }
 
@@ -308,4 +311,30 @@ func (h *WorkflowHandler) GetWorkflowRuns(c fiber.Ctx) error {
 	}
 
 	return c.JSON(paginate.NewPaginateResponse(presenter.NewWorkflowRunResponses(workflowRuns), int(total), query))
+}
+
+func (h *WorkflowHandler) GetWorkflowAnalytics(c fiber.Ctx) error {
+	activeOrganizationID, err := context.GetOrganizationID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+
+	workflowID := c.Params("id")
+	workflowUUID, err := uuid.Parse(workflowID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid workflow ID",
+		})
+	}
+
+	totalRuns, successRate, successCount, failureRate, failureCount, averageDuration, err := h.getWorkflowAnalyticsUseCase.Execute(c.Context(), activeOrganizationID, workflowUUID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Internal server error",
+		})
+	}
+
+	return c.JSON(presenter.NewWorkflowAnalyticsResponse(totalRuns, successRate, successCount, failureRate, failureCount, averageDuration))
 }

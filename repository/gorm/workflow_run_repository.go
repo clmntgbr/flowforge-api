@@ -56,6 +56,25 @@ func (r *workflowRunRepository) GetByWorkflowID(ctx context.Context, workflowID 
 	return workflowRuns, total, nil
 }
 
+func (r *workflowRunRepository) GetAllByWorkflowID(ctx context.Context, workflowID uuid.UUID) ([]entity.WorkflowRun, error) {
+	var workflowRuns []entity.WorkflowRun
+
+	db := dbWithContext(ctx, r.db).Model(&entity.WorkflowRun{}).
+		Where("workflow_id = ?", workflowID)
+
+	err := db.Preload("StepsRuns").
+		Preload("StepsRuns.Step").
+		Preload("StepsRuns.Step.Endpoint").
+		Preload("StepsRuns.Insight").
+		Find(&workflowRuns).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return workflowRuns, nil
+}
+
 func (r *workflowRunRepository) GetByWorkflowIDAndNotEnded(ctx context.Context, workflowID uuid.UUID) (*entity.WorkflowRun, error) {
 	var workflowRun entity.WorkflowRun
 
