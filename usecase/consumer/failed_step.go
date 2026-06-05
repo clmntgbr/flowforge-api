@@ -5,28 +5,51 @@ import (
 	"errors"
 	"flowforge-api/domain/enum"
 	"flowforge-api/domain/repository"
+	"flowforge-api/infrastructure/config"
 	consumerDTO "flowforge-api/infrastructure/consumer"
+	"flowforge-api/infrastructure/messaging/rabbitmq"
 	"flowforge-api/usecase/insight"
+	"flowforge-api/usecase/step_run"
+	"fmt"
 
 	"github.com/google/uuid"
 )
 
 type FailedStepUseCase struct {
-	createInsightUseCase *insight.CreateInsightUseCase
-	stepRunRepo          *repository.StepRunRepository
-	workflowRunRepo      *repository.WorkflowRunRepository
+	createInsightUseCase  *insight.CreateInsightUseCase
+	stepRunRepo           *repository.StepRunRepository
+	workflowRunRepo       *repository.WorkflowRunRepository
+	stepRepo              *repository.StepRepository
+	createStepRunUseCase  *step_run.CreateStepRunUseCase
+	executeStepRunUseCase *step_run.ExecuteStepRunUseCase
+	stepRunPublisher      *rabbitmq.Publisher
+	env                   *config.Config
 }
 
-func NewFailedStepUseCase(createInsightUseCase *insight.CreateInsightUseCase, stepRunRepo *repository.StepRunRepository, workflowRunRepo *repository.WorkflowRunRepository) *FailedStepUseCase {
+func NewFailedStepUseCase(
+	createInsightUseCase *insight.CreateInsightUseCase,
+	stepRunRepo *repository.StepRunRepository,
+	workflowRunRepo *repository.WorkflowRunRepository,
+	stepRepo *repository.StepRepository,
+	createStepRunUseCase *step_run.CreateStepRunUseCase,
+	executeStepRunUseCase *step_run.ExecuteStepRunUseCase,
+	stepRunPublisher *rabbitmq.Publisher,
+	env *config.Config,
+) *FailedStepUseCase {
 	return &FailedStepUseCase{
-		createInsightUseCase: createInsightUseCase,
-		stepRunRepo:          stepRunRepo,
-		workflowRunRepo:      workflowRunRepo,
+		createInsightUseCase:  createInsightUseCase,
+		stepRunRepo:           stepRunRepo,
+		workflowRunRepo:       workflowRunRepo,
+		stepRepo:              stepRepo,
+		createStepRunUseCase:  createStepRunUseCase,
+		executeStepRunUseCase: executeStepRunUseCase,
+		stepRunPublisher:      stepRunPublisher,
+		env:                   env,
 	}
 }
 
 func (u *FailedStepUseCase) Execute(ctx context.Context, message consumerDTO.ConsumerFailedMessage) error {
-	insight, err := u.createInsightUseCase.Execute(
+	ins, err := u.createInsightUseCase.Execute(
 		ctx,
 		message.Insights.StartTime,
 		message.Insights.EndTime,
@@ -44,7 +67,6 @@ func (u *FailedStepUseCase) Execute(ctx context.Context, message consumerDTO.Con
 		message.Insights.ErrorType,
 		message.Insights.RequestSize,
 	)
-
 	if err != nil {
 		return err
 	}
@@ -55,7 +77,6 @@ func (u *FailedStepUseCase) Execute(ctx context.Context, message consumerDTO.Con
 	if err != nil {
 		return err
 	}
-
 	if stepRun == nil {
 		return errors.New("step run not found")
 	}
@@ -66,10 +87,9 @@ func (u *FailedStepUseCase) Execute(ctx context.Context, message consumerDTO.Con
 	stepRun.FailedAt = &failedAt
 	stepRun.Error = message.Error
 	stepRun.Response = message.Response
-	stepRun.InsightID = &insight.ID
+	stepRun.InsightID = &ins.ID
 
-	err = (*u.stepRunRepo).Update(ctx, stepRun)
-	if err != nil {
+	if err = (*u.stepRunRepo).Update(ctx, stepRun); err != nil {
 		return err
 	}
 
@@ -77,20 +97,60 @@ func (u *FailedStepUseCase) Execute(ctx context.Context, message consumerDTO.Con
 	if err != nil {
 		return err
 	}
-
 	if workflowRun == nil {
 		return errors.New("workflow run not found")
 	}
 
-	workflowRun.FailedAt = &failedAt
-	workflowRun.Status = enum.WorkflowRunStatusFailed
-	workflowRun.Statuses = append(workflowRun.Statuses, enum.WorkflowRunStatusFailed)
-	workflowRun.Error = stepRun.Error
 	workflowRun.ExecutedSteps = append(workflowRun.ExecutedSteps, stepRun.StepID.String())
+	workflowRun.FailedSteps = append(workflowRun.FailedSteps, stepRun.StepID.String())
 
-	err = (*u.workflowRunRepo).Update(ctx, workflowRun)
+	failedStep, err := (*u.stepRepo).GetByID(ctx, stepRun.StepID)
 	if err != nil {
+		return fmt.Errorf("failed to get failed step: %w", err)
+	}
+
+	currentMajor, _, hasMinor := parseMajorMinor(failedStep.Index)
+
+	nextCandidate, err := (*u.stepRepo).GetFirstStepAtLevel(ctx, workflowRun.WorkflowID, currentMajor, workflowRun.ExecutedSteps)
+	if err != nil {
+		return fmt.Errorf("failed to find alternative step: %w", err)
+	}
+
+	if nextCandidate == nil && !hasMinor {
+		nextCandidate, err = (*u.stepRepo).GetFirstStepAtLevel(ctx, workflowRun.WorkflowID, currentMajor+1, workflowRun.ExecutedSteps)
+		if err != nil {
+			return fmt.Errorf("failed to find alternative step: %w", err)
+		}
+	}
+
+	if nextCandidate == nil {
+		// No alternatives available → fail the workflow
+		workflowRun.FailedAt = &failedAt
+		workflowRun.Status = enum.WorkflowRunStatusFailed
+		workflowRun.Statuses = append(workflowRun.Statuses, enum.WorkflowRunStatusFailed)
+		workflowRun.Error = stepRun.Error
+
+		return (*u.workflowRunRepo).Update(ctx, workflowRun)
+	}
+
+	// Found an alternative/daughter → keep the workflow running and dispatch it
+	if err = (*u.workflowRunRepo).Update(ctx, workflowRun); err != nil {
 		return err
+	}
+
+	nextStepRun, err := u.createStepRunUseCase.Execute(ctx, workflowRun.ID, nextCandidate.ID)
+	if err != nil {
+		return fmt.Errorf("failed to create alternative step run: %w", err)
+	}
+
+	nextStepRun, err = u.executeStepRunUseCase.Execute(ctx, &nextStepRun)
+	if err != nil {
+		return fmt.Errorf("failed to execute alternative step run: %w", err)
+	}
+
+	event := rabbitmq.NewStepRunEvent(nextStepRun)
+	if err := (*u.stepRunPublisher).PublishStepRunEvent(ctx, u.env, event); err != nil {
+		return fmt.Errorf("failed to publish alternative step run: %w", err)
 	}
 
 	return nil

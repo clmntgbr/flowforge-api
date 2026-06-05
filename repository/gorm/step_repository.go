@@ -143,6 +143,33 @@ func (r *stepRepository) GetNextStepByWorkflowID(ctx context.Context, workflowID
 	return &step, nil
 }
 
+func (r *stepRepository) GetFirstStepAtLevel(ctx context.Context, workflowID uuid.UUID, majorLevel int, excludedStepIDs []string) (*entity.Step, error) {
+	var step entity.Step
+
+	const levelSize = 100 * 100 * 100 // indexBase^(indexMaxDepth-1) = 100^3
+	lowerBound := majorLevel * levelSize
+	upperBound := (majorLevel + 1) * levelSize
+
+	query := dbWithContext(ctx, r.db).
+		Where("workflow_id = ? AND is_enabled = ?", workflowID, true).
+		Where("execution_order >= ? AND execution_order < ?", lowerBound, upperBound).
+		Preload("Endpoint").
+		Order("execution_order ASC")
+
+	if len(excludedStepIDs) > 0 {
+		query = query.Where("id::text NOT IN ?", excludedStepIDs)
+	}
+
+	err := query.First(&step).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &step, nil
+}
+
 func (r *stepRepository) HasStepsByEndpointID(ctx context.Context, endpointID uuid.UUID) (bool, error) {
 	var count int64
 	err := r.db.WithContext(ctx).

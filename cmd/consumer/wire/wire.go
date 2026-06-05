@@ -23,11 +23,21 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	insightRepo := repoGorm.NewInsightRepository(db)
 
 	createInsightUseCase := insight.NewCreateInsightUseCase(&insightRepo)
-	failedStepUseCase := consumer.NewFailedStepUseCase(createInsightUseCase, &stepRunRepo, &workflowRunRepo)
 
 	createStepRunUseCase := step_run.NewCreateStepRunUseCase(&stepRunRepo, &stepRepo)
 	executeStepRunUseCase := step_run.NewExecuteStepRunUseCase(&stepRunRepo, &stepRepo)
 	stepRunPublisher := rmq.NewPublisherFromEnv(env)
+
+	failedStepUseCase := consumer.NewFailedStepUseCase(
+		createInsightUseCase,
+		&stepRunRepo,
+		&workflowRunRepo,
+		&stepRepo,
+		createStepRunUseCase,
+		executeStepRunUseCase,
+		&stepRunPublisher,
+		env,
+	)
 
 	completedStepUseCase := consumer.NewCompletedStepUseCase(
 		createInsightUseCase,

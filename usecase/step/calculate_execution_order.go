@@ -12,15 +12,18 @@ func NewCalculateExecutionOrderUseCase() *CalculateExecutionOrderUseCase {
 	return &CalculateExecutionOrderUseCase{}
 }
 
+const indexBase = 100
+const indexMaxDepth = 4
+
 func (u *CalculateExecutionOrderUseCase) Execute(ctx context.Context, index string) int {
 	parts := strings.Split(index, ".")
-
-	if len(parts) == 1 {
-		level, _ := strconv.Atoi(parts[0])
-		return level
+	result := 0
+	for _, part := range parts {
+		val, _ := strconv.Atoi(part)
+		result = result*indexBase + val
 	}
-
-	major, _ := strconv.Atoi(parts[0])
-	minor, _ := strconv.Atoi(parts[1])
-	return major*1000 + minor
+	for i := len(parts); i < indexMaxDepth; i++ {
+		result *= indexBase
+	}
+	return result
 }
