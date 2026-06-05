@@ -5,6 +5,7 @@ import (
 	"flowforge-api/domain/entity"
 	"flowforge-api/domain/enum"
 	"flowforge-api/domain/repository"
+	"math"
 	"time"
 
 	"github.com/samber/lo"
@@ -55,14 +56,14 @@ func calculateSuccessRate(successCount int, totalCount int) float64 {
 	if totalCount == 0 {
 		return 0
 	}
-	return float64(successCount) / float64(totalCount) * 100
+	return math.Round(float64(successCount) / float64(totalCount) * 100)
 }
 
 func calculateFailureRate(failureCount int, totalCount int) float64 {
 	if totalCount == 0 {
 		return 0
 	}
-	return float64(failureCount) / float64(totalCount) * 100
+	return math.Round(float64(failureCount) / float64(totalCount) * 100)
 }
 
 func calculateAverageDuration(workflowRuns []entity.WorkflowRun) time.Duration {
@@ -72,6 +73,9 @@ func calculateAverageDuration(workflowRuns []entity.WorkflowRun) time.Duration {
 	totalDuration := time.Duration(0)
 	counted := 0
 	for _, run := range workflowRuns {
+		if run.StartedAt == nil {
+			continue
+		}
 		var endTime *time.Time
 		switch {
 		case run.CompletedAt != nil:
@@ -81,7 +85,7 @@ func calculateAverageDuration(workflowRuns []entity.WorkflowRun) time.Duration {
 		default:
 			continue
 		}
-		totalDuration += endTime.Sub(run.CreatedAt)
+		totalDuration += endTime.Sub(*run.StartedAt)
 		counted++
 	}
 	if counted == 0 {
