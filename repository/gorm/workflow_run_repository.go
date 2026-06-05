@@ -36,7 +36,8 @@ func (r *workflowRunRepository) GetByWorkflowID(ctx context.Context, workflowID 
 	var workflowRuns []entity.WorkflowRun
 
 	db := dbWithContext(ctx, r.db).Model(&entity.WorkflowRun{}).
-		Where("workflow_id = ?", workflowID)
+		Where("workflow_id = ?", workflowID).
+		Order("started_at DESC")
 
 	db, total, err := Paginate(db, query)
 	if err != nil {
