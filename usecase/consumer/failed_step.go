@@ -85,6 +85,7 @@ func (u *FailedStepUseCase) Execute(ctx context.Context, message consumerDTO.Con
 	stepRun.Status = enum.StepRunStatusFailed
 	stepRun.Statuses = append(stepRun.Statuses, enum.StepRunStatusFailed)
 	stepRun.FailedAt = &failedAt
+	stepRun.CompletedAt = &failedAt
 	stepRun.Error = message.Error
 	stepRun.Response = message.Response
 	stepRun.InsightID = &ins.ID
@@ -109,23 +110,16 @@ func (u *FailedStepUseCase) Execute(ctx context.Context, message consumerDTO.Con
 		return fmt.Errorf("failed to get failed step: %w", err)
 	}
 
-	currentMajor, _, hasMinor := parseMajorMinor(failedStep.Index)
+	currentMajor, _, _ := parseMajorMinor(failedStep.Index)
 
 	nextCandidate, err := (*u.stepRepo).GetFirstStepAtLevel(ctx, workflowRun.WorkflowID, currentMajor, workflowRun.ExecutedSteps)
 	if err != nil {
 		return fmt.Errorf("failed to find alternative step: %w", err)
 	}
 
-	if nextCandidate == nil && !hasMinor {
-		nextCandidate, err = (*u.stepRepo).GetFirstStepAtLevel(ctx, workflowRun.WorkflowID, currentMajor+1, workflowRun.ExecutedSteps)
-		if err != nil {
-			return fmt.Errorf("failed to find alternative step: %w", err)
-		}
-	}
-
 	if nextCandidate == nil {
-		// No alternatives available → fail the workflow
 		workflowRun.FailedAt = &failedAt
+		workflowRun.CompletedAt = &failedAt
 		workflowRun.Status = enum.WorkflowRunStatusFailed
 		workflowRun.Statuses = append(workflowRun.Statuses, enum.WorkflowRunStatusFailed)
 		workflowRun.Error = stepRun.Error

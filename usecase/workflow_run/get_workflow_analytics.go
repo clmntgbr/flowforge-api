@@ -76,16 +76,10 @@ func calculateAverageDuration(workflowRuns []entity.WorkflowRun) time.Duration {
 		if run.StartedAt == nil {
 			continue
 		}
-		var endTime *time.Time
-		switch {
-		case run.CompletedAt != nil:
-			endTime = run.CompletedAt
-		case run.FailedAt != nil:
-			endTime = run.FailedAt
-		default:
+		if run.CompletedAt == nil {
 			continue
 		}
-		totalDuration += endTime.Sub(*run.StartedAt)
+		totalDuration += run.CompletedAt.Sub(*run.StartedAt)
 		counted++
 	}
 	if counted == 0 {
