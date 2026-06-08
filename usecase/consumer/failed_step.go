@@ -11,6 +11,8 @@ import (
 	"flowforge-api/usecase/insight"
 	"flowforge-api/usecase/step_run"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -110,11 +112,18 @@ func (u *FailedStepUseCase) Execute(ctx context.Context, message consumerDTO.Con
 		return fmt.Errorf("failed to get failed step: %w", err)
 	}
 
-	currentMajor, _, _ := parseMajorMinor(failedStep.Index)
-
-	nextCandidate, err := (*u.stepRepo).GetFirstStepAtLevel(ctx, workflowRun.WorkflowID, currentMajor, workflowRun.ExecutedSteps)
+	// Priority 1: sibling alternative at the same level within the same tree
+	nextCandidate, err := (*u.stepRepo).GetFirstStepAtLevel(ctx, workflowRun.WorkflowID, failedStep.TreeIndex, majorFromIndex(failedStep.Index), workflowRun.ExecutedSteps)
 	if err != nil {
 		return fmt.Errorf("failed to find alternative step: %w", err)
+	}
+
+	// Priority 2: no sibling left → try next tree (orphan or separate tree)
+	if nextCandidate == nil {
+		nextCandidate, err = (*u.stepRepo).GetNextStepByWorkflowID(ctx, workflowRun.WorkflowID, workflowRun.ExecutedSteps)
+		if err != nil {
+			return fmt.Errorf("failed to find next tree step: %w", err)
+		}
 	}
 
 	if nextCandidate == nil {
@@ -127,7 +136,6 @@ func (u *FailedStepUseCase) Execute(ctx context.Context, message consumerDTO.Con
 		return (*u.workflowRunRepo).Update(ctx, workflowRun)
 	}
 
-	// Found an alternative/daughter → keep the workflow running and dispatch it
 	if err = (*u.workflowRunRepo).Update(ctx, workflowRun); err != nil {
 		return err
 	}
@@ -148,4 +156,10 @@ func (u *FailedStepUseCase) Execute(ctx context.Context, message consumerDTO.Con
 	}
 
 	return nil
+}
+
+func majorFromIndex(index string) int {
+	parts := strings.Split(index, ".")
+	v, _ := strconv.Atoi(parts[0])
+	return v
 }

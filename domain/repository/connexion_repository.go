@@ -13,4 +13,5 @@ type ConnexionRepository interface {
 	DeleteByStepID(ctx context.Context, stepID uuid.UUID) error
 	GetByFromStepIDAndToStepIDAndWorkflowID(ctx context.Context, organizationID uuid.UUID, fromStepID uuid.UUID, toStepID uuid.UUID, workflowID uuid.UUID) ([]entity.Connexion, error)
 	GetByIDAndOrganizationID(ctx context.Context, organizationID uuid.UUID, id uuid.UUID) (entity.Connexion, error)
+	GetByWorkflowID(ctx context.Context, workflowID uuid.UUID) ([]entity.Connexion, error)
 }

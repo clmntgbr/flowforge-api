@@ -12,6 +12,7 @@ type StepDetailResponse struct {
 	Position       entity.Position        `json:"position"`
 	Index          string                 `json:"index"`
 	ExecutionOrder int                    `json:"order"`
+	TreeIndex      int                    `json:"treeIndex"`
 	Endpoint       EndpointDetailResponse `json:"endpoint,omitempty"`
 	EndpointID     string                 `json:"endpointId"`
 	Description    string                 `json:"description"`
@@ -33,6 +34,7 @@ func NewStepDetailResponse(step entity.Step) StepDetailResponse {
 		Position:       step.Position,
 		Index:          step.Index,
 		ExecutionOrder: step.ExecutionOrder,
+		TreeIndex:      step.TreeIndex,
 		Endpoint:       NewEndpointDetailResponse(step.Endpoint),
 		EndpointID:     step.EndpointID.String(),
 		Description:    step.Description,

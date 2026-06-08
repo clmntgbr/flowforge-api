@@ -20,6 +20,7 @@ type Step struct {
 	Position       Position  `gorm:"embedded;embeddedPrefix:position_" json:"position"`
 	Index          string    `gorm:"type:varchar(255);not null" json:"index"`
 	ExecutionOrder int       `gorm:"type:int;not null;default:0;index:idx_step_execution_order" json:"execution_order"`
+	TreeIndex      int       `gorm:"type:int;not null;default:0;index:idx_step_tree_index" json:"tree_index"`
 	Timeout        int       `gorm:"type:int;null" json:"timeout"`
 
 	EndpointID uuid.UUID `gorm:"type:uuid;not null;index:idx_step_endpoint" json:"endpoint_id"`

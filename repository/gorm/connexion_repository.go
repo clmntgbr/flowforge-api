@@ -59,3 +59,11 @@ func (r *connexionRepository) GetByIDAndOrganizationID(ctx context.Context, orga
 func (r *connexionRepository) DeleteByStepID(ctx context.Context, stepID uuid.UUID) error {
 	return dbWithContext(ctx, r.db).Delete(&entity.Connexion{}, "from_step_id = ? OR to_step_id = ?", stepID, stepID).Error
 }
+
+func (r *connexionRepository) GetByWorkflowID(ctx context.Context, workflowID uuid.UUID) ([]entity.Connexion, error) {
+	var connexions []entity.Connexion
+	err := dbWithContext(ctx, r.db).
+		Where("workflow_id = ?", workflowID).
+		Find(&connexions).Error
+	return connexions, err
+}

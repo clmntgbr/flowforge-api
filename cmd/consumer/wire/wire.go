@@ -7,6 +7,7 @@ import (
 	repoGorm "flowforge-api/repository/gorm"
 	"flowforge-api/usecase/consumer"
 	"flowforge-api/usecase/insight"
+	usecaseStep "flowforge-api/usecase/step"
 	"flowforge-api/usecase/step_run"
 
 	"gorm.io/gorm"
@@ -27,6 +28,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	createStepRunUseCase := step_run.NewCreateStepRunUseCase(&stepRunRepo, &stepRepo)
 	executeStepRunUseCase := step_run.NewExecuteStepRunUseCase(&stepRunRepo, &stepRepo)
 	stepRunPublisher := rmq.NewPublisherFromEnv(env)
+	findNextStepUseCase := usecaseStep.NewFindNextStepUseCase(&stepRepo)
 
 	failedStepUseCase := consumer.NewFailedStepUseCase(
 		createInsightUseCase,
@@ -43,7 +45,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		createInsightUseCase,
 		&stepRunRepo,
 		&workflowRunRepo,
-		&stepRepo,
+		findNextStepUseCase,
 		createStepRunUseCase,
 		executeStepRunUseCase,
 		&stepRunPublisher,

@@ -67,9 +67,10 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	endpointHasStepUseCase := endpoint.NewEndpointHasStepUseCase(&stepRepo)
 	deleteEndpointUseCase := endpoint.NewDeleteEndpointUseCase(&endpointRepo)
 	createStepUseCase := step.NewCreateStepUseCase(&stepRepo)
+	assignTreeIndicesUseCase := step.NewAssignTreeIndicesUseCase(&stepRepo, &connexionRepo)
 
-	createConnexionUseCase := connexion.NewCreateConnexionUseCase(&connexionRepo)
-	deleteConnexionUseCase := connexion.NewDeleteConnexionUseCase(&connexionRepo)
+	createConnexionUseCase := connexion.NewCreateConnexionUseCase(&connexionRepo, assignTreeIndicesUseCase)
+	deleteConnexionUseCase := connexion.NewDeleteConnexionUseCase(&connexionRepo, assignTreeIndicesUseCase)
 
 	listWorkflowsUseCase := workflow.NewListWorkflowsUseCase(&workflowRepo)
 	createWorkflowUseCase := workflow.NewCreateWorkflowUseCase(&workflowRepo)
@@ -92,6 +93,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		&connexionRepo,
 		calculateExecutionOrderUseCase,
 		createStepUseCase,
+		assignTreeIndicesUseCase,
 	)
 	getWorkflowRunsUseCase := workflow_run.NewGetWorkflowRunsUseCase(
 		&workflowRepo,

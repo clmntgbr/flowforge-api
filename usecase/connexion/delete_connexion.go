@@ -3,27 +3,29 @@ package connexion
 import (
 	"context"
 	"flowforge-api/domain/repository"
+	usecaseStep "flowforge-api/usecase/step"
 
 	"github.com/google/uuid"
 )
 
 type DeleteConnexionUseCase struct {
-	connexionRepo *repository.ConnexionRepository
+	connexionRepo     *repository.ConnexionRepository
+	assignTreeIndices *usecaseStep.AssignTreeIndicesUseCase
 }
 
-func NewDeleteConnexionUseCase(connexionRepo *repository.ConnexionRepository) *DeleteConnexionUseCase {
-	return &DeleteConnexionUseCase{connexionRepo: connexionRepo}
+func NewDeleteConnexionUseCase(connexionRepo *repository.ConnexionRepository, assignTreeIndices *usecaseStep.AssignTreeIndicesUseCase) *DeleteConnexionUseCase {
+	return &DeleteConnexionUseCase{connexionRepo: connexionRepo, assignTreeIndices: assignTreeIndices}
 }
 
 func (u *DeleteConnexionUseCase) Execute(ctx context.Context, organizationID uuid.UUID, id uuid.UUID) error {
-	connexion, err := (*u.connexionRepo).GetByIDAndOrganizationID(ctx, organizationID, id)
+	conn, err := (*u.connexionRepo).GetByIDAndOrganizationID(ctx, organizationID, id)
 	if err != nil {
 		return err
 	}
 
-	if err := (*u.connexionRepo).Delete(ctx, connexion.ID); err != nil {
+	if err := (*u.connexionRepo).Delete(ctx, conn.ID); err != nil {
 		return err
 	}
 
-	return nil
+	return u.assignTreeIndices.Execute(ctx, conn.WorkflowID)
 }

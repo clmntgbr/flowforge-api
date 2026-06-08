@@ -10,6 +10,7 @@ import (
 	consumerDTO "flowforge-api/infrastructure/consumer"
 	"flowforge-api/infrastructure/messaging/rabbitmq"
 	"flowforge-api/usecase/insight"
+	usecaseStep "flowforge-api/usecase/step"
 	"flowforge-api/usecase/step_run"
 	"fmt"
 
@@ -20,7 +21,7 @@ type CompletedStepUseCase struct {
 	createInsightUseCase  *insight.CreateInsightUseCase
 	stepRunRepo           *repository.StepRunRepository
 	workflowRunRepo       *repository.WorkflowRunRepository
-	stepRepo              *repository.StepRepository
+	findNextStepUseCase   *usecaseStep.FindNextStepUseCase
 	createStepRunUseCase  *step_run.CreateStepRunUseCase
 	executeStepRunUseCase *step_run.ExecuteStepRunUseCase
 	stepRunPublisher      *rabbitmq.Publisher
@@ -31,7 +32,7 @@ func NewCompletedStepUseCase(
 	createInsightUseCase *insight.CreateInsightUseCase,
 	stepRunRepo *repository.StepRunRepository,
 	workflowRunRepo *repository.WorkflowRunRepository,
-	stepRepo *repository.StepRepository,
+	findNextStepUseCase *usecaseStep.FindNextStepUseCase,
 	createStepRunUseCase *step_run.CreateStepRunUseCase,
 	executeStepRunUseCase *step_run.ExecuteStepRunUseCase,
 	stepRunPublisher *rabbitmq.Publisher,
@@ -41,7 +42,7 @@ func NewCompletedStepUseCase(
 		createInsightUseCase:  createInsightUseCase,
 		stepRunRepo:           stepRunRepo,
 		workflowRunRepo:       workflowRunRepo,
-		stepRepo:              stepRepo,
+		findNextStepUseCase:   findNextStepUseCase,
 		createStepRunUseCase:  createStepRunUseCase,
 		executeStepRunUseCase: executeStepRunUseCase,
 		stepRunPublisher:      stepRunPublisher,
@@ -112,7 +113,7 @@ func (u *CompletedStepUseCase) Execute(ctx context.Context, message consumerDTO.
 		return err
 	}
 
-	nextStep, err := (*u.stepRepo).GetNextStepByWorkflowID(ctx, workflowRun.WorkflowID, workflowRun.ExecutedSteps)
+	nextStep, err := u.findNextStepUseCase.Execute(ctx, workflowRun.WorkflowID, workflowRun.ExecutedSteps)
 	if err != nil {
 		return err
 	}

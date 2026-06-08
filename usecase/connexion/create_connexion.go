@@ -5,16 +5,18 @@ import (
 	"flowforge-api/domain/entity"
 	"flowforge-api/domain/repository"
 	"flowforge-api/infrastructure/connexion"
+	usecaseStep "flowforge-api/usecase/step"
 
 	"github.com/google/uuid"
 )
 
 type CreateConnexionUseCase struct {
-	connexionRepo *repository.ConnexionRepository
+	connexionRepo        *repository.ConnexionRepository
+	assignTreeIndices    *usecaseStep.AssignTreeIndicesUseCase
 }
 
-func NewCreateConnexionUseCase(connexionRepo *repository.ConnexionRepository) *CreateConnexionUseCase {
-	return &CreateConnexionUseCase{connexionRepo: connexionRepo}
+func NewCreateConnexionUseCase(connexionRepo *repository.ConnexionRepository, assignTreeIndices *usecaseStep.AssignTreeIndicesUseCase) *CreateConnexionUseCase {
+	return &CreateConnexionUseCase{connexionRepo: connexionRepo, assignTreeIndices: assignTreeIndices}
 }
 
 func (u *CreateConnexionUseCase) Execute(ctx context.Context, organizationID uuid.UUID, input connexion.CreateConnexionInput) (entity.Connexion, error) {
@@ -27,16 +29,20 @@ func (u *CreateConnexionUseCase) Execute(ctx context.Context, organizationID uui
 		return entity.Connexion{}, nil
 	}
 
-	connexion := &entity.Connexion{
+	conn := &entity.Connexion{
 		ID:         uuid.New(),
 		WorkflowID: input.WorkflowID,
 		FromStepID: input.FromStepID,
 		ToStepID:   input.ToStepID,
 	}
 
-	if err := (*u.connexionRepo).Create(ctx, connexion); err != nil {
+	if err := (*u.connexionRepo).Create(ctx, conn); err != nil {
 		return entity.Connexion{}, err
 	}
 
-	return *connexion, nil
+	if err := u.assignTreeIndices.Execute(ctx, input.WorkflowID); err != nil {
+		return entity.Connexion{}, err
+	}
+
+	return *conn, nil
 }

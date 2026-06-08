@@ -19,6 +19,7 @@ type UpsertWorkflowUseCase struct {
 	connexionRepo                  *repository.ConnexionRepository
 	calculateExecutionOrderUseCase *usecase.CalculateExecutionOrderUseCase
 	createStepUseCase              *usecase.CreateStepUseCase
+	assignTreeIndicesUseCase       *usecase.AssignTreeIndicesUseCase
 }
 
 func NewUpsertWorkflowUseCase(
@@ -28,6 +29,7 @@ func NewUpsertWorkflowUseCase(
 	connexionRepo *repository.ConnexionRepository,
 	calculateExecutionOrderUseCase *usecase.CalculateExecutionOrderUseCase,
 	createStepUseCase *usecase.CreateStepUseCase,
+	assignTreeIndicesUseCase *usecase.AssignTreeIndicesUseCase,
 ) *UpsertWorkflowUseCase {
 	return &UpsertWorkflowUseCase{
 		workflowRepo:                   workflowRepo,
@@ -36,6 +38,7 @@ func NewUpsertWorkflowUseCase(
 		connexionRepo:                  connexionRepo,
 		calculateExecutionOrderUseCase: calculateExecutionOrderUseCase,
 		createStepUseCase:              createStepUseCase,
+		assignTreeIndicesUseCase:       assignTreeIndicesUseCase,
 	}
 }
 
@@ -115,6 +118,6 @@ func (u *UpsertWorkflowUseCase) Execute(ctx context.Context, organizationID uuid
 			}
 		}
 
-		return nil
+		return u.assignTreeIndicesUseCase.Execute(txCtx, workflow.ID)
 	})
 }

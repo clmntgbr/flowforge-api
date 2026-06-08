@@ -103,7 +103,7 @@ func (r *stepRepository) GetFirstStepByWorkflowID(ctx context.Context, workflowI
 	var step entity.Step
 	err := dbWithContext(ctx, r.db).
 		Where("workflow_id = ?", workflowID).
-		Order("execution_order ASC, position_y ASC").
+		Order("tree_index ASC, execution_order ASC, position_y ASC").
 		Preload("Endpoint").
 		Where("is_enabled = ?", true).
 		First(&step).Error
@@ -122,36 +122,34 @@ func (r *stepRepository) GetFirstStepByWorkflowID(ctx context.Context, workflowI
 func (r *stepRepository) GetNextStepByWorkflowID(ctx context.Context, workflowID uuid.UUID, executedStepIDs []string) (*entity.Step, error) {
 	var step entity.Step
 
-	query := r.db.WithContext(ctx).
-		Where("workflow_id = ?", workflowID).
-		Where("is_enabled = ?", true).
-		Order("execution_order ASC, id ASC").
-		Preload("Endpoint")
+	q := dbWithContext(ctx, r.db).
+		Where("workflow_id = ? AND is_enabled = ?", workflowID, true).
+		Preload("Endpoint").
+		Order("tree_index ASC, execution_order ASC, id ASC")
 
 	if len(executedStepIDs) > 0 {
-		query = query.Where("id NOT IN ?", executedStepIDs)
+		q = q.Where("id::text NOT IN ?", executedStepIDs)
 	}
 
-	err := query.First(&step).Error
+	err := q.First(&step).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-
 	return &step, nil
 }
 
-func (r *stepRepository) GetFirstStepAtLevel(ctx context.Context, workflowID uuid.UUID, majorLevel int, excludedStepIDs []string) (*entity.Step, error) {
+func (r *stepRepository) GetFirstStepAtLevel(ctx context.Context, workflowID uuid.UUID, treeIndex int, majorLevel int, excludedStepIDs []string) (*entity.Step, error) {
 	var step entity.Step
 
-	const levelSize = 100 * 100 * 100 // indexBase^(indexMaxDepth-1) = 100^3
+	const levelSize = 100 * 100 * 100
 	lowerBound := majorLevel * levelSize
 	upperBound := (majorLevel + 1) * levelSize
 
 	query := dbWithContext(ctx, r.db).
-		Where("workflow_id = ? AND is_enabled = ?", workflowID, true).
+		Where("workflow_id = ? AND is_enabled = ? AND tree_index = ?", workflowID, true, treeIndex).
 		Where("execution_order >= ? AND execution_order < ?", lowerBound, upperBound).
 		Preload("Endpoint").
 		Order("execution_order ASC")
@@ -168,6 +166,17 @@ func (r *stepRepository) GetFirstStepAtLevel(ctx context.Context, workflowID uui
 		return nil, err
 	}
 	return &step, nil
+}
+
+func (r *stepRepository) UpdateTreeIndices(ctx context.Context, indices map[uuid.UUID]int) error {
+	for id, idx := range indices {
+		if err := dbWithContext(ctx, r.db).Model(&entity.Step{}).
+			Where("id = ?", id).
+			Update("tree_index", idx).Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (r *stepRepository) HasStepsByEndpointID(ctx context.Context, endpointID uuid.UUID) (bool, error) {
