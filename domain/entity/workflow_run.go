@@ -25,8 +25,6 @@ type WorkflowRun struct {
 	CompletedAt *time.Time `gorm:"null" json:"completed_at"`
 	FailedAt    *time.Time `gorm:"null" json:"failed_at"`
 
-	Error string `gorm:"null" json:"error"`
-
 	CreatedAt time.Time `gorm:"autoCreateTime;index:idx_workflow_run_created" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }

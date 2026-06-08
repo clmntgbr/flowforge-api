@@ -11,7 +11,6 @@ type WorkflowRunResponse struct {
 	Status      enum.WorkflowRunStatus  `json:"status"`
 	StartedAt   *time.Time              `json:"started_at"`
 	CompletedAt *time.Time              `json:"completed_at"`
-	Error       string                  `json:"error"`
 	StepsRuns   []StepRunDetailResponse `json:"steps_runs"`
 	FailedAt    *time.Time              `json:"failed_at"`
 	CreatedAt   time.Time               `json:"created_at"`
@@ -32,7 +31,6 @@ func NewWorkflowRunResponse(workflowRun entity.WorkflowRun) WorkflowRunResponse 
 		Status:      workflowRun.Status,
 		StartedAt:   workflowRun.StartedAt,
 		CompletedAt: workflowRun.CompletedAt,
-		Error:       workflowRun.Error,
 		FailedAt:    workflowRun.FailedAt,
 		CreatedAt:   workflowRun.CreatedAt,
 		UpdatedAt:   workflowRun.UpdatedAt,

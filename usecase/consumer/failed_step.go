@@ -129,7 +129,6 @@ func (u *FailedStepUseCase) Execute(ctx context.Context, message consumerDTO.Con
 		workflowRun.CompletedAt = &failedAt
 		workflowRun.Status = enum.WorkflowRunStatusFailed
 		workflowRun.Statuses = append(workflowRun.Statuses, enum.WorkflowRunStatusFailed)
-		workflowRun.Error = stepRun.Error
 
 		return (*u.workflowRunRepo).Update(ctx, workflowRun)
 	}
