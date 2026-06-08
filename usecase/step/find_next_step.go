@@ -17,5 +17,5 @@ func NewFindNextStepUseCase(stepRepo *repository.StepRepository) *FindNextStepUs
 }
 
 func (u *FindNextStepUseCase) Execute(ctx context.Context, workflowID uuid.UUID, executedStepIDs []string) (*entity.Step, error) {
-	return (*u.stepRepo).GetNextStepByWorkflowID(ctx, workflowID, executedStepIDs)
+	return (*u.stepRepo).GetNextStepByWorkflowID(ctx, workflowID, 0, executedStepIDs)
 }

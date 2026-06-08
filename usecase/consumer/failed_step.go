@@ -112,15 +112,13 @@ func (u *FailedStepUseCase) Execute(ctx context.Context, message consumerDTO.Con
 		return fmt.Errorf("failed to get failed step: %w", err)
 	}
 
-	// Priority 1: sibling alternative at the same level within the same tree
-	nextCandidate, err := (*u.stepRepo).GetFirstStepAtLevel(ctx, workflowRun.WorkflowID, failedStep.TreeIndex, majorFromIndex(failedStep.Index), workflowRun.ExecutedSteps)
+	nextCandidate, err := (*u.stepRepo).GetFirstStepAtLevel(ctx, workflowRun.WorkflowID, failedStep.TreeIndex, majorFromIndex(failedStep.Index), failedStep.ExecutionOrder, workflowRun.ExecutedSteps)
 	if err != nil {
 		return fmt.Errorf("failed to find alternative step: %w", err)
 	}
 
-	// Priority 2: no sibling left → try next tree (orphan or separate tree)
 	if nextCandidate == nil {
-		nextCandidate, err = (*u.stepRepo).GetNextStepByWorkflowID(ctx, workflowRun.WorkflowID, workflowRun.ExecutedSteps)
+		nextCandidate, err = (*u.stepRepo).GetNextStepByWorkflowID(ctx, workflowRun.WorkflowID, failedStep.TreeIndex, workflowRun.ExecutedSteps)
 		if err != nil {
 			return fmt.Errorf("failed to find next tree step: %w", err)
 		}

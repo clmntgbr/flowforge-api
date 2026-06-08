@@ -119,13 +119,17 @@ func (r *stepRepository) GetFirstStepByWorkflowID(ctx context.Context, workflowI
 	return &step, nil
 }
 
-func (r *stepRepository) GetNextStepByWorkflowID(ctx context.Context, workflowID uuid.UUID, executedStepIDs []string) (*entity.Step, error) {
+func (r *stepRepository) GetNextStepByWorkflowID(ctx context.Context, workflowID uuid.UUID, minTreeIndexExclusive int, executedStepIDs []string) (*entity.Step, error) {
 	var step entity.Step
 
 	q := dbWithContext(ctx, r.db).
 		Where("workflow_id = ? AND is_enabled = ?", workflowID, true).
 		Preload("Endpoint").
 		Order("tree_index ASC, execution_order ASC, id ASC")
+
+	if minTreeIndexExclusive > 0 {
+		q = q.Where("tree_index > ?", minTreeIndexExclusive)
+	}
 
 	if len(executedStepIDs) > 0 {
 		q = q.Where("id::text NOT IN ?", executedStepIDs)
@@ -141,7 +145,7 @@ func (r *stepRepository) GetNextStepByWorkflowID(ctx context.Context, workflowID
 	return &step, nil
 }
 
-func (r *stepRepository) GetFirstStepAtLevel(ctx context.Context, workflowID uuid.UUID, treeIndex int, majorLevel int, excludedStepIDs []string) (*entity.Step, error) {
+func (r *stepRepository) GetFirstStepAtLevel(ctx context.Context, workflowID uuid.UUID, treeIndex int, majorLevel int, minExecutionOrderExclusive int, excludedStepIDs []string) (*entity.Step, error) {
 	var step entity.Step
 
 	const levelSize = 100 * 100 * 100
@@ -153,6 +157,10 @@ func (r *stepRepository) GetFirstStepAtLevel(ctx context.Context, workflowID uui
 		Where("execution_order >= ? AND execution_order < ?", lowerBound, upperBound).
 		Preload("Endpoint").
 		Order("execution_order ASC")
+
+	if minExecutionOrderExclusive > 0 {
+		query = query.Where("execution_order > ?", minExecutionOrderExclusive)
+	}
 
 	if len(excludedStepIDs) > 0 {
 		query = query.Where("id::text NOT IN ?", excludedStepIDs)

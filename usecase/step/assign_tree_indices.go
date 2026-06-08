@@ -89,6 +89,10 @@ func (u *AssignTreeIndicesUseCase) Execute(ctx context.Context, workflowID uuid.
 		sorted = append(sorted, c)
 	}
 	sort.Slice(sorted, func(i, j int) bool {
+		si, sj := len(sorted[i].stepIDs), len(sorted[j].stepIDs)
+		if si != sj {
+			return si > sj
+		}
 		return sorted[i].minOrder < sorted[j].minOrder
 	})
 

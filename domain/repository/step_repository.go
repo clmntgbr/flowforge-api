@@ -18,8 +18,8 @@ type StepRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*entity.Step, error)
 	UpdatePositionAndIndex(ctx context.Context, id uuid.UUID, workflowID uuid.UUID, position entity.Position, index string, executionOrder int) error
 	GetFirstStepByWorkflowID(ctx context.Context, workflowID uuid.UUID) (*entity.Step, error)
-	GetNextStepByWorkflowID(ctx context.Context, workflowID uuid.UUID, executedStepIDs []string) (*entity.Step, error)
-	GetFirstStepAtLevel(ctx context.Context, workflowID uuid.UUID, treeIndex int, majorLevel int, excludedStepIDs []string) (*entity.Step, error)
+	GetNextStepByWorkflowID(ctx context.Context, workflowID uuid.UUID, minTreeIndexExclusive int, executedStepIDs []string) (*entity.Step, error)
+	GetFirstStepAtLevel(ctx context.Context, workflowID uuid.UUID, treeIndex int, majorLevel int, minExecutionOrderExclusive int, excludedStepIDs []string) (*entity.Step, error)
 	UpdateTreeIndices(ctx context.Context, indices map[uuid.UUID]int) error
 	HasStepsByEndpointID(ctx context.Context, endpointID uuid.UUID) (bool, error)
 }
