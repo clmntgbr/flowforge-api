@@ -149,8 +149,9 @@ func (u *CompletedStepUseCase) Execute(ctx context.Context, message consumerDTO.
 		return err
 	}
 
-	err = u.mercurePublisher.Publish("workflow_run.refresh",
+	err = u.mercurePublisher.Publish(fmt.Sprintf("/workflows/%s", workflowRun.WorkflowID),
 		map[string]any{
+			"type":            "workflow_run.refresh",
 			"workflow_run_id": workflowRun.ID,
 		},
 	)
