@@ -8,6 +8,7 @@ import (
 	"flowforge-api/domain/repository"
 	"flowforge-api/infrastructure/config"
 	consumerDTO "flowforge-api/infrastructure/consumer"
+	"flowforge-api/infrastructure/mercure"
 	"flowforge-api/infrastructure/messaging/rabbitmq"
 	"flowforge-api/usecase/insight"
 	usecaseStep "flowforge-api/usecase/step"
@@ -26,6 +27,7 @@ type CompletedStepUseCase struct {
 	createStepRunUseCase         *step_run.CreateStepRunUseCase
 	executeStepRunUseCase        *step_run.ExecuteStepRunUseCase
 	isCanceledWorkflowRunUseCase *workflow_run.IsCanceledWorkflowRunUseCase
+	mercurePublisher             *mercure.Publisher
 	stepRunPublisher             rabbitmq.Publisher
 	env                          *config.Config
 }
@@ -38,6 +40,7 @@ func NewCompletedStepUseCase(
 	createStepRunUseCase *step_run.CreateStepRunUseCase,
 	executeStepRunUseCase *step_run.ExecuteStepRunUseCase,
 	isCanceledWorkflowRunUseCase *workflow_run.IsCanceledWorkflowRunUseCase,
+	mercurePublisher *mercure.Publisher,
 	stepRunPublisher rabbitmq.Publisher,
 	env *config.Config,
 ) *CompletedStepUseCase {
@@ -49,6 +52,7 @@ func NewCompletedStepUseCase(
 		createStepRunUseCase:         createStepRunUseCase,
 		executeStepRunUseCase:        executeStepRunUseCase,
 		isCanceledWorkflowRunUseCase: isCanceledWorkflowRunUseCase,
+		mercurePublisher:             mercurePublisher,
 		stepRunPublisher:             stepRunPublisher,
 		env:                          env,
 	}
@@ -143,6 +147,16 @@ func (u *CompletedStepUseCase) Execute(ctx context.Context, message consumerDTO.
 	nextStepRun, err = u.executeStepRunUseCase.Execute(ctx, &nextStepRun)
 	if err != nil {
 		return err
+	}
+
+	err = u.mercurePublisher.Publish("workflow_run.refresh",
+		map[string]any{
+			"workflow_run_id": workflowRun.ID,
+		},
+	)
+
+	if err != nil {
+		return fmt.Errorf("🚨 failed to publish workflow run completed: %w", err)
 	}
 
 	event := rabbitmq.NewStepRunEvent(nextStepRun)

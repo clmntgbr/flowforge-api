@@ -3,6 +3,7 @@ package wire
 import (
 	"flowforge-api/handler"
 	"flowforge-api/infrastructure/config"
+	"flowforge-api/infrastructure/mercure"
 	rmq "flowforge-api/infrastructure/messaging/rabbitmq"
 	repoGorm "flowforge-api/repository/gorm"
 	"flowforge-api/usecase/consumer"
@@ -24,6 +25,8 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	workflowRunRepo := repoGorm.NewWorkflowRunRepository(db)
 	stepRunRepo := repoGorm.NewStepRunRepository(db)
 	insightRepo := repoGorm.NewInsightRepository(db)
+
+	mercurePublisher := mercure.NewPublisher(env.MercureURL, env.MercurePublisherJWTKey)
 
 	createInsightUseCase := insight.NewCreateInsightUseCase(&insightRepo)
 
@@ -56,6 +59,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		createStepRunUseCase,
 		executeStepRunUseCase,
 		isCanceledWorkflowRunUseCase,
+		mercurePublisher,
 		stepRunPublisher,
 		env,
 	)

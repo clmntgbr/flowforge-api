@@ -29,6 +29,9 @@ type Config struct {
 	ConsumerRoutingKeyCompleted string
 	ConsumerRoutingKeyFailed    string
 	RunnerQueueName             string
+	MercureURL                  string
+	MercurePublisherJWTKey      string
+	MercureSubscriberJWTKey     string
 }
 
 func Load() *Config {
@@ -56,6 +59,9 @@ func Load() *Config {
 		RunnerQueueName:             getEnv("RUNNER_QUEUE_NAME"),
 		ConsumerRoutingKeyCompleted: getEnv("CONSUMER_ROUTING_KEY_COMPLETED"),
 		ConsumerRoutingKeyFailed:    getEnv("CONSUMER_ROUTING_KEY_FAILED"),
+		MercureURL:                  getEnv("MERCURE_URL"),
+		MercurePublisherJWTKey:      getEnv("MERCURE_PUBLISHER_JWT_KEY"),
+		MercureSubscriberJWTKey:     getEnv("MERCURE_SUBSCRIBER_JWT_KEY"),
 	}
 }
 
