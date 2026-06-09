@@ -24,6 +24,8 @@ type WorkflowHandler struct {
 	upsertWorkflowUseCase       *workflow.UpsertWorkflowUseCase
 	getWorkflowRunsUseCase      *workflow_run.GetWorkflowRunsUseCase
 	getWorkflowAnalyticsUseCase *workflow_run.GetWorkflowAnalyticsUseCase
+	startWorkflowUseCase        *workflow.StartWorkflowUseCase
+	stopWorkflowUseCase         *workflow.StopWorkflowUseCase
 }
 
 func NewWorkflowHandler(
@@ -36,6 +38,8 @@ func NewWorkflowHandler(
 	upsertWorkflowUseCase *workflow.UpsertWorkflowUseCase,
 	getWorkflowRunsUseCase *workflow_run.GetWorkflowRunsUseCase,
 	getWorkflowAnalyticsUseCase *workflow_run.GetWorkflowAnalyticsUseCase,
+	startWorkflowUseCase *workflow.StartWorkflowUseCase,
+	stopWorkflowUseCase *workflow.StopWorkflowUseCase,
 ) *WorkflowHandler {
 	return &WorkflowHandler{
 		listWorkflowsUseCase:        listWorkflowsUseCase,
@@ -47,6 +51,8 @@ func NewWorkflowHandler(
 		upsertWorkflowUseCase:       upsertWorkflowUseCase,
 		getWorkflowRunsUseCase:      getWorkflowRunsUseCase,
 		getWorkflowAnalyticsUseCase: getWorkflowAnalyticsUseCase,
+		startWorkflowUseCase:        startWorkflowUseCase,
+		stopWorkflowUseCase:         stopWorkflowUseCase,
 	}
 }
 
@@ -337,4 +343,62 @@ func (h *WorkflowHandler) GetWorkflowAnalytics(c fiber.Ctx) error {
 	}
 
 	return c.JSON(presenter.NewWorkflowAnalyticsResponse(totalRuns, successRate, successCount, failureRate, failureCount, averageDuration))
+}
+
+func (h *WorkflowHandler) StartWorkflow(c fiber.Ctx) error {
+	activeOrganizationID, err := context.GetOrganizationID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+
+	workflowID := c.Params("id")
+	workflowUUID, err := uuid.Parse(workflowID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid workflow ID",
+		})
+	}
+
+	err = h.startWorkflowUseCase.Execute(c.Context(), activeOrganizationID, workflowUUID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to start workflow",
+			"errors":  err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"success": true,
+	})
+}
+
+func (h *WorkflowHandler) StopWorkflow(c fiber.Ctx) error {
+	activeOrganizationID, err := context.GetOrganizationID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+
+	workflowID := c.Params("id")
+	workflowUUID, err := uuid.Parse(workflowID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid workflow ID",
+		})
+	}
+
+	err = h.stopWorkflowUseCase.Execute(c.Context(), activeOrganizationID, workflowUUID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to stop workflow",
+			"errors":  err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"success": true,
+	})
 }

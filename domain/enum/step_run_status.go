@@ -7,4 +7,5 @@ const (
 	StepRunStatusRunning   StepRunStatus = "running"
 	StepRunStatusCompleted StepRunStatus = "completed"
 	StepRunStatusFailed    StepRunStatus = "failed"
+	StepRunStatusCanceled  StepRunStatus = "canceled"
 )

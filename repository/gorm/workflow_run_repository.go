@@ -85,6 +85,7 @@ func (r *workflowRunRepository) GetByWorkflowIDAndNotEnded(ctx context.Context, 
 		).
 		Where("status != ?", enum.WorkflowRunStatusCompleted).
 		Where("status != ?", enum.WorkflowRunStatusFailed).
+		Where("status != ?", enum.WorkflowRunStatusCanceled).
 		Preload("Workflow").
 		First(&workflowRun).Error
 

@@ -29,6 +29,7 @@ func NewMigrateCommand() *cobra.Command {
 					&entity.WorkflowRun{},
 					&entity.StepRun{},
 					&entity.Insight{},
+					&entity.Variable{},
 				)
 			})
 

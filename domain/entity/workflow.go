@@ -13,11 +13,12 @@ type Workflow struct {
 	Name        string    `gorm:"not null;index:idx_workflow_name" json:"name"`
 	Description string    `gorm:"null" json:"description"`
 
-	Status enum.WorkflowStatus `gorm:"type:varchar(20);not null;check:status IN ('active','inactive','deleted');default:inactive;index:idx_workflow_status;index:idx_workflow_org_status,priority:2" json:"status"`
+	Status enum.WorkflowStatus `gorm:"type:varchar(20);not null;check:status IN ('active','inactive','deleted', 'canceled');default:inactive;index:idx_workflow_status;index:idx_workflow_org_status,priority:2" json:"status"`
 
 	Steps          []Step      `gorm:"foreignKey:WorkflowID" json:"steps"`
 	Connexions     []Connexion `gorm:"foreignKey:WorkflowID" json:"connexions"`
 	OrganizationID uuid.UUID   `gorm:"type:uuid;not null;index:idx_workflow_org;index:idx_workflow_org_status,priority:1" json:"organization_id"`
+	Variables      []Variable  `gorm:"foreignKey:WorkflowID" json:"variables"`
 
 	CreatedAt time.Time `gorm:"autoCreateTime;index:idx_workflow_created" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`

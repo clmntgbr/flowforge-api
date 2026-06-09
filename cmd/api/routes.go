@@ -79,4 +79,7 @@ func setupWorkflowsRoutes(api fiber.Router, container *wire.Container) {
 	api.Put("/workflows/:id/upsert", container.WorkflowHandler.UpsertWorkflow)
 	api.Get("/workflows/:id/runs", container.WorkflowHandler.GetWorkflowRuns)
 	api.Get("/workflows/:id/analytics", container.WorkflowHandler.GetWorkflowAnalytics)
+	api.Post("/workflows/:id/start", container.WorkflowHandler.StartWorkflow)
+	api.Post("/workflows/:id/stop", container.WorkflowHandler.StopWorkflow)
+
 }

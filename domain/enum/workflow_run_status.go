@@ -7,4 +7,5 @@ const (
 	WorkflowRunStatusRunning   WorkflowRunStatus = "running"
 	WorkflowRunStatusCompleted WorkflowRunStatus = "completed"
 	WorkflowRunStatusFailed    WorkflowRunStatus = "failed"
+	WorkflowRunStatusCanceled  WorkflowRunStatus = "canceled"
 )

@@ -13,4 +13,6 @@ type StepRunRepository interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 	GetByID(ctx context.Context, id uuid.UUID) (*entity.StepRun, error)
 	GetByWorkflowRunID(ctx context.Context, workflowRunID uuid.UUID) (*entity.StepRun, error)
+	GetAllByWorkflowRunID(ctx context.Context, workflowRunID uuid.UUID) ([]entity.StepRun, error)
+	CancelRunningByWorkflowRunID(ctx context.Context, workflowRunID uuid.UUID) error
 }

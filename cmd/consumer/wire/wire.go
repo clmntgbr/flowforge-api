@@ -9,6 +9,8 @@ import (
 	"flowforge-api/usecase/insight"
 	usecaseStep "flowforge-api/usecase/step"
 	"flowforge-api/usecase/step_run"
+	"flowforge-api/usecase/workflow_run"
+	"log"
 
 	"gorm.io/gorm"
 )
@@ -27,8 +29,12 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 
 	createStepRunUseCase := step_run.NewCreateStepRunUseCase(&stepRunRepo, &stepRepo)
 	executeStepRunUseCase := step_run.NewExecuteStepRunUseCase(&stepRunRepo, &stepRepo)
-	stepRunPublisher := rmq.NewPublisherFromEnv(env)
+	stepRunPublisher, err := rmq.NewPublisherFromEnv(env)
+	if err != nil {
+		log.Fatalf("failed to create RabbitMQ publisher: %v", err)
+	}
 	findNextStepUseCase := usecaseStep.NewFindNextStepUseCase(&stepRepo)
+	isCanceledWorkflowRunUseCase := workflow_run.NewIsCanceledWorkflowRunUseCase(&workflowRunRepo)
 
 	failedStepUseCase := consumer.NewFailedStepUseCase(
 		createInsightUseCase,
@@ -37,7 +43,8 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		&stepRepo,
 		createStepRunUseCase,
 		executeStepRunUseCase,
-		&stepRunPublisher,
+		isCanceledWorkflowRunUseCase,
+		stepRunPublisher,
 		env,
 	)
 
@@ -48,7 +55,8 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		findNextStepUseCase,
 		createStepRunUseCase,
 		executeStepRunUseCase,
-		&stepRunPublisher,
+		isCanceledWorkflowRunUseCase,
+		stepRunPublisher,
 		env,
 	)
 

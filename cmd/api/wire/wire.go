@@ -5,6 +5,7 @@ import (
 	"flowforge-api/handler/middleware"
 	infraClerk "flowforge-api/infrastructure/clerk"
 	"flowforge-api/infrastructure/config"
+	"flowforge-api/infrastructure/messaging/rabbitmq"
 	repoGorm "flowforge-api/repository/gorm"
 	"flowforge-api/usecase/auth"
 	"flowforge-api/usecase/clerk"
@@ -12,6 +13,7 @@ import (
 	"flowforge-api/usecase/endpoint"
 	"flowforge-api/usecase/organization"
 	"flowforge-api/usecase/step"
+	"flowforge-api/usecase/step_run"
 	"flowforge-api/usecase/user"
 	"flowforge-api/usecase/workflow"
 	"flowforge-api/usecase/workflow_run"
@@ -38,6 +40,11 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		log.Fatalf("failed to create JWKS provider: %v", err)
 	}
 
+	stepRunPublisher, err := rabbitmq.NewPublisherFromEnv(env)
+	if err != nil {
+		log.Fatalf("failed to create RabbitMQ publisher: %v", err)
+	}
+
 	userRepo := repoGorm.NewUserRepository(db)
 	organizationRepo := repoGorm.NewOrganizationRepository(db)
 	endpointRepo := repoGorm.NewEndpointRepository(db)
@@ -45,6 +52,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	stepRepo := repoGorm.NewStepRepository(db)
 	workflowRepo := repoGorm.NewWorkflowRepository(db)
 	workflowRunRepo := repoGorm.NewWorkflowRunRepository(db)
+	stepRunRepo := repoGorm.NewStepRunRepository(db)
 
 	validateTokenUseCase := auth.NewValidateTokenUseCase(jwksProvider, &userRepo)
 	fetchUserUseCase := clerk.NewFetchUserUseCase(env)
@@ -99,6 +107,17 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		&workflowRepo,
 		&workflowRunRepo,
 	)
+
+	createWorkflowRunUseCase := workflow_run.NewCreateWorkflowRunUseCase(&workflowRunRepo)
+	hasStepRunUseCase := step_run.NewHasStepRunUseCase(&stepRunRepo)
+	createStepRunUseCase := step_run.NewCreateStepRunUseCase(&stepRunRepo, &stepRepo)
+	executeStepRunUseCase := step_run.NewExecuteStepRunUseCase(&stepRunRepo, &stepRepo)
+	executeWorkflowRunUseCase := workflow_run.NewExecuteWorkflowRunUseCase(&workflowRunRepo)
+
+	runWorkflowUseCase := workflow.NewRunWorkflowUseCase(&workflowRepo, &workflowRunRepo, &stepRepo, createWorkflowRunUseCase, hasStepRunUseCase, createStepRunUseCase, executeStepRunUseCase, executeWorkflowRunUseCase, env, stepRunPublisher)
+
+	startWorkflowUseCase := workflow.NewStartWorkflowUseCase(&workflowRepo, &workflowRunRepo, runWorkflowUseCase)
+	stopWorkflowUseCase := workflow.NewStopWorkflowUseCase(&workflowRepo, &workflowRunRepo, &stepRunRepo, runWorkflowUseCase)
 
 	clerkMiddleware := middleware.NewClerkMiddleware(env.ClerkWebhookSecret)
 	authenticateMiddleware := middleware.NewAuthenticateMiddleware(
@@ -155,6 +174,8 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 			upsertWorkflowUseCase,
 			getWorkflowRunsUseCase,
 			getWorkflowAnalyticsUseCase,
+			startWorkflowUseCase,
+			stopWorkflowUseCase,
 		),
 	}
 }

@@ -3,6 +3,7 @@ package rabbitmq
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"flowforge-api/infrastructure/config"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -24,17 +25,17 @@ func NewPublisher(channel *amqp.Channel) Publisher {
 	}
 }
 
-func NewPublisherFromEnv(env *config.Config) Publisher {
+func NewPublisherFromEnv(env *config.Config) (Publisher, error) {
 	conn, err := amqp.Dial(env.RabbitMQURL)
 	if err != nil {
-		return nil
+		return nil, fmt.Errorf("failed to connect to RabbitMQ at %s: %w", env.RabbitMQURL, err)
 	}
 	ch, err := conn.Channel()
 	if err != nil {
 		_ = conn.Close()
-		return nil
+		return nil, fmt.Errorf("failed to open RabbitMQ channel: %w", err)
 	}
-	return NewPublisher(ch)
+	return NewPublisher(ch), nil
 }
 
 func (p *publisher) PublishStepRunEvent(ctx context.Context, config *config.Config, event StepRunEvent) error {

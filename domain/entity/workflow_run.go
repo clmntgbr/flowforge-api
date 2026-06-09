@@ -10,7 +10,7 @@ import (
 type WorkflowRun struct {
 	ID uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 
-	Status   enum.WorkflowRunStatus   `gorm:"type:varchar(20);not null;check:status IN ('pending','running','completed','failed');index:idx_workflow_run_status;index:idx_workflow_run_workflow_status,priority:2" json:"status"`
+	Status   enum.WorkflowRunStatus   `gorm:"type:varchar(20);not null;check:status IN ('pending','running','completed','failed','canceled');index:idx_workflow_run_status;index:idx_workflow_run_workflow_status,priority:2" json:"status"`
 	Statuses []enum.WorkflowRunStatus `gorm:"serializer:json;type:jsonb;default:'[]'" json:"statuses"`
 
 	WorkflowID uuid.UUID `gorm:"type:uuid;not null;index:idx_workflow_run_workflow;index:idx_workflow_run_workflow_status,priority:1" json:"workflow_id"`
@@ -24,6 +24,7 @@ type WorkflowRun struct {
 	StartedAt   *time.Time `gorm:"null" json:"started_at"`
 	CompletedAt *time.Time `gorm:"null" json:"completed_at"`
 	FailedAt    *time.Time `gorm:"null" json:"failed_at"`
+	CanceledAt  *time.Time `gorm:"null" json:"canceled_at"`
 
 	CreatedAt time.Time `gorm:"autoCreateTime;index:idx_workflow_run_created" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`

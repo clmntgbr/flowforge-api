@@ -10,6 +10,7 @@ import (
 	"flowforge-api/infrastructure/messaging/rabbitmq"
 	"flowforge-api/usecase/insight"
 	"flowforge-api/usecase/step_run"
+	"flowforge-api/usecase/workflow_run"
 	"fmt"
 	"strconv"
 	"strings"
@@ -18,14 +19,15 @@ import (
 )
 
 type FailedStepUseCase struct {
-	createInsightUseCase  *insight.CreateInsightUseCase
-	stepRunRepo           *repository.StepRunRepository
-	workflowRunRepo       *repository.WorkflowRunRepository
-	stepRepo              *repository.StepRepository
-	createStepRunUseCase  *step_run.CreateStepRunUseCase
-	executeStepRunUseCase *step_run.ExecuteStepRunUseCase
-	stepRunPublisher      *rabbitmq.Publisher
-	env                   *config.Config
+	createInsightUseCase         *insight.CreateInsightUseCase
+	stepRunRepo                  *repository.StepRunRepository
+	workflowRunRepo              *repository.WorkflowRunRepository
+	stepRepo                     *repository.StepRepository
+	createStepRunUseCase         *step_run.CreateStepRunUseCase
+	executeStepRunUseCase        *step_run.ExecuteStepRunUseCase
+	isCanceledWorkflowRunUseCase *workflow_run.IsCanceledWorkflowRunUseCase
+	stepRunPublisher             rabbitmq.Publisher
+	env                          *config.Config
 }
 
 func NewFailedStepUseCase(
@@ -35,22 +37,29 @@ func NewFailedStepUseCase(
 	stepRepo *repository.StepRepository,
 	createStepRunUseCase *step_run.CreateStepRunUseCase,
 	executeStepRunUseCase *step_run.ExecuteStepRunUseCase,
-	stepRunPublisher *rabbitmq.Publisher,
+	isCanceledWorkflowRunUseCase *workflow_run.IsCanceledWorkflowRunUseCase,
+	stepRunPublisher rabbitmq.Publisher,
 	env *config.Config,
 ) *FailedStepUseCase {
 	return &FailedStepUseCase{
-		createInsightUseCase:  createInsightUseCase,
-		stepRunRepo:           stepRunRepo,
-		workflowRunRepo:       workflowRunRepo,
-		stepRepo:              stepRepo,
-		createStepRunUseCase:  createStepRunUseCase,
-		executeStepRunUseCase: executeStepRunUseCase,
-		stepRunPublisher:      stepRunPublisher,
-		env:                   env,
+		createInsightUseCase:         createInsightUseCase,
+		stepRunRepo:                  stepRunRepo,
+		workflowRunRepo:              workflowRunRepo,
+		stepRepo:                     stepRepo,
+		createStepRunUseCase:         createStepRunUseCase,
+		executeStepRunUseCase:        executeStepRunUseCase,
+		isCanceledWorkflowRunUseCase: isCanceledWorkflowRunUseCase,
+		stepRunPublisher:             stepRunPublisher,
+		env:                          env,
 	}
 }
 
 func (u *FailedStepUseCase) Execute(ctx context.Context, message consumerDTO.ConsumerFailedMessage) error {
+	err := u.isCanceledWorkflowRunUseCase.Execute(ctx, message.WorkflowRunID)
+	if err != nil {
+		return nil
+	}
+
 	ins, err := u.createInsightUseCase.Execute(
 		ctx,
 		message.Insights.StartTime,
@@ -148,7 +157,7 @@ func (u *FailedStepUseCase) Execute(ctx context.Context, message consumerDTO.Con
 	}
 
 	event := rabbitmq.NewStepRunEvent(nextStepRun)
-	if err := (*u.stepRunPublisher).PublishStepRunEvent(ctx, u.env, event); err != nil {
+	if err := u.stepRunPublisher.PublishStepRunEvent(ctx, u.env, event); err != nil {
 		return fmt.Errorf("failed to publish alternative step run: %w", err)
 	}
 
