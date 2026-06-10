@@ -26,7 +26,7 @@ func NewPublisher(channel *amqp.Channel) Publisher {
 }
 
 func NewPublisherFromEnv(env *config.Config) (Publisher, error) {
-	conn, err := amqp.Dial(env.RabbitMQURL)
+	conn, err := dialWithRetry(env.RabbitMQURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to RabbitMQ at %s: %w", env.RabbitMQURL, err)
 	}

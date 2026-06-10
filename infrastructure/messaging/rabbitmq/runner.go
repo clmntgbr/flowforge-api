@@ -33,7 +33,7 @@ func NewWorkerRunner(
 }
 
 func (c *WorkerRunner) Start() error {
-	conn, err := amqp.Dial(c.env.RabbitMQURL)
+	conn, err := dialWithRetry(c.env.RabbitMQURL)
 	if err != nil {
 		return fmt.Errorf("failed to connect to RabbitMQ: %w", err)
 	}

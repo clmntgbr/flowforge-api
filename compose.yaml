@@ -13,6 +13,9 @@ services:
       - go-modules:/go/pkg/mod
     env_file:
       - .env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     networks:
       - api
     restart: unless-stopped
