@@ -5,6 +5,8 @@ import (
 	"errors"
 	"flowforge-api/domain/enum"
 	"flowforge-api/domain/repository"
+	"flowforge-api/infrastructure/mercure"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,6 +17,7 @@ type StopWorkflowUseCase struct {
 	workflowRunRepo    *repository.WorkflowRunRepository
 	stepRunRepo        *repository.StepRunRepository
 	runWorkflowUseCase *RunWorkflowUseCase
+	mercurePublisher   *mercure.Publisher
 }
 
 func NewStopWorkflowUseCase(
@@ -22,12 +25,14 @@ func NewStopWorkflowUseCase(
 	workflowRunRepo *repository.WorkflowRunRepository,
 	stepRunRepo *repository.StepRunRepository,
 	runWorkflowUseCase *RunWorkflowUseCase,
+	mercurePublisher *mercure.Publisher,
 ) *StopWorkflowUseCase {
 	return &StopWorkflowUseCase{
 		workflowRepo:       workflowRepo,
 		workflowRunRepo:    workflowRunRepo,
 		stepRunRepo:        stepRunRepo,
 		runWorkflowUseCase: runWorkflowUseCase,
+		mercurePublisher:   mercurePublisher,
 	}
 }
 
@@ -62,6 +67,17 @@ func (u *StopWorkflowUseCase) Execute(ctx context.Context, organizationID uuid.U
 	}
 
 	err = (*u.stepRunRepo).CancelRunningByWorkflowRunID(ctx, workflowRun.ID)
+	if err != nil {
+		return err
+	}
+
+	err = u.mercurePublisher.Publish(fmt.Sprintf("/workflows/%s", workflow.ID),
+		map[string]any{
+			"type":            "workflow_run.refresh",
+			"workflow_run_id": workflowRun.ID,
+			"workflow_id":     workflow.ID,
+		},
+	)
 	if err != nil {
 		return err
 	}

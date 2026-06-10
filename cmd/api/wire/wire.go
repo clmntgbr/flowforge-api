@@ -5,6 +5,7 @@ import (
 	"flowforge-api/handler/middleware"
 	infraClerk "flowforge-api/infrastructure/clerk"
 	"flowforge-api/infrastructure/config"
+	"flowforge-api/infrastructure/mercure"
 	"flowforge-api/infrastructure/messaging/rabbitmq"
 	repoGorm "flowforge-api/repository/gorm"
 	"flowforge-api/usecase/auth"
@@ -44,6 +45,8 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	if err != nil {
 		log.Fatalf("failed to create RabbitMQ publisher: %v", err)
 	}
+
+	mercurePublisher := mercure.NewPublisher(env.MercureURL, env.MercurePublisherJWTKey)
 
 	userRepo := repoGorm.NewUserRepository(db)
 	organizationRepo := repoGorm.NewOrganizationRepository(db)
@@ -116,8 +119,8 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 
 	runWorkflowUseCase := workflow.NewRunWorkflowUseCase(&workflowRepo, &workflowRunRepo, &stepRepo, createWorkflowRunUseCase, hasStepRunUseCase, createStepRunUseCase, executeStepRunUseCase, executeWorkflowRunUseCase, env, stepRunPublisher)
 
-	startWorkflowUseCase := workflow.NewStartWorkflowUseCase(&workflowRepo, &workflowRunRepo, runWorkflowUseCase)
-	stopWorkflowUseCase := workflow.NewStopWorkflowUseCase(&workflowRepo, &workflowRunRepo, &stepRunRepo, runWorkflowUseCase)
+	startWorkflowUseCase := workflow.NewStartWorkflowUseCase(&workflowRepo, &workflowRunRepo, runWorkflowUseCase, mercurePublisher)
+	stopWorkflowUseCase := workflow.NewStopWorkflowUseCase(&workflowRepo, &workflowRunRepo, &stepRunRepo, runWorkflowUseCase, mercurePublisher)
 
 	clerkMiddleware := middleware.NewClerkMiddleware(env.ClerkWebhookSecret)
 	authenticateMiddleware := middleware.NewAuthenticateMiddleware(
