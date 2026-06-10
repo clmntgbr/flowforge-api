@@ -59,7 +59,6 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		createStepRunUseCase,
 		executeStepRunUseCase,
 		isCanceledWorkflowRunUseCase,
-		mercurePublisher,
 		stepRunPublisher,
 		env,
 	)
@@ -68,6 +67,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		env,
 		completedStepUseCase,
 		failedStepUseCase,
+		mercurePublisher,
 	)
 
 	return &Container{

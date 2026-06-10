@@ -14,6 +14,7 @@ type ConsumerMessage struct {
 
 type ConsumerCompletedMessage struct {
 	WorkflowRunID string                `json:"workflow_run_id" validate:"required,uuid"`
+	WorkflowID    string                `json:"workflow_id" validate:"required,uuid"`
 	StepRunID     string                `json:"step_run_id" validate:"required,uuid"`
 	CompletedAt   time.Time             `json:"completed_at" validate:"required"`
 	Insights      runner.RunnerInsights `json:"insights" validate:"required"`
@@ -22,6 +23,7 @@ type ConsumerCompletedMessage struct {
 
 type ConsumerFailedMessage struct {
 	WorkflowRunID string                `json:"workflow_run_id" validate:"required,uuid"`
+	WorkflowID    string                `json:"workflow_id" validate:"required,uuid"`
 	StepRunID     string                `json:"step_run_id" validate:"required,uuid"`
 	Error         string                `json:"error" validate:"required,max=2048"`
 	FailedAt      time.Time             `json:"failed_at" validate:"required"`

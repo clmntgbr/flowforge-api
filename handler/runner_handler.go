@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"flowforge-api/infrastructure/config"
+	"flowforge-api/infrastructure/mercure"
 	"flowforge-api/infrastructure/messaging/rabbitmq"
 	rabbitmqDTO "flowforge-api/infrastructure/messaging/rabbitmq"
 	"flowforge-api/infrastructure/messaging/security"
@@ -21,15 +22,17 @@ type RunnerHandler struct {
 	parser            *security.WorkerParser
 	runStepUseCase    *step.RunStepUseCase
 	publisher         rabbitmq.Publisher
+	mercurePublisher  *mercure.Publisher
 }
 
-func NewRunnerHandler(env *config.Config, runStepUseCase *step.RunStepUseCase, publisher rabbitmq.Publisher) *RunnerHandler {
+func NewRunnerHandler(env *config.Config, runStepUseCase *step.RunStepUseCase, publisher rabbitmq.Publisher, mercurePublisher *mercure.Publisher) *RunnerHandler {
 	return &RunnerHandler{
 		env:               env,
 		parser:            security.NewWorkerParser(env),
 		securityValidator: security.NewWorkerSecurityValidator(env),
 		runStepUseCase:    runStepUseCase,
 		publisher:         publisher,
+		mercurePublisher:  mercurePublisher,
 	}
 }
 
@@ -41,6 +44,18 @@ func (h *RunnerHandler) HandleMessage(ctx context.Context, message *amqp.Deliver
 
 	if err := h.securityValidator.Validate(payload.SecretKey); err != nil {
 		return err
+	}
+
+	err := h.mercurePublisher.Publish(fmt.Sprintf("/workflows/%s", payload.StepRunEvent.WorkflowID),
+		map[string]any{
+			"type":            "workflow_run.refresh",
+			"workflow_run_id": payload.StepRunEvent.WorkflowRunID,
+			"workflow_id":     payload.StepRunEvent.WorkflowID,
+		},
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to publish mercure event: %w", err)
 	}
 
 	log.Println("🔄 Received message", payload)
@@ -58,6 +73,7 @@ func (h *RunnerHandler) HandleMessage(ctx context.Context, message *amqp.Deliver
 func (h *RunnerHandler) PublishSuccess(ctx context.Context, event rabbitmqDTO.StepRunEvent, response runner.RunnerResponse) error {
 	message := rabbitmqDTO.RunnerCompletedMessage{
 		WorkflowRunID: event.WorkflowRunID.String(),
+		WorkflowID:    event.WorkflowID.String(),
 		StepRunID:     event.StepRunID.String(),
 		CompletedAt:   time.Now().UTC(),
 		Insights:      response.Insights,
@@ -75,6 +91,7 @@ func (h *RunnerHandler) PublishSuccess(ctx context.Context, event rabbitmqDTO.St
 func (h *RunnerHandler) PublishFailure(ctx context.Context, event rabbitmqDTO.StepRunEvent, response runner.RunnerResponse, execError error) error {
 	message := rabbitmqDTO.RunnerFailedMessage{
 		WorkflowRunID: event.WorkflowRunID.String(),
+		WorkflowID:    event.WorkflowID.String(),
 		StepRunID:     event.StepRunID.String(),
 		Error:         execError.Error(),
 		FailedAt:      time.Now().UTC(),

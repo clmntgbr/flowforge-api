@@ -7,6 +7,7 @@ import (
 
 	"flowforge-api/infrastructure/config"
 	consumerDTO "flowforge-api/infrastructure/consumer"
+	"flowforge-api/infrastructure/mercure"
 	"flowforge-api/infrastructure/messaging/security"
 	"flowforge-api/usecase/consumer"
 
@@ -19,12 +20,14 @@ type ConsumerHandler struct {
 	failedStepUseCase    *consumer.FailedStepUseCase
 	securityValidator    *security.WorkerSecurityValidator
 	parser               *security.WorkerParser
+	mercurePublisher     *mercure.Publisher
 }
 
 func NewConsumerHandler(
 	env *config.Config,
 	completedStepUseCase *consumer.CompletedStepUseCase,
 	failedStepUseCase *consumer.FailedStepUseCase,
+	mercurePublisher *mercure.Publisher,
 ) *ConsumerHandler {
 	return &ConsumerHandler{
 		env:                  env,
@@ -32,14 +35,15 @@ func NewConsumerHandler(
 		failedStepUseCase:    failedStepUseCase,
 		parser:               security.NewWorkerParser(env),
 		securityValidator:    security.NewWorkerSecurityValidator(env),
+		mercurePublisher:     mercurePublisher,
 	}
 }
 
 func (h *ConsumerHandler) HandleMessage(ctx context.Context, message *amqp.Delivery) error {
 	fmt.Println("🔄 Handling message", message.RoutingKey)
+	var payload consumerDTO.ConsumerMessage
 	switch message.RoutingKey {
 	case h.env.ConsumerRoutingKeyCompleted:
-		var payload consumerDTO.ConsumerMessage
 		if err := h.parser.ParseAndValidate(message.Body, &payload); err != nil {
 			fmt.Println("🚨 Error parsing message", err)
 			return err
@@ -59,8 +63,20 @@ func (h *ConsumerHandler) HandleMessage(ctx context.Context, message *amqp.Deliv
 			return err
 		}
 
+		fmt.Printf("🚨 publishing to /workflows/%s\n", completed.WorkflowID)
+		err := h.mercurePublisher.Publish(fmt.Sprintf("/workflows/%s", completed.WorkflowID),
+			map[string]any{
+				"type":            "workflow_run.refresh",
+				"workflow_run_id": completed.WorkflowRunID,
+				"workflow_id":     completed.WorkflowID,
+			},
+		)
+
+		if err != nil {
+			return fmt.Errorf("🚨 failed to publish workflow run failed: %w", err)
+		}
+
 	case h.env.ConsumerRoutingKeyFailed:
-		var payload consumerDTO.ConsumerMessage
 		if err := h.parser.ParseAndValidate(message.Body, &payload); err != nil {
 			fmt.Println("🚨 Error parsing message", err)
 			return err
@@ -74,10 +90,22 @@ func (h *ConsumerHandler) HandleMessage(ctx context.Context, message *amqp.Deliv
 			return fmt.Errorf("decode failed message: %w", err)
 		}
 
-		err := h.failedStepUseCase.Execute(ctx, failed)
-		if err != nil {
-			fmt.Println("🚨 Error executing fail workflow step", err)
+		if err := h.failedStepUseCase.Execute(ctx, failed); err != nil {
+			fmt.Println("🚨 Error executing failed workflow step", err)
 			return err
+		}
+
+		fmt.Printf("🚨 publishing to /workflows/%s\n", failed.WorkflowID)
+		err := h.mercurePublisher.Publish(fmt.Sprintf("/workflows/%s", failed.WorkflowID),
+			map[string]any{
+				"type":            "workflow_run.refresh",
+				"workflow_run_id": failed.WorkflowRunID,
+				"workflow_id":     failed.WorkflowID,
+			},
+		)
+
+		if err != nil {
+			return fmt.Errorf("🚨 failed to publish workflow run failed: %w", err)
 		}
 
 	default:
