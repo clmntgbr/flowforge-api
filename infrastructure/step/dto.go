@@ -11,6 +11,7 @@ type UpdateStepInput struct {
 	Name           string       `json:"name" validate:"required,min=2,max=100"`
 	Description    string       `json:"description" validate:"omitempty,min=2,max=255"`
 	Timeout        int          `json:"timeout" validate:"required,min=1,max=60,number"`
+	URL            string       `json:"url" validate:"required,url"`
 	Query          types.Query  `json:"query" validate:"required,dive"`
 	Header         types.Header `json:"header" validate:"required,dive"`
 	Body           types.Body   `json:"body" validate:"required,dive"`

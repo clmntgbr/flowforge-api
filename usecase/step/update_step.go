@@ -26,6 +26,7 @@ func (u *UpdateStepUseCase) Execute(ctx context.Context, organizationID uuid.UUI
 	step.Name = input.Name
 	step.Description = input.Description
 	step.Timeout = input.Timeout
+	step.URL = input.URL
 	step.Query = input.Query
 	step.Header = input.Header
 	step.Body = input.Body

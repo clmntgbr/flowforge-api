@@ -103,7 +103,7 @@ func (u *RunStepUseCase) Execute(ctx context.Context, stepRunEvent *rabbitmq.Ste
 
 func ResolveConfig(step presenter.StepDetailResponse, endpoint presenter.EndpointDetailResponse) runner.ExecutionConfig {
 	config := runner.ExecutionConfig{
-		URL:    endpoint.BaseURI + endpoint.Path,
+		URL:    step.URL,
 		Method: endpoint.Method,
 	}
 

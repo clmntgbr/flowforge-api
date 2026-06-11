@@ -46,6 +46,7 @@ func (u *CreateStepUseCase) Execute(
 		Query:          endpoint.Query,
 		Header:         endpoint.Header,
 		Body:           endpoint.Body,
+		URL:            endpoint.BaseURI + endpoint.Path,
 		Position:       position,
 		Index:          index,
 		ExecutionOrder: executionOrder,

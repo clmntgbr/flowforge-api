@@ -22,6 +22,7 @@ type Step struct {
 	ExecutionOrder int       `gorm:"type:int;not null;default:0;index:idx_step_execution_order" json:"execution_order"`
 	TreeIndex      int       `gorm:"type:int;not null;default:0;index:idx_step_tree_index" json:"tree_index"`
 	Timeout        int       `gorm:"type:int;null" json:"timeout"`
+	URL            string    `gorm:"type:varchar(255);null" json:"url"`
 
 	EndpointID uuid.UUID `gorm:"type:uuid;not null;index:idx_step_endpoint" json:"endpoint_id"`
 	WorkflowID uuid.UUID `gorm:"type:uuid;not null;index:idx_step_workflow" json:"workflow_id"`

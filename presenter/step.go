@@ -17,6 +17,7 @@ type StepDetailResponse struct {
 	EndpointID     string                 `json:"endpointId"`
 	Description    string                 `json:"description"`
 	Timeout        int                    `json:"timeout"`
+	URL            string                 `json:"url"`
 	Query          types.Query            `json:"query"`
 	Header         types.Header           `json:"header"`
 	Body           types.Body             `json:"body"`
@@ -39,6 +40,7 @@ func NewStepDetailResponse(step entity.Step) StepDetailResponse {
 		EndpointID:     step.EndpointID.String(),
 		Description:    step.Description,
 		Timeout:        step.Timeout,
+		URL:            step.URL,
 		Query:          step.Query,
 		Header:         step.Header,
 		Body:           step.Body,

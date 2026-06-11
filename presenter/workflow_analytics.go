@@ -1,6 +1,9 @@
 package presenter
 
-import "time"
+import (
+	"math"
+	"time"
+)
 
 type WorkflowAnalyticsResponse struct {
 	TotalRuns       int     `json:"totalRuns"`
@@ -18,6 +21,6 @@ func NewWorkflowAnalyticsResponse(totalRuns int, successRate float64, successCou
 		SuccessCount:    successCount,
 		FailureRate:     failureRate,
 		FailureCount:    failureCount,
-		AverageDuration: averageDuration.Seconds(),
+		AverageDuration: math.Round(averageDuration.Seconds()*100) / 100,
 	}
 }
