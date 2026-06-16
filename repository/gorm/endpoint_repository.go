@@ -61,6 +61,7 @@ func (r *endpointRepository) GetByIDAndOrganizationID(ctx context.Context, id uu
 
 	err := dbWithContext(ctx, r.db).
 		Where("organization_id = ? AND id = ?", organizationID, id).
+		Preload("Tags").
 		First(&endpoint).Error
 
 	if err != nil {
@@ -75,6 +76,7 @@ func (r *endpointRepository) GetByID(ctx context.Context, id uuid.UUID) (entity.
 
 	err := dbWithContext(ctx, r.db).
 		Where("id = ?", id).
+		Preload("Tags").
 		First(&endpoint).Error
 
 	if err != nil {

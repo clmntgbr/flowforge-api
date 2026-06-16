@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"flowforge-api/domain/entity"
 	"flowforge-api/domain/repository"
 	"flowforge-api/domain/types"
 	"flowforge-api/infrastructure/endpoint"
 	endpointDTO "flowforge-api/infrastructure/endpoint"
+	"flowforge-api/usecase/tag"
 	"io"
-	"log"
 	"net/url"
 	"strings"
 
@@ -24,15 +25,18 @@ var openAPIHTTPMethods = map[string]struct{}{
 type ImportFromOpenAPIUseCase struct {
 	endpointRepo          *repository.EndpointRepository
 	createEndpointUseCase *CreateEndpointUseCase
+	getTagOrCreateUseCase *tag.GetTagOrCreateUseCase
 }
 
 func NewImportFromOpenAPIUseCase(
 	endpointRepo *repository.EndpointRepository,
 	createEndpointUseCase *CreateEndpointUseCase,
+	getTagOrCreateUseCase *tag.GetTagOrCreateUseCase,
 ) *ImportFromOpenAPIUseCase {
 	return &ImportFromOpenAPIUseCase{
 		endpointRepo:          endpointRepo,
 		createEndpointUseCase: createEndpointUseCase,
+		getTagOrCreateUseCase: getTagOrCreateUseCase,
 	}
 }
 
@@ -44,12 +48,18 @@ func (u *ImportFromOpenAPIUseCase) Execute(ctx context.Context, organizationID u
 
 	baseURI := strings.TrimSuffix(parsedURL.String(), "/")
 
+	tags := []entity.Tag{}
+	for _, tag := range input.Tags {
+		tagEntity, err := u.getTagOrCreateUseCase.Execute(ctx, organizationID, tag.ID, tag.Name, tag.Color)
+		if err == nil {
+			tags = append(tags, tagEntity)
+		}
+	}
+
 	f, _ := input.File.Open()
 	defer f.Close()
 
 	data, _ := io.ReadAll(f)
-
-	log.Println(string(data))
 
 	var openAPI endpoint.OpenAPI
 	json.Unmarshal(data, &openAPI)
@@ -73,7 +83,7 @@ func (u *ImportFromOpenAPIUseCase) Execute(ctx context.Context, organizationID u
 				Query:          types.Query{},
 				Header:         types.Header{},
 				Body:           types.Body{},
-			})
+			}, tags)
 		}
 	}
 

@@ -15,20 +15,21 @@ type EndpointListResponse struct {
 }
 
 type EndpointDetailResponse struct {
-	ID             string       `json:"id"`
-	Name           string       `json:"name"`
-	BaseURI        string       `json:"baseUri"`
-	Path           string       `json:"path"`
-	Method         string       `json:"method"`
-	Timeout        int          `json:"timeout"`
-	RetryOnFailure bool         `json:"retryOnFailure"`
-	RetryCount     int          `json:"retryCount"`
-	RetryDelay     int          `json:"retryDelay"`
-	Query          types.Query  `json:"query"`
-	Header         types.Header `json:"header"`
-	Body           types.Body   `json:"body"`
-	CreatedAt      time.Time    `json:"createdAt"`
-	UpdatedAt      time.Time    `json:"updatedAt"`
+	ID             string        `json:"id"`
+	Name           string        `json:"name"`
+	BaseURI        string        `json:"baseUri"`
+	Path           string        `json:"path"`
+	Method         string        `json:"method"`
+	Timeout        int           `json:"timeout"`
+	RetryOnFailure bool          `json:"retryOnFailure"`
+	RetryCount     int           `json:"retryCount"`
+	RetryDelay     int           `json:"retryDelay"`
+	Query          types.Query   `json:"query"`
+	Header         types.Header  `json:"header"`
+	Body           types.Body    `json:"body"`
+	Tags           []TagResponse `json:"tags"`
+	CreatedAt      time.Time     `json:"createdAt"`
+	UpdatedAt      time.Time     `json:"updatedAt"`
 }
 
 func NewEndpointListResponse(endpoint entity.Endpoint) EndpointListResponse {
@@ -63,6 +64,7 @@ func NewEndpointDetailResponse(endpoint entity.Endpoint) EndpointDetailResponse 
 		Query:          endpoint.Query,
 		Header:         endpoint.Header,
 		Body:           endpoint.Body,
+		Tags:           NewTagResponses(endpoint.Tags),
 		CreatedAt:      endpoint.CreatedAt,
 		UpdatedAt:      endpoint.UpdatedAt,
 	}

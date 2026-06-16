@@ -25,7 +25,7 @@ func (r *tagRepository) Update(ctx context.Context, tag *entity.Tag) error {
 	return dbWithContext(ctx, r.db).Save(tag).Error
 }
 
-func (r *tagRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *tagRepository) Delete(ctx context.Context, id uuid.UUID, organizationID uuid.UUID) error {
 	return dbWithContext(ctx, r.db).Delete(&entity.Tag{}, id).Error
 }
 
@@ -40,4 +40,17 @@ func (r *tagRepository) List(ctx context.Context, organizationID uuid.UUID) ([]e
 	}
 
 	return tags, nil
+}
+
+func (r *tagRepository) Get(ctx context.Context, organizationID uuid.UUID, tagID uuid.UUID) (entity.Tag, error) {
+	var tag entity.Tag
+
+	err := dbWithContext(ctx, r.db).Model(&entity.Tag{}).
+		Where("organization_id = ?", organizationID).
+		Where("id = ?", tagID).
+		First(&tag).Error
+	if err != nil {
+		return entity.Tag{}, err
+	}
+	return tag, nil
 }

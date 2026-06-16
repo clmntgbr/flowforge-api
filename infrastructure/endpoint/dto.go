@@ -2,6 +2,7 @@ package endpoint
 
 import (
 	"flowforge-api/domain/types"
+	"flowforge-api/infrastructure/tag"
 	"mime/multipart"
 )
 
@@ -43,9 +44,10 @@ type UpdateEndpointInput struct {
 
 type ImportEndpointsInput struct {
 	BaseURL        string                `form:"baseUrl" validate:"required,url"`
-	Timeout        int                   `json:"timeout" validate:"required,min=1,max=60,number"`
-	RetryOnFailure bool                  `json:"retryOnFailure"`
-	RetryCount     int                   `json:"retryCount" validate:"min=0,max=10,number"`
-	RetryDelay     int                   `json:"retryDelay" validate:"min=0,max=600,number"`
+	Timeout        int                   `form:"timeout" validate:"required,min=1,max=60,number"`
+	RetryOnFailure bool                  `form:"retryOnFailure"`
+	RetryCount     int                   `form:"retryCount" validate:"min=0,max=10,number"`
+	RetryDelay     int                   `form:"retryDelay" validate:"min=0,max=600,number"`
 	File           *multipart.FileHeader `form:"file" validate:"required"`
+	Tags           tag.TagInputs         `form:"tags"`
 }

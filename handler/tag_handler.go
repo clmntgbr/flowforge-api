@@ -35,5 +35,5 @@ func (h *TagHandler) GetTags(c fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(presenter.NewTagResponse(tags))
+	return c.JSON(presenter.NewTagResponses(tags))
 }

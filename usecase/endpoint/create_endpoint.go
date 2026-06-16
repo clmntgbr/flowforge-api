@@ -17,7 +17,7 @@ func NewCreateEndpointUseCase(endpointRepo *repository.EndpointRepository) *Crea
 	return &CreateEndpointUseCase{endpointRepo: endpointRepo}
 }
 
-func (u *CreateEndpointUseCase) Execute(ctx context.Context, organizationID uuid.UUID, input endpointDTO.CreateEndpointInput) (entity.Endpoint, error) {
+func (u *CreateEndpointUseCase) Execute(ctx context.Context, organizationID uuid.UUID, input endpointDTO.CreateEndpointInput, tags []entity.Tag) (entity.Endpoint, error) {
 	endpoint := &entity.Endpoint{
 		Name:           input.Name,
 		OrganizationID: organizationID,
@@ -32,6 +32,7 @@ func (u *CreateEndpointUseCase) Execute(ctx context.Context, organizationID uuid
 		RetryOnFailure: input.RetryOnFailure,
 		RetryCount:     input.RetryCount,
 		RetryDelay:     input.RetryDelay,
+		Tags:           tags,
 	}
 
 	if err := (*u.endpointRepo).Create(ctx, endpoint); err != nil {

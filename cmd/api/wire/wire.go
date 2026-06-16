@@ -61,6 +61,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	stepRunRepo := repoGorm.NewStepRunRepository(db)
 
 	getTagsUseCase := tag.NewGetTagsUseCase(&tagRepo)
+	getTagOrCreateUseCase := tag.NewGetTagOrCreateUseCase(&tagRepo)
 
 	validateTokenUseCase := auth.NewValidateTokenUseCase(jwksProvider, &userRepo)
 	fetchUserUseCase := clerk.NewFetchUserUseCase(env)
@@ -79,7 +80,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	createEndpointUseCase := endpoint.NewCreateEndpointUseCase(&endpointRepo)
 	updateEndpointUseCase := endpoint.NewUpdateEndpointUseCase(&endpointRepo)
 	getEndpointUseCase := endpoint.NewGetEndpointUseCase(&endpointRepo)
-	importFromOpenAPIUseCase := endpoint.NewImportFromOpenAPIUseCase(&endpointRepo, createEndpointUseCase)
+	importFromOpenAPIUseCase := endpoint.NewImportFromOpenAPIUseCase(&endpointRepo, createEndpointUseCase, getTagOrCreateUseCase)
 	endpointHasStepUseCase := endpoint.NewEndpointHasStepUseCase(&stepRepo)
 	deleteEndpointUseCase := endpoint.NewDeleteEndpointUseCase(&endpointRepo)
 	createStepUseCase := step.NewCreateStepUseCase(&stepRepo)
