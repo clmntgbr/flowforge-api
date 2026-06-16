@@ -17,6 +17,8 @@ type Endpoint struct {
 	Method      string    `gorm:"not null" json:"method"`
 	Timeout     int       `gorm:"not null;default:30" json:"timeout"`
 
+	Tags []Tag `gorm:"many2many:endpoint_tags" json:"tags"`
+
 	RetryOnFailure bool `gorm:"not null;default:false" json:"retryOnFailure"`
 	RetryCount     int  `gorm:"not null;default:0" json:"retryCount"`
 	RetryDelay     int  `gorm:"not null;default:0" json:"retryDelay"`

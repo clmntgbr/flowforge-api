@@ -25,6 +25,7 @@ func NewMigrateCommand() *cobra.Command {
 					&entity.Workflow{},
 					&entity.Step{},
 					&entity.Endpoint{},
+					&entity.Tag{},
 					&entity.Connexion{},
 					&entity.WorkflowRun{},
 					&entity.StepRun{},
