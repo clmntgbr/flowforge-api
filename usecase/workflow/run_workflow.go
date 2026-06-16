@@ -66,7 +66,7 @@ func (u *RunWorkflowUseCase) Execute(txCtx context.Context, workflow entity.Work
 	}
 
 	if workflowRun == nil {
-		workflowRun, err = u.createWorkflowRunUseCase.Execute(txCtx, workflow.ID)
+		workflowRun, err = u.createWorkflowRunUseCase.Execute(txCtx, workflow.ID, len(workflow.Steps))
 		if err != nil {
 			return fmt.Errorf("🚨 failed to create workflow run: %w", err)
 		}

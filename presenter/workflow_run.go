@@ -13,6 +13,7 @@ type WorkflowRunResponse struct {
 	StartedAt   *time.Time               `json:"started_at"`
 	CompletedAt *time.Time               `json:"completed_at"`
 	StepsRuns   []StepRunDetailResponse  `json:"steps_runs"`
+	TotalSteps  int                      `json:"total_steps"`
 	FailedAt    *time.Time               `json:"failed_at"`
 	CanceledAt  *time.Time               `json:"canceled_at"`
 	CreatedAt   time.Time                `json:"created_at"`
@@ -34,6 +35,7 @@ func NewWorkflowRunResponse(workflowRun entity.WorkflowRun) WorkflowRunResponse 
 		Statuses:    workflowRun.Statuses,
 		StartedAt:   workflowRun.StartedAt,
 		CompletedAt: workflowRun.CompletedAt,
+		TotalSteps:  workflowRun.TotalSteps,
 		FailedAt:    workflowRun.FailedAt,
 		CanceledAt:  workflowRun.CanceledAt,
 		CreatedAt:   workflowRun.CreatedAt,
