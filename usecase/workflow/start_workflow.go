@@ -42,6 +42,10 @@ func (u *StartWorkflowUseCase) Execute(ctx context.Context, organizationID uuid.
 		return errors.New("workflow is inactive")
 	}
 
+	if len(workflow.Steps) == 0 {
+		return errors.New("workflow has no steps")
+	}
+
 	err = u.runWorkflowUseCase.Execute(ctx, workflow)
 	if err != nil {
 		return err
