@@ -78,7 +78,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 
 	listEndpointsUseCase := endpoint.NewListEndpointsUseCase(&endpointRepo)
 	createEndpointUseCase := endpoint.NewCreateEndpointUseCase(&endpointRepo)
-	updateEndpointUseCase := endpoint.NewUpdateEndpointUseCase(&endpointRepo)
+	updateEndpointUseCase := endpoint.NewUpdateEndpointUseCase(&endpointRepo, getTagOrCreateUseCase)
 	getEndpointUseCase := endpoint.NewGetEndpointUseCase(&endpointRepo)
 	importFromOpenAPIUseCase := endpoint.NewImportFromOpenAPIUseCase(&endpointRepo, createEndpointUseCase, getTagOrCreateUseCase)
 	endpointHasStepUseCase := endpoint.NewEndpointHasStepUseCase(&stepRepo)

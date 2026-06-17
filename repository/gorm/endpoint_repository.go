@@ -23,7 +23,15 @@ func (r *endpointRepository) Create(ctx context.Context, endpoint *entity.Endpoi
 }
 
 func (r *endpointRepository) Update(ctx context.Context, endpoint *entity.Endpoint) error {
-	return dbWithContext(ctx, r.db).Save(endpoint).Error
+	tags := endpoint.Tags
+
+	return dbWithContext(ctx, r.db).Transaction(func(tx *gorm.DB) error {
+		if err := tx.Omit("Tags").Save(endpoint).Error; err != nil {
+			return err
+		}
+
+		return tx.Model(endpoint).Association("Tags").Replace(tags)
+	})
 }
 
 func (r *endpointRepository) Delete(ctx context.Context, id uuid.UUID) error {

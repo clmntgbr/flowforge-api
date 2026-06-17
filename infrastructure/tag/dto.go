@@ -15,7 +15,19 @@ type TagInput struct {
 
 type TagInputs []TagInput
 
-var _ encoding.TextUnmarshaler = (*TagInputs)(nil)
+var (
+	_ encoding.TextUnmarshaler = (*TagInputs)(nil)
+	_ json.Unmarshaler         = (*TagInputs)(nil)
+)
+
+func (t *TagInputs) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		*t = nil
+		return nil
+	}
+
+	return json.Unmarshal(data, (*[]TagInput)(t))
+}
 
 func (t *TagInputs) UnmarshalText(text []byte) error {
 	if len(text) == 0 {

@@ -7,6 +7,7 @@ import (
 	"flowforge-api/infrastructure/paginate"
 	"flowforge-api/presenter"
 	"flowforge-api/usecase/endpoint"
+	"fmt"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
@@ -147,12 +148,14 @@ func (h *EndpointHandler) UpdateEndpoint(c fiber.Ctx) error {
 
 	var request endpointDTO.UpdateEndpointInput
 	if err := c.Bind().JSON(&request); err != nil {
+		fmt.Println("error1", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
 		})
 	}
 
 	if err := validator.New().Struct(request); err != nil {
+		fmt.Println("error2", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
 			"errors":  err.Error(),
