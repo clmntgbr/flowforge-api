@@ -5,19 +5,36 @@ import (
 	"flowforge-api/domain/entity"
 	"flowforge-api/domain/repository"
 	endpointDTO "flowforge-api/infrastructure/endpoint"
+	"flowforge-api/usecase/tag"
 
 	"github.com/google/uuid"
 )
 
 type CreateEndpointUseCase struct {
-	endpointRepo *repository.EndpointRepository
+	endpointRepo          *repository.EndpointRepository
+	getTagOrCreateUseCase *tag.GetTagOrCreateUseCase
 }
 
-func NewCreateEndpointUseCase(endpointRepo *repository.EndpointRepository) *CreateEndpointUseCase {
-	return &CreateEndpointUseCase{endpointRepo: endpointRepo}
+func NewCreateEndpointUseCase(
+	endpointRepo *repository.EndpointRepository,
+	getTagOrCreateUseCase *tag.GetTagOrCreateUseCase,
+) *CreateEndpointUseCase {
+	return &CreateEndpointUseCase{
+		endpointRepo:          endpointRepo,
+		getTagOrCreateUseCase: getTagOrCreateUseCase,
+	}
 }
 
-func (u *CreateEndpointUseCase) Execute(ctx context.Context, organizationID uuid.UUID, input endpointDTO.CreateEndpointInput, tags []entity.Tag) (entity.Endpoint, error) {
+func (u *CreateEndpointUseCase) Execute(ctx context.Context, organizationID uuid.UUID, input endpointDTO.CreateEndpointInput) (entity.Endpoint, error) {
+
+	tags := []entity.Tag{}
+	for _, tag := range input.Tags {
+		tagEntity, err := u.getTagOrCreateUseCase.Execute(ctx, organizationID, tag.ID, tag.Name, tag.Color)
+		if err == nil {
+			tags = append(tags, tagEntity)
+		}
+	}
+
 	endpoint := &entity.Endpoint{
 		Name:           input.Name,
 		OrganizationID: organizationID,

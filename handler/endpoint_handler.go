@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"flowforge-api/domain/entity"
 	"flowforge-api/handler/context"
 	endpointDTO "flowforge-api/infrastructure/endpoint"
 	"flowforge-api/infrastructure/paginate"
@@ -92,7 +91,7 @@ func (h *EndpointHandler) CreateEndpoint(c fiber.Ctx) error {
 		})
 	}
 
-	_, err = h.createEndpointUseCase.Execute(c.Context(), activeOrganizationID, request, []entity.Tag{})
+	_, err = h.createEndpointUseCase.Execute(c.Context(), activeOrganizationID, request)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to create endpoint",

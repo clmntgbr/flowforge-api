@@ -83,7 +83,8 @@ func (u *ImportFromOpenAPIUseCase) Execute(ctx context.Context, organizationID u
 				Query:          types.Query{},
 				Header:         types.Header{},
 				Body:           types.Body{},
-			}, tags)
+				Tags:           input.Tags,
+			})
 		}
 	}
 
