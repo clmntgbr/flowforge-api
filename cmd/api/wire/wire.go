@@ -122,11 +122,12 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	createStepRunUseCase := step_run.NewCreateStepRunUseCase(&stepRunRepo, &stepRepo)
 	executeStepRunUseCase := step_run.NewExecuteStepRunUseCase(&stepRunRepo, &stepRepo)
 	executeWorkflowRunUseCase := workflow_run.NewExecuteWorkflowRunUseCase(&workflowRunRepo)
+	computeSkippedStepsUseCase := workflow_run.NewComputeSkippedStepsUseCase(&stepRepo)
 
 	runWorkflowUseCase := workflow.NewRunWorkflowUseCase(&workflowRepo, &workflowRunRepo, &stepRepo, createWorkflowRunUseCase, hasStepRunUseCase, createStepRunUseCase, executeStepRunUseCase, executeWorkflowRunUseCase, env, stepRunPublisher)
 
 	startWorkflowUseCase := workflow.NewStartWorkflowUseCase(&workflowRepo, &workflowRunRepo, runWorkflowUseCase, mercurePublisher)
-	stopWorkflowUseCase := workflow.NewStopWorkflowUseCase(&workflowRepo, &workflowRunRepo, &stepRunRepo, runWorkflowUseCase, mercurePublisher)
+	stopWorkflowUseCase := workflow.NewStopWorkflowUseCase(&workflowRepo, &workflowRunRepo, &stepRunRepo, runWorkflowUseCase, computeSkippedStepsUseCase, mercurePublisher)
 
 	clerkMiddleware := middleware.NewClerkMiddleware(env.ClerkWebhookSecret)
 	authenticateMiddleware := middleware.NewAuthenticateMiddleware(

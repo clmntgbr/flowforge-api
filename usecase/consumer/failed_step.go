@@ -26,6 +26,7 @@ type FailedStepUseCase struct {
 	createStepRunUseCase         *step_run.CreateStepRunUseCase
 	executeStepRunUseCase        *step_run.ExecuteStepRunUseCase
 	isCanceledWorkflowRunUseCase *workflow_run.IsCanceledWorkflowRunUseCase
+	computeSkippedStepsUseCase   *workflow_run.ComputeSkippedStepsUseCase
 	stepRunPublisher             rabbitmq.Publisher
 	env                          *config.Config
 }
@@ -38,6 +39,7 @@ func NewFailedStepUseCase(
 	createStepRunUseCase *step_run.CreateStepRunUseCase,
 	executeStepRunUseCase *step_run.ExecuteStepRunUseCase,
 	isCanceledWorkflowRunUseCase *workflow_run.IsCanceledWorkflowRunUseCase,
+	computeSkippedStepsUseCase *workflow_run.ComputeSkippedStepsUseCase,
 	stepRunPublisher rabbitmq.Publisher,
 	env *config.Config,
 ) *FailedStepUseCase {
@@ -49,6 +51,7 @@ func NewFailedStepUseCase(
 		createStepRunUseCase:         createStepRunUseCase,
 		executeStepRunUseCase:        executeStepRunUseCase,
 		isCanceledWorkflowRunUseCase: isCanceledWorkflowRunUseCase,
+		computeSkippedStepsUseCase:   computeSkippedStepsUseCase,
 		stepRunPublisher:             stepRunPublisher,
 		env:                          env,
 	}
@@ -138,6 +141,12 @@ func (u *FailedStepUseCase) Execute(ctx context.Context, message consumerDTO.Con
 		workflowRun.CompletedAt = &failedAt
 		workflowRun.Status = enum.WorkflowRunStatusFailed
 		workflowRun.Statuses = append(workflowRun.Statuses, enum.WorkflowRunStatusFailed)
+
+		skippedSteps, err := u.computeSkippedStepsUseCase.Execute(ctx, workflowRun.WorkflowID, workflowRun.ExecutedSteps)
+		if err != nil {
+			return fmt.Errorf("failed to compute skipped steps: %w", err)
+		}
+		workflowRun.SkippedSteps = skippedSteps
 
 		return (*u.workflowRunRepo).Update(ctx, workflowRun)
 	}

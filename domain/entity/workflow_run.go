@@ -18,6 +18,7 @@ type WorkflowRun struct {
 
 	ExecutedSteps []string `gorm:"serializer:json;type:jsonb;default:'[]'" json:"executed_steps"`
 	FailedSteps   []string `gorm:"serializer:json;type:jsonb;default:'[]'" json:"failed_steps"`
+	SkippedSteps  []string `gorm:"serializer:json;type:jsonb;default:'[]'" json:"skipped_steps"`
 
 	StepsRuns  []StepRun `gorm:"foreignKey:WorkflowRunID" json:"steps_runs"`
 	TotalSteps int       `gorm:"not null;default:0" json:"total_steps"`

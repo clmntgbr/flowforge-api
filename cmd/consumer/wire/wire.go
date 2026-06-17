@@ -38,6 +38,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	}
 	findNextStepUseCase := usecaseStep.NewFindNextStepUseCase(&stepRepo)
 	isCanceledWorkflowRunUseCase := workflow_run.NewIsCanceledWorkflowRunUseCase(&workflowRunRepo)
+	computeSkippedStepsUseCase := workflow_run.NewComputeSkippedStepsUseCase(&stepRepo)
 
 	failedStepUseCase := consumer.NewFailedStepUseCase(
 		createInsightUseCase,
@@ -47,6 +48,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		createStepRunUseCase,
 		executeStepRunUseCase,
 		isCanceledWorkflowRunUseCase,
+		computeSkippedStepsUseCase,
 		stepRunPublisher,
 		env,
 	)
@@ -59,6 +61,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		createStepRunUseCase,
 		executeStepRunUseCase,
 		isCanceledWorkflowRunUseCase,
+		computeSkippedStepsUseCase,
 		stepRunPublisher,
 		env,
 	)

@@ -6,6 +6,7 @@ import (
 	"flowforge-api/domain/enum"
 	"flowforge-api/domain/repository"
 	"flowforge-api/infrastructure/mercure"
+	"flowforge-api/usecase/workflow_run"
 	"fmt"
 	"time"
 
@@ -13,11 +14,12 @@ import (
 )
 
 type StopWorkflowUseCase struct {
-	workflowRepo       *repository.WorkflowRepository
-	workflowRunRepo    *repository.WorkflowRunRepository
-	stepRunRepo        *repository.StepRunRepository
-	runWorkflowUseCase *RunWorkflowUseCase
-	mercurePublisher   *mercure.Publisher
+	workflowRepo               *repository.WorkflowRepository
+	workflowRunRepo            *repository.WorkflowRunRepository
+	stepRunRepo                *repository.StepRunRepository
+	runWorkflowUseCase         *RunWorkflowUseCase
+	computeSkippedStepsUseCase *workflow_run.ComputeSkippedStepsUseCase
+	mercurePublisher           *mercure.Publisher
 }
 
 func NewStopWorkflowUseCase(
@@ -25,14 +27,16 @@ func NewStopWorkflowUseCase(
 	workflowRunRepo *repository.WorkflowRunRepository,
 	stepRunRepo *repository.StepRunRepository,
 	runWorkflowUseCase *RunWorkflowUseCase,
+	computeSkippedStepsUseCase *workflow_run.ComputeSkippedStepsUseCase,
 	mercurePublisher *mercure.Publisher,
 ) *StopWorkflowUseCase {
 	return &StopWorkflowUseCase{
-		workflowRepo:       workflowRepo,
-		workflowRunRepo:    workflowRunRepo,
-		stepRunRepo:        stepRunRepo,
-		runWorkflowUseCase: runWorkflowUseCase,
-		mercurePublisher:   mercurePublisher,
+		workflowRepo:               workflowRepo,
+		workflowRunRepo:            workflowRunRepo,
+		stepRunRepo:                stepRunRepo,
+		runWorkflowUseCase:         runWorkflowUseCase,
+		computeSkippedStepsUseCase: computeSkippedStepsUseCase,
+		mercurePublisher:           mercurePublisher,
 	}
 }
 
@@ -60,6 +64,12 @@ func (u *StopWorkflowUseCase) Execute(ctx context.Context, organizationID uuid.U
 	now := time.Now().UTC()
 	workflowRun.CanceledAt = &now
 	workflowRun.CompletedAt = &now
+
+	skippedSteps, err := u.computeSkippedStepsUseCase.Execute(ctx, workflowRun.WorkflowID, workflowRun.ExecutedSteps)
+	if err != nil {
+		return err
+	}
+	workflowRun.SkippedSteps = skippedSteps
 
 	err = (*u.workflowRunRepo).Update(ctx, workflowRun)
 	if err != nil {
