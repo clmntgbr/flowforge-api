@@ -52,7 +52,7 @@ func (h *EndpointHandler) GetEndpoints(c fiber.Ctx) error {
 		})
 	}
 
-	var query paginate.PaginateQuery
+	var query endpointDTO.PaginateEndpointQuery
 	if err := c.Bind().Query(&query); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
@@ -67,7 +67,7 @@ func (h *EndpointHandler) GetEndpoints(c fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(paginate.NewPaginateResponse(presenter.NewEndpointListResponses(endpoints), int(total), query))
+	return c.JSON(paginate.NewPaginateResponse(presenter.NewEndpointListResponses(endpoints), int(total), query.PaginateQuery))
 }
 
 func (h *EndpointHandler) CreateEndpoint(c fiber.Ctx) error {

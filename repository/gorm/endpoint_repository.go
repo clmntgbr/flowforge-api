@@ -4,7 +4,7 @@ import (
 	"context"
 	"flowforge-api/domain/entity"
 	"flowforge-api/domain/repository"
-	"flowforge-api/infrastructure/paginate"
+	endpointDTO "flowforge-api/infrastructure/endpoint"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -38,7 +38,7 @@ func (r *endpointRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return dbWithContext(ctx, r.db).Delete(&entity.Endpoint{}, id).Error
 }
 
-func (r *endpointRepository) List(ctx context.Context, organizationID uuid.UUID, query paginate.PaginateQuery) ([]entity.Endpoint, int64, error) {
+func (r *endpointRepository) List(ctx context.Context, organizationID uuid.UUID, query endpointDTO.PaginateEndpointQuery) ([]entity.Endpoint, int64, error) {
 	var endpoints []entity.Endpoint
 
 	db := dbWithContext(ctx, r.db).Model(&entity.Endpoint{}).
@@ -51,7 +51,14 @@ func (r *endpointRepository) List(ctx context.Context, organizationID uuid.UUID,
 			Or("method ILIKE ?", "%"+query.Search+"%")
 	}
 
-	db, total, err := Paginate(db, query)
+	if tagIDs := query.TagIDs(); len(tagIDs) > 0 {
+		db = db.
+			Joins("JOIN endpoint_tags ON endpoint_tags.endpoint_id = endpoints.id").
+			Where("endpoint_tags.tag_id IN ?", tagIDs).
+			Group("endpoints.id")
+	}
+
+	db, total, err := Paginate(db, query.PaginateQuery)
 	if err != nil {
 		return nil, 0, err
 	}

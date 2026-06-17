@@ -4,7 +4,7 @@ import (
 	"context"
 	"flowforge-api/domain/entity"
 	"flowforge-api/domain/repository"
-	"flowforge-api/infrastructure/paginate"
+	endpointDTO "flowforge-api/infrastructure/endpoint"
 
 	"github.com/google/uuid"
 )
@@ -17,7 +17,7 @@ func NewListEndpointsUseCase(endpointRepo *repository.EndpointRepository) *ListE
 	return &ListEndpointsUseCase{endpointRepo: endpointRepo}
 }
 
-func (u *ListEndpointsUseCase) Execute(ctx context.Context, organizationID uuid.UUID, query paginate.PaginateQuery) ([]entity.Endpoint, int64, error) {
+func (u *ListEndpointsUseCase) Execute(ctx context.Context, organizationID uuid.UUID, query endpointDTO.PaginateEndpointQuery) ([]entity.Endpoint, int64, error) {
 	endpoints, total, err := (*u.endpointRepo).List(ctx, organizationID, query)
 	if err != nil {
 		return []entity.Endpoint{}, 0, err

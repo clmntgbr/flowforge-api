@@ -2,9 +2,41 @@ package endpoint
 
 import (
 	"flowforge-api/domain/types"
+	"flowforge-api/infrastructure/paginate"
 	"flowforge-api/infrastructure/tag"
 	"mime/multipart"
+	"strings"
+
+	"github.com/google/uuid"
 )
+
+type PaginateEndpointQuery struct {
+	paginate.PaginateQuery
+	Tags string `query:"tags"`
+}
+
+func (q PaginateEndpointQuery) TagIDs() []uuid.UUID {
+	if q.Tags == "" {
+		return nil
+	}
+
+	tagIDs := make([]uuid.UUID, 0)
+	for _, part := range strings.Split(q.Tags, ",") {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			continue
+		}
+
+		tagID, err := uuid.Parse(part)
+		if err != nil {
+			continue
+		}
+
+		tagIDs = append(tagIDs, tagID)
+	}
+
+	return tagIDs
+}
 
 type CreateEndpointInput struct {
 	Name           string        `json:"name" validate:"required,min=2,max=255"`

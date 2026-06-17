@@ -3,13 +3,13 @@ package repository
 import (
 	"context"
 	"flowforge-api/domain/entity"
-	"flowforge-api/infrastructure/paginate"
+	endpointDTO "flowforge-api/infrastructure/endpoint"
 
 	"github.com/google/uuid"
 )
 
 type EndpointRepository interface {
-	List(ctx context.Context, organizationID uuid.UUID, query paginate.PaginateQuery) ([]entity.Endpoint, int64, error)
+	List(ctx context.Context, organizationID uuid.UUID, query endpointDTO.PaginateEndpointQuery) ([]entity.Endpoint, int64, error)
 	Create(ctx context.Context, endpoint *entity.Endpoint) error
 	Update(ctx context.Context, endpoint *entity.Endpoint) error
 	Delete(ctx context.Context, id uuid.UUID) error
