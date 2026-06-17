@@ -7,20 +7,19 @@ import (
 )
 
 type WorkflowRunResponse struct {
-	ID            string                   `json:"id"`
-	Status        enum.WorkflowRunStatus   `json:"status"`
-	Statuses      []enum.WorkflowRunStatus `json:"statuses"`
-	ExecutedSteps []string                 `json:"executed_steps"`
-	FailedSteps   []string                 `json:"failed_steps"`
-	SkippedSteps  []string                 `json:"skipped_steps"`
-	StartedAt     *time.Time               `json:"started_at"`
-	CompletedAt   *time.Time               `json:"completed_at"`
-	StepsRuns     []StepRunDetailResponse  `json:"steps_runs"`
-	TotalSteps    int                      `json:"total_steps"`
-	FailedAt      *time.Time               `json:"failed_at"`
-	CanceledAt    *time.Time               `json:"canceled_at"`
-	CreatedAt     time.Time                `json:"created_at"`
-	UpdatedAt     time.Time                `json:"updated_at"`
+	ID           string                   `json:"id"`
+	Status       enum.WorkflowRunStatus   `json:"status"`
+	Statuses     []enum.WorkflowRunStatus `json:"statuses"`
+	FailedSteps  []string                 `json:"failed_steps"`
+	SkippedSteps []string                 `json:"skipped_steps"`
+	StartedAt    *time.Time               `json:"started_at"`
+	CompletedAt  *time.Time               `json:"completed_at"`
+	StepsRuns    []StepRunDetailResponse  `json:"steps_runs"`
+	TotalSteps   int                      `json:"total_steps"`
+	FailedAt     *time.Time               `json:"failed_at"`
+	CanceledAt   *time.Time               `json:"canceled_at"`
+	CreatedAt    time.Time                `json:"created_at"`
+	UpdatedAt    time.Time                `json:"updated_at"`
 }
 
 func NewWorkflowRunResponses(workflowRuns []entity.WorkflowRun) []WorkflowRunResponse {
@@ -33,19 +32,18 @@ func NewWorkflowRunResponses(workflowRuns []entity.WorkflowRun) []WorkflowRunRes
 
 func NewWorkflowRunResponse(workflowRun entity.WorkflowRun) WorkflowRunResponse {
 	return WorkflowRunResponse{
-		ID:            workflowRun.ID.String(),
-		Status:        workflowRun.Status,
-		Statuses:      workflowRun.Statuses,
-		ExecutedSteps: workflowRun.ExecutedSteps,
-		FailedSteps:   workflowRun.FailedSteps,
-		SkippedSteps:  workflowRun.SkippedSteps,
-		StartedAt:     workflowRun.StartedAt,
-		CompletedAt:   workflowRun.CompletedAt,
-		TotalSteps:    workflowRun.TotalSteps,
-		FailedAt:      workflowRun.FailedAt,
-		CanceledAt:    workflowRun.CanceledAt,
-		CreatedAt:     workflowRun.CreatedAt,
-		UpdatedAt:     workflowRun.UpdatedAt,
-		StepsRuns:     NewStepRunDetailResponses(workflowRun.StepsRuns),
+		ID:           workflowRun.ID.String(),
+		Status:       workflowRun.Status,
+		Statuses:     workflowRun.Statuses,
+		FailedSteps:  workflowRun.FailedSteps,
+		SkippedSteps: workflowRun.SkippedSteps,
+		StartedAt:    workflowRun.StartedAt,
+		CompletedAt:  workflowRun.CompletedAt,
+		TotalSteps:   workflowRun.TotalSteps,
+		FailedAt:     workflowRun.FailedAt,
+		CanceledAt:   workflowRun.CanceledAt,
+		CreatedAt:    workflowRun.CreatedAt,
+		UpdatedAt:    workflowRun.UpdatedAt,
+		StepsRuns:    NewStepRunDetailResponses(workflowRun.StepsRuns),
 	}
 }
