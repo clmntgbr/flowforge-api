@@ -25,6 +25,10 @@ func (u *UpdateWorkflowUseCase) Execute(ctx context.Context, organizationID uuid
 
 	workflow.Name = request.Name
 	workflow.Description = request.Description
+	workflow.NotificationsEnabled = request.NotificationsEnabled
+	workflow.NotifyOnSuccess = request.NotifyOnSuccess
+	workflow.NotifyOnFailure = request.NotifyOnFailure
+	workflow.NotifyOnCancel = request.NotifyOnCancel
 
 	err = (*u.workflowRepo).Update(ctx, &workflow)
 	if err != nil {

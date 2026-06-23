@@ -23,10 +23,10 @@ type Workflow struct {
 	ScheduleIntervalMinutes int `gorm:"default:0" json:"schedule_interval_minutes"`
 	Concurrency             int `gorm:"default:1" json:"concurrency"`
 
-	NotificationsEnabled bool   `gorm:"default:true" json:"notifications_enabled"`
-	NotifyOnSuccess      bool   `gorm:"default:true" json:"notify_on_success"`
-	NotifyOnFailure      bool   `gorm:"default:true" json:"notify_on_failure"`
-	NotificationChannels string `gorm:"type:jsonb;default:'[\"email\"]'" json:"notification_channels"`
+	NotificationsEnabled bool `gorm:"default:true" json:"notifications_enabled"`
+	NotifyOnSuccess      bool `gorm:"default:true" json:"notify_on_success"`
+	NotifyOnFailure      bool `gorm:"default:true" json:"notify_on_failure"`
+	NotifyOnCancel       bool `gorm:"default:true" json:"notify_on_cancel"`
 
 	CreatedAt time.Time `gorm:"autoCreateTime;index:idx_workflow_created" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`

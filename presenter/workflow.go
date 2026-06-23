@@ -16,15 +16,21 @@ type WorkflowListResponse struct {
 }
 
 type WorkflowDetailResponse struct {
-	ID          string                    `json:"id"`
-	Name        string                    `json:"name"`
-	Status      enum.WorkflowStatus       `json:"status"`
-	IsActive    bool                      `json:"isActive"`
-	CreatedAt   time.Time                 `json:"createdAt"`
-	UpdatedAt   time.Time                 `json:"updatedAt"`
-	Description string                    `json:"description"`
-	Steps       []StepDetailResponse      `json:"steps"`
-	Connexions  []ConnexionDetailResponse `json:"connexions"`
+	ID                      string                    `json:"id"`
+	Name                    string                    `json:"name"`
+	Status                  enum.WorkflowStatus       `json:"status"`
+	IsActive                bool                      `json:"isActive"`
+	CreatedAt               time.Time                 `json:"createdAt"`
+	UpdatedAt               time.Time                 `json:"updatedAt"`
+	Description             string                    `json:"description"`
+	Steps                   []StepDetailResponse      `json:"steps"`
+	Connexions              []ConnexionDetailResponse `json:"connexions"`
+	ScheduleIntervalMinutes int                       `json:"scheduleIntervalMinutes"`
+	Concurrency             int                       `json:"concurrency"`
+	NotificationsEnabled    bool                      `json:"notificationsEnabled"`
+	NotifyOnSuccess         bool                      `json:"notifyOnSuccess"`
+	NotifyOnFailure         bool                      `json:"notifyOnFailure"`
+	NotifyOnCancel          bool                      `json:"notifyOnCancel"`
 }
 
 func NewWorkflowListResponse(workflow entity.Workflow) WorkflowListResponse {
@@ -48,14 +54,20 @@ func NewWorkflowListResponses(workflows []entity.Workflow) []WorkflowListRespons
 
 func NewWorkflowDetailResponse(workflow entity.Workflow) WorkflowDetailResponse {
 	return WorkflowDetailResponse{
-		ID:          workflow.ID.String(),
-		Name:        workflow.Name,
-		Status:      workflow.Status,
-		IsActive:    workflow.Status == enum.WorkflowStatusActive,
-		CreatedAt:   workflow.CreatedAt,
-		UpdatedAt:   workflow.UpdatedAt,
-		Description: workflow.Description,
-		Steps:       NewStepDetailResponses(workflow.Steps),
-		Connexions:  NewConnexionDetailResponses(workflow.Connexions),
+		ID:                      workflow.ID.String(),
+		Name:                    workflow.Name,
+		Status:                  workflow.Status,
+		IsActive:                workflow.Status == enum.WorkflowStatusActive,
+		CreatedAt:               workflow.CreatedAt,
+		UpdatedAt:               workflow.UpdatedAt,
+		Description:             workflow.Description,
+		Steps:                   NewStepDetailResponses(workflow.Steps),
+		Connexions:              NewConnexionDetailResponses(workflow.Connexions),
+		ScheduleIntervalMinutes: workflow.ScheduleIntervalMinutes,
+		Concurrency:             workflow.Concurrency,
+		NotificationsEnabled:    workflow.NotificationsEnabled,
+		NotifyOnSuccess:         workflow.NotifyOnSuccess,
+		NotifyOnFailure:         workflow.NotifyOnFailure,
+		NotifyOnCancel:          workflow.NotifyOnCancel,
 	}
 }

@@ -162,6 +162,7 @@ func (h *WorkflowHandler) UpdateWorkflow(c fiber.Ctx) error {
 	if err := c.Bind().JSON(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -176,6 +177,7 @@ func (h *WorkflowHandler) UpdateWorkflow(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to update workflow",
+			"errors":  err.Error(),
 		})
 	}
 
