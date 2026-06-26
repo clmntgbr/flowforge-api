@@ -134,19 +134,43 @@ func (u *ReplaceVariablesUseCase) extractValueFromResponse(response string, path
 		return ""
 	}
 
-	pathParts := strings.Split(path, ".")
+	// Split path by '.' but handle array indices like [0]
 	current := data
+	pathParts := splitPath(path)
 
 	for _, part := range pathParts {
-		switch v := current.(type) {
-		case map[string]interface{}:
-			var ok bool
-			current, ok = v[part]
-			if !ok {
+		// Check if this part is an array index like [0]
+		if strings.HasPrefix(part, "[") && strings.HasSuffix(part, "]") {
+			// Extract index
+			indexStr := part[1 : len(part)-1]
+			index := 0
+			if _, err := fmt.Sscanf(indexStr, "%d", &index); err != nil {
 				return ""
 			}
-		default:
-			return ""
+
+			// Access array element
+			switch v := current.(type) {
+			case []interface{}:
+				if index >= 0 && index < len(v) {
+					current = v[index]
+				} else {
+					return ""
+				}
+			default:
+				return ""
+			}
+		} else {
+			// Normal object property
+			switch v := current.(type) {
+			case map[string]interface{}:
+				var ok bool
+				current, ok = v[part]
+				if !ok {
+					return ""
+				}
+			default:
+				return ""
+			}
 		}
 	}
 
@@ -166,4 +190,42 @@ func (u *ReplaceVariablesUseCase) extractValueFromResponse(response string, path
 		}
 		return string(jsonBytes)
 	}
+}
+
+// splitPath splits a path like "data[0].user.name" into ["data", "[0]", "user", "name"]
+func splitPath(path string) []string {
+	var parts []string
+	current := ""
+	inBracket := false
+
+	for i := 0; i < len(path); i++ {
+		ch := path[i]
+
+		if ch == '[' {
+			if current != "" {
+				parts = append(parts, current)
+				current = ""
+			}
+			inBracket = true
+			current = "["
+		} else if ch == ']' {
+			current += "]"
+			parts = append(parts, current)
+			current = ""
+			inBracket = false
+		} else if ch == '.' && !inBracket {
+			if current != "" {
+				parts = append(parts, current)
+				current = ""
+			}
+		} else {
+			current += string(ch)
+		}
+	}
+
+	if current != "" {
+		parts = append(parts, current)
+	}
+
+	return parts
 }

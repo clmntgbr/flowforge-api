@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flowforge-api/domain/repository"
 	variableDTO "flowforge-api/infrastructure/variable"
+	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
@@ -62,8 +63,21 @@ func extractPaths(data interface{}, currentPath string, query string) []string {
 			paths = append(paths, extractPaths(value, newPath, query)...)
 		}
 	case []interface{}:
-		if len(v) > 0 {
-			paths = append(paths, extractPaths(v[0], currentPath, query)...)
+		// For arrays, we generate paths for each element with index notation
+		// Limit to first 5 elements to avoid too many results
+		maxElements := len(v)
+		if maxElements > 5 {
+			maxElements = 5
+		}
+		
+		for i := 0; i < maxElements; i++ {
+			indexPath := currentPath
+			if currentPath == "" {
+				indexPath = "[" + strconv.Itoa(i) + "]"
+			} else {
+				indexPath = currentPath + "[" + strconv.Itoa(i) + "]"
+			}
+			paths = append(paths, extractPaths(v[i], indexPath, query)...)
 		}
 	}
 
