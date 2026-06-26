@@ -82,6 +82,8 @@ func setupWorkflowsRoutes(api fiber.Router, container *wire.Container) {
 	api.Get("/workflows/:id/analytics", container.WorkflowHandler.GetWorkflowAnalytics)
 	api.Post("/workflows/:id/start", container.WorkflowHandler.StartWorkflow)
 	api.Post("/workflows/:id/stop", container.WorkflowHandler.StopWorkflow)
+
+	api.Get("/workflows/:id/variables", container.VariableHandler.GetVariablesByWorkflowID)
 }
 
 func setupTagsRoutes(api fiber.Router, container *wire.Container) {

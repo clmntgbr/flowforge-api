@@ -17,6 +17,7 @@ import (
 	"flowforge-api/usecase/step_run"
 	"flowforge-api/usecase/tag"
 	"flowforge-api/usecase/user"
+	"flowforge-api/usecase/variable"
 	"flowforge-api/usecase/workflow"
 	"flowforge-api/usecase/workflow_run"
 	"log"
@@ -35,6 +36,7 @@ type Container struct {
 	StepHandler            *handler.StepHandler
 	WorkflowHandler        *handler.WorkflowHandler
 	TagHandler             *handler.TagHandler
+	VariableHandler        *handler.VariableHandler
 }
 
 func NewContainer(db *gorm.DB, env *config.Config) *Container {
@@ -59,6 +61,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	tagRepo := repoGorm.NewTagRepository(db)
 	workflowRunRepo := repoGorm.NewWorkflowRunRepository(db)
 	stepRunRepo := repoGorm.NewStepRunRepository(db)
+	variableRepo := repoGorm.NewVariableRepository(db)
 
 	getTagsUseCase := tag.NewGetTagsUseCase(&tagRepo)
 	getTagOrCreateUseCase := tag.NewGetTagOrCreateUseCase(&tagRepo)
@@ -138,6 +141,8 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		updateUserUseCase,
 	)
 
+	getVariablesByWorkflowIDUseCase := variable.NewGetVariablesByWorkflowIDUseCase(&variableRepo)
+
 	return &Container{
 		AuthenticateMiddleware: authenticateMiddleware,
 		ClerkMiddleware:        clerkMiddleware,
@@ -190,6 +195,9 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 
 		TagHandler: handler.NewTagHandler(
 			getTagsUseCase,
+		),
+		VariableHandler: handler.NewVariableHandler(
+			getVariablesByWorkflowIDUseCase,
 		),
 	}
 }
