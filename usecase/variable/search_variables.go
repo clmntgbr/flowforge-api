@@ -25,24 +25,39 @@ func NewSearchVariablesPathUseCase(variableRepo *repository.VariableRepository, 
 	}
 }
 
-func (u *SearchVariablesPathUseCase) Execute(ctx context.Context, workflowID uuid.UUID, request variableDTO.SearchVariablesPathInput) ([]string, error) {
+func (u *SearchVariablesPathUseCase) Execute(ctx context.Context, workflowID uuid.UUID, request variableDTO.SearchVariablesPathInput) ([]string, int, error) {
 	stepRun, err := (*u.stepRunRepo).GetLatestCompletedByStepID(ctx, request.StepID)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	if stepRun.Response == "" {
-		return []string{}, nil
+		return []string{}, 0, nil
 	}
 
 	var responseData interface{}
 	if err := json.Unmarshal([]byte(stepRun.Response), &responseData); err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	paths := extractPaths(responseData, "", request.Query)
+	allPaths := extractPaths(responseData, "", request.Query)
+	total := len(allPaths)
 
-	return paths, nil
+	// Apply pagination
+	start := request.Offset()
+	end := start + request.Limit
+
+	if start >= total {
+		return []string{}, total, nil
+	}
+
+	if end > total {
+		end = total
+	}
+
+	paginatedPaths := allPaths[start:end]
+
+	return paginatedPaths, total, nil
 }
 
 func extractPaths(data interface{}, currentPath string, query string) []string {

@@ -145,6 +145,14 @@ func (h *VariableHandler) SearchVariablesPath(c fiber.Ctx) error {
 		})
 	}
 
+	if err := c.Bind().Query(&request); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid query parameters",
+		})
+	}
+
+	request.Normalize()
+
 	if err := validator.New().Struct(request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
@@ -152,14 +160,20 @@ func (h *VariableHandler) SearchVariablesPath(c fiber.Ctx) error {
 		})
 	}
 
-	variables, err := h.searchVariablesPathUseCase.Execute(c.Context(), workflow.ID, request)
+	paths, total, err := h.searchVariablesPathUseCase.Execute(c.Context(), workflow.ID, request)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Internal server error",
 		})
 	}
 
+	totalPages := (total + request.Limit - 1) / request.Limit
+
 	return c.JSON(fiber.Map{
-		"paths": variables,
+		"paths":      paths,
+		"total":      total,
+		"page":       request.Page,
+		"limit":      request.Limit,
+		"totalPages": totalPages,
 	})
 }

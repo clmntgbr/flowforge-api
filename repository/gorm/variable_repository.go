@@ -33,7 +33,9 @@ func (r *variableRepository) GetVariablesByWorkflowID(ctx context.Context, workf
 	var variables []entity.Variable
 
 	db := dbWithContext(ctx, r.db).Model(&entity.Variable{}).
-		Where("variables.workflow_id = ?", workflowID)
+		Where("variables.workflow_id = ?", workflowID).
+		Preload("Step").
+		Preload("Step.Endpoint")
 
 	err := db.Find(&variables).Error
 	if err != nil {

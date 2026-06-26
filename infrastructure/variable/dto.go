@@ -16,4 +16,19 @@ type UpdateVariableInput struct {
 type SearchVariablesPathInput struct {
 	StepID uuid.UUID `json:"stepId" validate:"required,uuid"`
 	Query  string    `json:"query" validate:"omitempty,min=2,max=255"`
+	Page   int       `json:"page" query:"page"`
+	Limit  int       `json:"limit" query:"limit"`
+}
+
+func (s *SearchVariablesPathInput) Normalize() {
+	if s.Page <= 0 {
+		s.Page = 1
+	}
+	if s.Limit <= 0 || s.Limit > 100 {
+		s.Limit = 20
+	}
+}
+
+func (s *SearchVariablesPathInput) Offset() int {
+	return (s.Page - 1) * s.Limit
 }
