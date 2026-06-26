@@ -54,20 +54,18 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 
 	userRepo := repoGorm.NewUserRepository(db)
 	organizationRepo := repoGorm.NewOrganizationRepository(db)
+	tagRepo := repoGorm.NewTagRepository(db)
 	endpointRepo := repoGorm.NewEndpointRepository(db)
 	connexionRepo := repoGorm.NewConnexionRepository(db)
 	stepRepo := repoGorm.NewStepRepository(db)
 	workflowRepo := repoGorm.NewWorkflowRepository(db)
-	tagRepo := repoGorm.NewTagRepository(db)
 	workflowRunRepo := repoGorm.NewWorkflowRunRepository(db)
 	stepRunRepo := repoGorm.NewStepRunRepository(db)
 	variableRepo := repoGorm.NewVariableRepository(db)
 
-	getTagsUseCase := tag.NewGetTagsUseCase(&tagRepo)
-	getTagOrCreateUseCase := tag.NewGetTagOrCreateUseCase(&tagRepo)
-
 	validateTokenUseCase := auth.NewValidateTokenUseCase(jwksProvider, &userRepo)
 	fetchUserUseCase := clerk.NewFetchUserUseCase(env)
+
 	getUserByClerkIDUseCase := user.NewGetUserByClerkIDUseCase(&userRepo)
 	createUserUseCase := user.NewCreateUserUseCase(&userRepo)
 	updateUserUseCase := user.NewUpdateUserUseCase(&userRepo)
@@ -79,6 +77,9 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	updateOrganizationUseCase := organization.NewUpdateOrganizationUseCase(&organizationRepo)
 	activateOrganizationUseCase := organization.NewActivateOrganizationUseCase(&organizationRepo)
 
+	getTagsUseCase := tag.NewGetTagsUseCase(&tagRepo)
+	getTagOrCreateUseCase := tag.NewGetTagOrCreateUseCase(&tagRepo)
+
 	listEndpointsUseCase := endpoint.NewListEndpointsUseCase(&endpointRepo)
 	createEndpointUseCase := endpoint.NewCreateEndpointUseCase(&endpointRepo, getTagOrCreateUseCase)
 	updateEndpointUseCase := endpoint.NewUpdateEndpointUseCase(&endpointRepo, getTagOrCreateUseCase)
@@ -86,26 +87,27 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	importFromOpenAPIUseCase := endpoint.NewImportFromOpenAPIUseCase(&endpointRepo, createEndpointUseCase, getTagOrCreateUseCase)
 	endpointHasStepUseCase := endpoint.NewEndpointHasStepUseCase(&stepRepo)
 	deleteEndpointUseCase := endpoint.NewDeleteEndpointUseCase(&endpointRepo)
-	createStepUseCase := step.NewCreateStepUseCase(&stepRepo)
-	assignTreeIndicesUseCase := step.NewAssignTreeIndicesUseCase(&stepRepo, &connexionRepo)
 
+	assignTreeIndicesUseCase := step.NewAssignTreeIndicesUseCase(&stepRepo, &connexionRepo)
 	createConnexionUseCase := connexion.NewCreateConnexionUseCase(&connexionRepo, assignTreeIndicesUseCase)
 	deleteConnexionUseCase := connexion.NewDeleteConnexionUseCase(&connexionRepo, assignTreeIndicesUseCase)
 
-	listWorkflowsUseCase := workflow.NewListWorkflowsUseCase(&workflowRepo)
-	createWorkflowUseCase := workflow.NewCreateWorkflowUseCase(&workflowRepo)
-	calculateExecutionOrderUseCase := step.NewCalculateExecutionOrderUseCase()
+	createStepUseCase := step.NewCreateStepUseCase(&stepRepo)
 	getStepUseCase := step.NewGetStepUseCase(&stepRepo)
 	updateStepUseCase := step.NewUpdateStepUseCase(&stepRepo)
 	deleteStepUseCase := step.NewDeleteStepUseCase(&stepRepo, &connexionRepo, &workflowRepo)
+	calculateExecutionOrderUseCase := step.NewCalculateExecutionOrderUseCase()
+
+	hasStepRunUseCase := step_run.NewHasStepRunUseCase(&stepRunRepo)
+	createStepRunUseCase := step_run.NewCreateStepRunUseCase(&stepRunRepo, &stepRepo)
+	executeStepRunUseCase := step_run.NewExecuteStepRunUseCase(&stepRunRepo, &stepRepo)
+
+	listWorkflowsUseCase := workflow.NewListWorkflowsUseCase(&workflowRepo)
+	createWorkflowUseCase := workflow.NewCreateWorkflowUseCase(&workflowRepo)
 	getWorkflowUseCase := workflow.NewGetWorkflowUseCase(&workflowRepo)
 	updateWorkflowUseCase := workflow.NewUpdateWorkflowUseCase(&workflowRepo)
 	activateWorkflowUseCase := workflow.NewActivateWorkflowUseCase(&workflowRepo)
 	deactivateWorkflowUseCase := workflow.NewDeactivateWorkflowUseCase(&workflowRepo)
-	getWorkflowAnalyticsUseCase := workflow_run.NewGetWorkflowAnalyticsUseCase(
-		&workflowRepo,
-		&workflowRunRepo,
-	)
 	upsertWorkflowUseCase := workflow.NewUpsertWorkflowUseCase(
 		&workflowRepo,
 		&stepRepo,
@@ -115,22 +117,48 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		createStepUseCase,
 		assignTreeIndicesUseCase,
 	)
+
+	createWorkflowRunUseCase := workflow_run.NewCreateWorkflowRunUseCase(&workflowRunRepo)
+	executeWorkflowRunUseCase := workflow_run.NewExecuteWorkflowRunUseCase(&workflowRunRepo)
+	computeSkippedStepsUseCase := workflow_run.NewComputeSkippedStepsUseCase(&stepRepo)
 	getWorkflowRunsUseCase := workflow_run.NewGetWorkflowRunsUseCase(
 		&workflowRepo,
 		&workflowRunRepo,
 	)
+	getWorkflowAnalyticsUseCase := workflow_run.NewGetWorkflowAnalyticsUseCase(
+		&workflowRepo,
+		&workflowRunRepo,
+	)
 
-	createWorkflowRunUseCase := workflow_run.NewCreateWorkflowRunUseCase(&workflowRunRepo)
-	hasStepRunUseCase := step_run.NewHasStepRunUseCase(&stepRunRepo)
-	createStepRunUseCase := step_run.NewCreateStepRunUseCase(&stepRunRepo, &stepRepo)
-	executeStepRunUseCase := step_run.NewExecuteStepRunUseCase(&stepRunRepo, &stepRepo)
-	executeWorkflowRunUseCase := workflow_run.NewExecuteWorkflowRunUseCase(&workflowRunRepo)
-	computeSkippedStepsUseCase := workflow_run.NewComputeSkippedStepsUseCase(&stepRepo)
+	runWorkflowUseCase := workflow.NewRunWorkflowUseCase(
+		&workflowRepo,
+		&workflowRunRepo,
+		&stepRepo,
+		createWorkflowRunUseCase,
+		hasStepRunUseCase,
+		createStepRunUseCase,
+		executeStepRunUseCase,
+		executeWorkflowRunUseCase,
+		env,
+		stepRunPublisher,
+	)
+	startWorkflowUseCase := workflow.NewStartWorkflowUseCase(
+		&workflowRepo,
+		&workflowRunRepo,
+		runWorkflowUseCase,
+		mercurePublisher,
+	)
+	stopWorkflowUseCase := workflow.NewStopWorkflowUseCase(
+		&workflowRepo,
+		&workflowRunRepo,
+		&stepRunRepo,
+		runWorkflowUseCase,
+		computeSkippedStepsUseCase,
+		mercurePublisher,
+	)
 
-	runWorkflowUseCase := workflow.NewRunWorkflowUseCase(&workflowRepo, &workflowRunRepo, &stepRepo, createWorkflowRunUseCase, hasStepRunUseCase, createStepRunUseCase, executeStepRunUseCase, executeWorkflowRunUseCase, env, stepRunPublisher)
-
-	startWorkflowUseCase := workflow.NewStartWorkflowUseCase(&workflowRepo, &workflowRunRepo, runWorkflowUseCase, mercurePublisher)
-	stopWorkflowUseCase := workflow.NewStopWorkflowUseCase(&workflowRepo, &workflowRunRepo, &stepRunRepo, runWorkflowUseCase, computeSkippedStepsUseCase, mercurePublisher)
+	getVariablesByWorkflowIDUseCase := variable.NewGetVariablesByWorkflowIDUseCase(&variableRepo)
+	createVariableUseCase := variable.NewCreateVariableUseCase(&variableRepo, &workflowRepo)
 
 	clerkMiddleware := middleware.NewClerkMiddleware(env.ClerkWebhookSecret)
 	authenticateMiddleware := middleware.NewAuthenticateMiddleware(
@@ -140,8 +168,6 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		createOrganizationUseCase,
 		updateUserUseCase,
 	)
-
-	getVariablesByWorkflowIDUseCase := variable.NewGetVariablesByWorkflowIDUseCase(&variableRepo)
 
 	return &Container{
 		AuthenticateMiddleware: authenticateMiddleware,
@@ -192,12 +218,12 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 			startWorkflowUseCase,
 			stopWorkflowUseCase,
 		),
-
 		TagHandler: handler.NewTagHandler(
 			getTagsUseCase,
 		),
 		VariableHandler: handler.NewVariableHandler(
 			getVariablesByWorkflowIDUseCase,
+			createVariableUseCase,
 		),
 	}
 }
