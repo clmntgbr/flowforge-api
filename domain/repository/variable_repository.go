@@ -12,4 +12,5 @@ type VariableRepository interface {
 	Update(ctx context.Context, variable *entity.Variable) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	GetVariablesByWorkflowID(ctx context.Context, workflowID uuid.UUID) ([]entity.Variable, error)
+	GetVariableByIDAndWorkflowID(ctx context.Context, workflowID uuid.UUID, variableID uuid.UUID) (entity.Variable, error)
 }

@@ -17,6 +17,8 @@ type VariableHandler struct {
 	createVariableUseCase           *variable.CreateVariableUseCase
 	getWorkflowUseCase              *workflow.GetWorkflowUseCase
 	searchVariablesPathUseCase      *variable.SearchVariablesPathUseCase
+	getVariableByIDUseCase          *variable.GetVariableByIDUseCase
+	updateVariableUseCase           *variable.UpdateVariableUseCase
 }
 
 func NewVariableHandler(
@@ -24,12 +26,16 @@ func NewVariableHandler(
 	createVariableUseCase *variable.CreateVariableUseCase,
 	getWorkflowUseCase *workflow.GetWorkflowUseCase,
 	searchVariablesPathUseCase *variable.SearchVariablesPathUseCase,
+	getVariableByIDUseCase *variable.GetVariableByIDUseCase,
+	updateVariableUseCase *variable.UpdateVariableUseCase,
 ) *VariableHandler {
 	return &VariableHandler{
 		getVariablesByWorkflowIDUseCase: getVariablesByWorkflowIDUseCase,
 		createVariableUseCase:           createVariableUseCase,
 		getWorkflowUseCase:              getWorkflowUseCase,
 		searchVariablesPathUseCase:      searchVariablesPathUseCase,
+		getVariableByIDUseCase:          getVariableByIDUseCase,
+		updateVariableUseCase:           updateVariableUseCase,
 	}
 }
 
@@ -175,5 +181,104 @@ func (h *VariableHandler) SearchVariablesPath(c fiber.Ctx) error {
 		"page":       request.Page,
 		"limit":      request.Limit,
 		"totalPages": totalPages,
+	})
+}
+
+func (h *VariableHandler) GetVariableByID(c fiber.Ctx) error {
+	activeOrganizationID, err := context.GetOrganizationID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+
+	workflowID := c.Params("id")
+	workflowUUID, err := uuid.Parse(workflowID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid workflow ID",
+		})
+	}
+
+	workflow, err := h.getWorkflowUseCase.Execute(c.Context(), activeOrganizationID, workflowUUID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Internal server error",
+		})
+	}
+
+	variableID := c.Params("variableId")
+	variableUUID, err := uuid.Parse(variableID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid variable ID",
+		})
+	}
+
+	variable, err := h.getVariableByIDUseCase.Execute(c.Context(), workflow.ID, variableUUID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Internal server error",
+		})
+	}
+
+	return c.JSON(presenter.NewVariableResponse(variable))
+}
+
+func (h *VariableHandler) UpdateVariable(c fiber.Ctx) error {
+	activeOrganizationID, err := context.GetOrganizationID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized",
+		})
+	}
+
+	workflowID := c.Params("id")
+	workflowUUID, err := uuid.Parse(workflowID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid workflow ID",
+		})
+	}
+
+	workflow, err := h.getWorkflowUseCase.Execute(c.Context(), activeOrganizationID, workflowUUID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Internal server error",
+		})
+	}
+
+	variableID := c.Params("variableId")
+	variableUUID, err := uuid.Parse(variableID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid variable ID",
+		})
+	}
+
+	var request variableDTO.UpdateVariableInput
+	if err := c.Bind().JSON(&request); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid request body",
+			"errors":  err.Error(),
+		})
+	}
+
+	if err := validator.New().Struct(request); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid request body",
+			"errors":  err.Error(),
+		})
+	}
+
+	_, err = h.updateVariableUseCase.Execute(c.Context(), workflow.ID, variableUUID, request)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to update variable",
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"success": true,
 	})
 }

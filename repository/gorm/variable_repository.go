@@ -44,3 +44,20 @@ func (r *variableRepository) GetVariablesByWorkflowID(ctx context.Context, workf
 
 	return variables, nil
 }
+
+func (r *variableRepository) GetVariableByIDAndWorkflowID(ctx context.Context, workflowID uuid.UUID, variableID uuid.UUID) (entity.Variable, error) {
+	var variable entity.Variable
+
+	db := dbWithContext(ctx, r.db).Model(&entity.Variable{}).
+		Where("variables.id = ?", variableID).
+		Where("variables.workflow_id = ?", workflowID).
+		Preload("Step").
+		Preload("Step.Endpoint")
+
+	err := db.Find(&variable).Error
+	if err != nil {
+		return entity.Variable{}, err
+	}
+
+	return variable, nil
+}
