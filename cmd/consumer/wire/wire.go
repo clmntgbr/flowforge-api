@@ -10,6 +10,7 @@ import (
 	"flowforge-api/usecase/insight"
 	usecaseStep "flowforge-api/usecase/step"
 	"flowforge-api/usecase/step_run"
+	"flowforge-api/usecase/variable"
 	"flowforge-api/usecase/workflow_run"
 	"log"
 
@@ -25,6 +26,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	workflowRunRepo := repoGorm.NewWorkflowRunRepository(db)
 	stepRunRepo := repoGorm.NewStepRunRepository(db)
 	insightRepo := repoGorm.NewInsightRepository(db)
+	variableRepo := repoGorm.NewVariableRepository(db)
 
 	mercurePublisher := mercure.NewPublisher(env.MercureURL, env.MercurePublisherJWTKey)
 
@@ -39,6 +41,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	findNextStepUseCase := usecaseStep.NewFindNextStepUseCase(&stepRepo)
 	isCanceledWorkflowRunUseCase := workflow_run.NewIsCanceledWorkflowRunUseCase(&workflowRunRepo)
 	computeSkippedStepsUseCase := workflow_run.NewComputeSkippedStepsUseCase(&stepRepo)
+	replaceVariablesUseCase := variable.NewReplaceVariablesUseCase(&variableRepo, &stepRunRepo)
 
 	failedStepUseCase := consumer.NewFailedStepUseCase(
 		createInsightUseCase,
@@ -62,6 +65,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 		executeStepRunUseCase,
 		isCanceledWorkflowRunUseCase,
 		computeSkippedStepsUseCase,
+		replaceVariablesUseCase,
 		stepRunPublisher,
 		env,
 	)

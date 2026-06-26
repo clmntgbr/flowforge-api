@@ -12,6 +12,7 @@ import (
 	"flowforge-api/usecase/insight"
 	usecaseStep "flowforge-api/usecase/step"
 	"flowforge-api/usecase/step_run"
+	"flowforge-api/usecase/variable"
 	"flowforge-api/usecase/workflow_run"
 	"fmt"
 
@@ -27,6 +28,7 @@ type CompletedStepUseCase struct {
 	executeStepRunUseCase        *step_run.ExecuteStepRunUseCase
 	isCanceledWorkflowRunUseCase *workflow_run.IsCanceledWorkflowRunUseCase
 	computeSkippedStepsUseCase   *workflow_run.ComputeSkippedStepsUseCase
+	replaceVariablesUseCase      *variable.ReplaceVariablesUseCase
 	stepRunPublisher             rabbitmq.Publisher
 	env                          *config.Config
 }
@@ -40,6 +42,7 @@ func NewCompletedStepUseCase(
 	executeStepRunUseCase *step_run.ExecuteStepRunUseCase,
 	isCanceledWorkflowRunUseCase *workflow_run.IsCanceledWorkflowRunUseCase,
 	computeSkippedStepsUseCase *workflow_run.ComputeSkippedStepsUseCase,
+	replaceVariablesUseCase *variable.ReplaceVariablesUseCase,
 	stepRunPublisher rabbitmq.Publisher,
 	env *config.Config,
 ) *CompletedStepUseCase {
@@ -52,6 +55,7 @@ func NewCompletedStepUseCase(
 		executeStepRunUseCase:        executeStepRunUseCase,
 		isCanceledWorkflowRunUseCase: isCanceledWorkflowRunUseCase,
 		computeSkippedStepsUseCase:   computeSkippedStepsUseCase,
+		replaceVariablesUseCase:      replaceVariablesUseCase,
 		stepRunPublisher:             stepRunPublisher,
 		env:                          env,
 	}
@@ -138,7 +142,12 @@ func (u *CompletedStepUseCase) Execute(ctx context.Context, message consumerDTO.
 		return nil
 	}
 
-	nextStepRun, err := u.createStepRunUseCase.Execute(ctx, workflowRun.ID, nextStep.ID)
+	nextStepWithVariables, err := u.replaceVariablesUseCase.Execute(ctx, nextStep, workflowRun.ID)
+	if err != nil {
+		return fmt.Errorf("failed to replace variables in next step: %w", err)
+	}
+
+	nextStepRun, err := u.createStepRunUseCase.Execute(ctx, workflowRun.ID, nextStepWithVariables.ID)
 	if err != nil {
 		return err
 	}
@@ -147,6 +156,8 @@ func (u *CompletedStepUseCase) Execute(ctx context.Context, message consumerDTO.
 	if err != nil {
 		return err
 	}
+
+	nextStepRun.Step = *nextStepWithVariables
 
 	event := rabbitmq.NewStepRunEvent(nextStepRun)
 	if err := u.stepRunPublisher.PublishStepRunEvent(ctx, u.env, event); err != nil {
