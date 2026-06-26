@@ -18,8 +18,8 @@ func NewCreateVariableUseCase(variableRepo *repository.VariableRepository, workf
 	return &CreateVariableUseCase{variableRepo: variableRepo, workflowRepo: workflowRepo}
 }
 
-func (u *CreateVariableUseCase) Execute(ctx context.Context, workflowID uuid.UUID, organizationID uuid.UUID, request variableDTO.CreateVariableInput) (entity.Variable, error) {
-	workflow, err := (*u.workflowRepo).GetByIDAndOrganizationID(ctx, workflowID, organizationID)
+func (u *CreateVariableUseCase) Execute(ctx context.Context, workflowID uuid.UUID, request variableDTO.CreateVariableInput) (entity.Variable, error) {
+	workflow, err := (*u.workflowRepo).GetByID(ctx, workflowID)
 	if err != nil {
 		return entity.Variable{}, err
 	}

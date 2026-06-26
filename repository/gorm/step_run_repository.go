@@ -83,3 +83,32 @@ func (r *stepRunRepository) GetByID(ctx context.Context, id uuid.UUID) (*entity.
 	}
 	return &stepRun, nil
 }
+
+func (r *stepRunRepository) GetByStepID(ctx context.Context, stepID uuid.UUID) ([]entity.StepRun, error) {
+	var stepRuns []entity.StepRun
+	err := dbWithContext(ctx, r.db).
+		Where("step_id = ?", stepID).
+		Where("status = ?", enum.StepRunStatusCompleted).
+		Where("response IS NOT NULL AND response != ''").
+		Order("created_at DESC").
+		Limit(10).
+		Find(&stepRuns).Error
+	if err != nil {
+		return nil, err
+	}
+	return stepRuns, nil
+}
+
+func (r *stepRunRepository) GetLatestCompletedByStepID(ctx context.Context, stepID uuid.UUID) (*entity.StepRun, error) {
+	var stepRun entity.StepRun
+	err := dbWithContext(ctx, r.db).
+		Where("step_id = ?", stepID).
+		Where("status = ?", enum.StepRunStatusCompleted).
+		Where("response IS NOT NULL AND response != ''").
+		Order("created_at DESC").
+		First(&stepRun).Error
+	if err != nil {
+		return nil, err
+	}
+	return &stepRun, nil
+}

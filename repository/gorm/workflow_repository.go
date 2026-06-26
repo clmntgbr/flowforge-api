@@ -73,6 +73,25 @@ func (r *workflowRepository) GetByIDAndOrganizationID(ctx context.Context, organ
 	return workflow, nil
 }
 
+func (r *workflowRepository) GetByID(ctx context.Context, workflowID uuid.UUID) (entity.Workflow, error) {
+	var workflow entity.Workflow
+
+	err := dbWithContext(ctx, r.db).Model(&entity.Workflow{}).
+		Preload("Steps", func(db *gorm.DB) *gorm.DB {
+			return db.Where("steps.is_enabled = ?", true).Order("index ASC")
+		}).
+		Preload("Steps.Endpoint").
+		Preload("Connexions").
+		Where("id = ?", workflowID).
+		First(&workflow).Error
+
+	if err != nil {
+		return entity.Workflow{}, err
+	}
+
+	return workflow, nil
+}
+
 func (r *workflowRepository) Transaction(ctx context.Context, fn func(tx *gorm.DB) error) error {
 	return r.db.WithContext(ctx).Transaction(fn)
 }

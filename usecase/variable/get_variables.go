@@ -16,8 +16,8 @@ func NewGetVariablesByWorkflowIDUseCase(variableRepo *repository.VariableReposit
 	return &GetVariablesByWorkflowIDUseCase{variableRepo: variableRepo}
 }
 
-func (u *GetVariablesByWorkflowIDUseCase) Execute(ctx context.Context, organizationID uuid.UUID, workflowID uuid.UUID) ([]entity.Variable, error) {
-	variables, err := (*u.variableRepo).GetVariablesByWorkflowID(ctx, organizationID, workflowID)
+func (u *GetVariablesByWorkflowIDUseCase) Execute(ctx context.Context, workflowID uuid.UUID) ([]entity.Variable, error) {
+	variables, err := (*u.variableRepo).GetVariablesByWorkflowID(ctx, workflowID)
 	if err != nil {
 		return []entity.Variable{}, err
 	}

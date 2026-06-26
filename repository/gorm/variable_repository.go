@@ -29,12 +29,11 @@ func (r *variableRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	return dbWithContext(ctx, r.db).Delete(&entity.Variable{}, id).Error
 }
 
-func (r *variableRepository) GetVariablesByWorkflowID(ctx context.Context, organizationID uuid.UUID, workflowID uuid.UUID) ([]entity.Variable, error) {
+func (r *variableRepository) GetVariablesByWorkflowID(ctx context.Context, workflowID uuid.UUID) ([]entity.Variable, error) {
 	var variables []entity.Variable
 
 	db := dbWithContext(ctx, r.db).Model(&entity.Variable{}).
-		Joins("JOIN workflows ON workflows.id = variables.workflow_id").
-		Where("workflows.organization_id = ? AND variables.workflow_id = ?", organizationID, workflowID)
+		Where("variables.workflow_id = ?", workflowID)
 
 	err := db.Find(&variables).Error
 	if err != nil {

@@ -15,6 +15,7 @@ type WorkflowRepository interface {
 	Update(ctx context.Context, workflow *entity.Workflow) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	GetByIDAndOrganizationID(ctx context.Context, organizationID uuid.UUID, workflowID uuid.UUID) (entity.Workflow, error)
+	GetByID(ctx context.Context, workflowID uuid.UUID) (entity.Workflow, error)
 	Transaction(ctx context.Context, fn func(tx *gorm.DB) error) error
 	GetWorkflowsForExecution(ctx context.Context) ([]entity.Workflow, error)
 }
