@@ -43,7 +43,6 @@ func (u *SearchVariablesPathUseCase) Execute(ctx context.Context, workflowID uui
 	allPaths := extractPaths(responseData, "", request.Query)
 	total := len(allPaths)
 
-	// Apply pagination
 	start := request.Offset()
 	end := start + request.Limit
 
@@ -78,8 +77,6 @@ func extractPaths(data interface{}, currentPath string, query string) []string {
 			paths = append(paths, extractPaths(value, newPath, query)...)
 		}
 	case []interface{}:
-		// For arrays, we generate paths for each element with index notation
-		// Limit to first 5 elements to avoid too many results
 		maxElements := len(v)
 		if maxElements > 5 {
 			maxElements = 5

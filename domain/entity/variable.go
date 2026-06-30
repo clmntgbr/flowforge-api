@@ -15,6 +15,10 @@ type Variable struct {
 	StepID      uuid.UUID `gorm:"type:uuid;not null;index:idx_variable_step" json:"step_id"`
 	WorkflowID  uuid.UUID `gorm:"type:uuid;not null;index:idx_variable_workflow" json:"workflow_id"`
 
+	IsSecret     bool   `gorm:"default:false" json:"is_secret"`
+	DefaultValue string `gorm:"null" json:"default_value"`
+	LastValue    string `gorm:"null" json:"last_value"`
+
 	Step     Step     `gorm:"foreignKey:StepID" json:"step"`
 	Workflow Workflow `gorm:"foreignKey:WorkflowID" json:"workflow"`
 

@@ -37,26 +37,34 @@ func (u *ReplaceVariablesUseCase) Execute(ctx context.Context, step *entity.Step
 
 	stepCopy := *step
 
-	stepCopy.URL = u.replaceInString(ctx, stepCopy.URL, variables, workflowRunID)
+	updatedVariables := make(map[uuid.UUID]*entity.Variable)
+
+	stepCopy.URL = u.replaceInStringWithTracking(ctx, stepCopy.URL, variables, workflowRunID, updatedVariables)
 
 	for i := range stepCopy.Header {
-		stepCopy.Header[i].Value = u.replaceInString(ctx, stepCopy.Header[i].Value, variables, workflowRunID)
+		stepCopy.Header[i].Value = u.replaceInStringWithTracking(ctx, stepCopy.Header[i].Value, variables, workflowRunID, updatedVariables)
 	}
 
 	for i := range stepCopy.Query {
-		stepCopy.Query[i].Value = u.replaceInString(ctx, stepCopy.Query[i].Value, variables, workflowRunID)
+		stepCopy.Query[i].Value = u.replaceInStringWithTracking(ctx, stepCopy.Query[i].Value, variables, workflowRunID, updatedVariables)
 	}
 
 	if len(stepCopy.Body) > 0 {
 		bodyStr := string(stepCopy.Body)
-		bodyStr = u.replaceInString(ctx, bodyStr, variables, workflowRunID)
+		bodyStr = u.replaceInStringWithTracking(ctx, bodyStr, variables, workflowRunID, updatedVariables)
 		stepCopy.Body = []byte(bodyStr)
+	}
+
+	for _, variable := range updatedVariables {
+		if err := (*u.variableRepo).Update(ctx, variable); err != nil {
+			log.Printf("⚠️ Failed to update LastValue for variable '%s': %v", variable.Name, err)
+		}
 	}
 
 	return &stepCopy, nil
 }
 
-func (u *ReplaceVariablesUseCase) replaceInString(ctx context.Context, input string, variables []entity.Variable, workflowRunID uuid.UUID) string {
+func (u *ReplaceVariablesUseCase) replaceInStringWithTracking(ctx context.Context, input string, variables []entity.Variable, workflowRunID uuid.UUID, updatedVariables map[uuid.UUID]*entity.Variable) string {
 	variablePattern := regexp.MustCompile(`\{\{([^}]+)\}\}`)
 
 	return variablePattern.ReplaceAllStringFunc(input, func(match string) string {
@@ -117,8 +125,20 @@ func (u *ReplaceVariablesUseCase) replaceInString(ctx context.Context, input str
 		}
 
 		log.Printf("✅ Successfully replaced '%s' with value (first 50 chars): %s", variableName, truncateString(value, 50))
+
+		if _, exists := updatedVariables[targetVariable.ID]; !exists {
+			targetVariable.LastValue = value
+			updatedVariables[targetVariable.ID] = targetVariable
+			log.Printf("💾 Tracking LastValue update for variable '%s'", variableName)
+		}
+
 		return value
 	})
+}
+
+func (u *ReplaceVariablesUseCase) replaceInString(ctx context.Context, input string, variables []entity.Variable, workflowRunID uuid.UUID) string {
+	updatedVariables := make(map[uuid.UUID]*entity.Variable)
+	return u.replaceInStringWithTracking(ctx, input, variables, workflowRunID, updatedVariables)
 }
 
 func truncateString(s string, maxLen int) string {
@@ -134,21 +154,17 @@ func (u *ReplaceVariablesUseCase) extractValueFromResponse(response string, path
 		return ""
 	}
 
-	// Split path by '.' but handle array indices like [0]
 	current := data
 	pathParts := splitPath(path)
 
 	for _, part := range pathParts {
-		// Check if this part is an array index like [0]
 		if strings.HasPrefix(part, "[") && strings.HasSuffix(part, "]") {
-			// Extract index
 			indexStr := part[1 : len(part)-1]
 			index := 0
 			if _, err := fmt.Sscanf(indexStr, "%d", &index); err != nil {
 				return ""
 			}
 
-			// Access array element
 			switch v := current.(type) {
 			case []interface{}:
 				if index >= 0 && index < len(v) {
@@ -160,7 +176,6 @@ func (u *ReplaceVariablesUseCase) extractValueFromResponse(response string, path
 				return ""
 			}
 		} else {
-			// Normal object property
 			switch v := current.(type) {
 			case map[string]interface{}:
 				var ok bool
