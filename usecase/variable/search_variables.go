@@ -61,6 +61,7 @@ func (u *SearchVariablesPathUseCase) Execute(ctx context.Context, workflowID uui
 
 func extractPaths(data interface{}, currentPath string, query string) []string {
 	var paths []string
+	queryLower := strings.ToLower(query)
 
 	switch v := data.(type) {
 	case map[string]interface{}:
@@ -70,7 +71,10 @@ func extractPaths(data interface{}, currentPath string, query string) []string {
 				newPath = currentPath + "." + key
 			}
 
-			if query == "" || strings.Contains(strings.ToLower(key), strings.ToLower(query)) || strings.Contains(strings.ToLower(newPath), strings.ToLower(query)) {
+			newPathLower := strings.ToLower(newPath)
+			keyLower := strings.ToLower(key)
+
+			if query == "" || strings.Contains(keyLower, queryLower) || strings.Contains(newPathLower, queryLower) {
 				paths = append(paths, newPath)
 			}
 
@@ -90,7 +94,12 @@ func extractPaths(data interface{}, currentPath string, query string) []string {
 				indexPath = currentPath + "[" + strconv.Itoa(i) + "]"
 			}
 			
-			if query == "" || strings.Contains(strings.ToLower(indexPath), strings.ToLower(query)) {
+			indexPathLower := strings.ToLower(indexPath)
+			shouldRecurse := query == "" || 
+				strings.Contains(indexPathLower, queryLower) || 
+				strings.HasPrefix(queryLower, indexPathLower)
+			
+			if shouldRecurse {
 				paths = append(paths, extractPaths(v[i], indexPath, query)...)
 			}
 		}
