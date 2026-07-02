@@ -6,6 +6,7 @@ import (
 	"flowforge-api/presenter"
 	"flowforge-api/usecase/variable"
 	"flowforge-api/usecase/workflow"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
@@ -92,6 +93,7 @@ func (h *VariableHandler) CreateVariable(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Internal server error",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -99,6 +101,7 @@ func (h *VariableHandler) CreateVariable(c fiber.Ctx) error {
 	if err := c.Bind().JSON(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -111,8 +114,15 @@ func (h *VariableHandler) CreateVariable(c fiber.Ctx) error {
 
 	_, err = h.createVariableUseCase.Execute(c.Context(), workflow.ID, request)
 	if err != nil {
+		if strings.Contains(err.Error(), "variable key already exists in workflow") {
+			return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+				"message": "Variable key already exists in this workflow",
+				"errors":  err.Error(),
+			})
+		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to create variable",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -253,6 +263,7 @@ func (h *VariableHandler) UpdateVariable(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid variable ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -273,12 +284,19 @@ func (h *VariableHandler) UpdateVariable(c fiber.Ctx) error {
 
 	_, err = h.updateVariableUseCase.Execute(c.Context(), workflow.ID, variableUUID, request)
 	if err != nil {
+		if strings.Contains(err.Error(), "variable key already exists in workflow") {
+			return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+				"message": "Variable key already exists in this workflow",
+				"errors":  err.Error(),
+			})
+		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to update variable",
+			"errors":  err.Error(),
 		})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"success": true,
 	})
 }

@@ -30,6 +30,10 @@ func (u *UpdateVariableUseCase) Execute(ctx context.Context, workflowID uuid.UUI
 		return entity.Variable{}, err
 	}
 
+	if err := validateUniqueKey(ctx, u.variableRepo, workflowID, request.Key, &variableID); err != nil {
+		return entity.Variable{}, err
+	}
+
 	oldKey := variable.Key
 
 	variable.Name = request.Name

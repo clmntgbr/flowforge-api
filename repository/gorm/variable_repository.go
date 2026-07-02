@@ -2,6 +2,7 @@ package gorm
 
 import (
 	"context"
+	"errors"
 	"flowforge-api/domain/entity"
 	"flowforge-api/domain/repository"
 
@@ -60,4 +61,21 @@ func (r *variableRepository) GetVariableByIDAndWorkflowID(ctx context.Context, w
 	}
 
 	return variable, nil
+}
+
+func (r *variableRepository) GetVariableByWorkflowIDAndKey(ctx context.Context, workflowID uuid.UUID, key string) (*entity.Variable, error) {
+	var variable entity.Variable
+
+	err := dbWithContext(ctx, r.db).
+		Where("workflow_id = ?", workflowID).
+		Where("key = ?", key).
+		First(&variable).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &variable, nil
 }
