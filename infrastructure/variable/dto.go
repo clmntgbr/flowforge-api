@@ -16,7 +16,7 @@ type UpdateVariableInput struct {
 
 type SearchVariablesPathInput struct {
 	StepID uuid.UUID `json:"stepId" validate:"required,uuid"`
-	Query  string    `json:"query" validate:"omitempty,min=2,max=255"`
+	Query  string    `json:"query" validate:"omitempty,min=1,max=255"`
 	Page   int       `json:"page" query:"page"`
 	Limit  int       `json:"limit" query:"limit"`
 }
