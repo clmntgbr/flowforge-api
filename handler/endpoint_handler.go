@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"flowforge-api/handler/context"
 	endpointDTO "flowforge-api/infrastructure/endpoint"
 	"flowforge-api/infrastructure/paginate"
@@ -48,6 +49,7 @@ func (h *EndpointHandler) GetEndpoints(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -55,6 +57,7 @@ func (h *EndpointHandler) GetEndpoints(c fiber.Ctx) error {
 	if err := c.Bind().Query(&query); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
+			"errors":  err.Error(),
 		})
 	}
 	query.Normalize()
@@ -63,6 +66,7 @@ func (h *EndpointHandler) GetEndpoints(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Internal server error",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -74,6 +78,7 @@ func (h *EndpointHandler) CreateEndpoint(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -81,6 +86,7 @@ func (h *EndpointHandler) CreateEndpoint(c fiber.Ctx) error {
 	if err := c.Bind().JSON(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -95,6 +101,7 @@ func (h *EndpointHandler) CreateEndpoint(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to create endpoint",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -108,6 +115,7 @@ func (h *EndpointHandler) GetEndpointByID(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -116,6 +124,7 @@ func (h *EndpointHandler) GetEndpointByID(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid endpoint ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -123,6 +132,7 @@ func (h *EndpointHandler) GetEndpointByID(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to get endpoint",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -134,6 +144,7 @@ func (h *EndpointHandler) UpdateEndpoint(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -142,6 +153,7 @@ func (h *EndpointHandler) UpdateEndpoint(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid endpoint ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -150,6 +162,7 @@ func (h *EndpointHandler) UpdateEndpoint(c fiber.Ctx) error {
 		fmt.Println("error1", err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -165,6 +178,7 @@ func (h *EndpointHandler) UpdateEndpoint(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to update endpoint",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -178,6 +192,7 @@ func (h *EndpointHandler) ImportEndpoints(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -185,6 +200,7 @@ func (h *EndpointHandler) ImportEndpoints(c fiber.Ctx) error {
 	if err := c.Bind().Form(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -199,6 +215,7 @@ func (h *EndpointHandler) ImportEndpoints(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to import endpoints",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -212,6 +229,7 @@ func (h *EndpointHandler) DeleteEndpoint(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -220,6 +238,7 @@ func (h *EndpointHandler) DeleteEndpoint(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid endpoint ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -227,12 +246,14 @@ func (h *EndpointHandler) DeleteEndpoint(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to check if endpoint has steps",
+			"errors":  err.Error(),
 		})
 	}
 
 	if hasSteps {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Endpoint has steps",
+			"errors":  errors.New("endpoint has steps").Error(),
 		})
 	}
 
@@ -240,6 +261,7 @@ func (h *EndpointHandler) DeleteEndpoint(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to delete endpoint",
+			"errors":  err.Error(),
 		})
 	}
 

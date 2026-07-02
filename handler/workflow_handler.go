@@ -61,6 +61,7 @@ func (h *WorkflowHandler) GetWorkflows(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -68,6 +69,7 @@ func (h *WorkflowHandler) GetWorkflows(c fiber.Ctx) error {
 	if err := c.Bind().Query(&query); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
+			"errors":  err.Error(),
 		})
 	}
 	query.Normalize()
@@ -76,6 +78,7 @@ func (h *WorkflowHandler) GetWorkflows(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Internal server error",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -87,6 +90,7 @@ func (h *WorkflowHandler) GetWorkflowByID(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -95,6 +99,7 @@ func (h *WorkflowHandler) GetWorkflowByID(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid workflow ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -102,6 +107,7 @@ func (h *WorkflowHandler) GetWorkflowByID(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to get workflow",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -113,6 +119,7 @@ func (h *WorkflowHandler) CreateWorkflow(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -120,6 +127,7 @@ func (h *WorkflowHandler) CreateWorkflow(c fiber.Ctx) error {
 	if err := c.Bind().JSON(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -134,6 +142,7 @@ func (h *WorkflowHandler) CreateWorkflow(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to create workflow",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -147,6 +156,7 @@ func (h *WorkflowHandler) UpdateWorkflow(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -155,6 +165,8 @@ func (h *WorkflowHandler) UpdateWorkflow(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid workflow ID",
+			"errors":  err.Error(),
+			"code":    "WORKFLOW_NOT_FOUND",
 		})
 	}
 
@@ -191,6 +203,7 @@ func (h *WorkflowHandler) ActivateWorkflow(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -199,6 +212,7 @@ func (h *WorkflowHandler) ActivateWorkflow(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid workflow ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -206,6 +220,7 @@ func (h *WorkflowHandler) ActivateWorkflow(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to activate workflow",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -219,6 +234,7 @@ func (h *WorkflowHandler) DeactivateWorkflow(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -227,6 +243,7 @@ func (h *WorkflowHandler) DeactivateWorkflow(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid workflow ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -234,6 +251,7 @@ func (h *WorkflowHandler) DeactivateWorkflow(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to deactivate workflow",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -247,6 +265,7 @@ func (h *WorkflowHandler) UpsertWorkflow(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -255,6 +274,7 @@ func (h *WorkflowHandler) UpsertWorkflow(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid workflow ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -292,6 +312,7 @@ func (h *WorkflowHandler) GetWorkflowRuns(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -300,6 +321,7 @@ func (h *WorkflowHandler) GetWorkflowRuns(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid workflow ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -307,6 +329,7 @@ func (h *WorkflowHandler) GetWorkflowRuns(c fiber.Ctx) error {
 	if err := c.Bind().Query(&query); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
+			"errors":  err.Error(),
 		})
 	}
 	query.Normalize()
@@ -315,6 +338,7 @@ func (h *WorkflowHandler) GetWorkflowRuns(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Internal server error",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -326,6 +350,7 @@ func (h *WorkflowHandler) GetWorkflowAnalytics(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -334,6 +359,7 @@ func (h *WorkflowHandler) GetWorkflowAnalytics(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid workflow ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -341,6 +367,7 @@ func (h *WorkflowHandler) GetWorkflowAnalytics(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Internal server error",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -352,6 +379,7 @@ func (h *WorkflowHandler) StartWorkflow(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -360,6 +388,7 @@ func (h *WorkflowHandler) StartWorkflow(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid workflow ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -381,6 +410,7 @@ func (h *WorkflowHandler) StopWorkflow(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -389,6 +419,7 @@ func (h *WorkflowHandler) StopWorkflow(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid workflow ID",
+			"errors":  err.Error(),
 		})
 	}
 

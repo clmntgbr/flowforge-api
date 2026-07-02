@@ -26,6 +26,7 @@ func (h *StepHandler) GetStepByID(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -34,6 +35,7 @@ func (h *StepHandler) GetStepByID(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid step ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -42,6 +44,7 @@ func (h *StepHandler) GetStepByID(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid workflow ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -49,6 +52,7 @@ func (h *StepHandler) GetStepByID(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to get step",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -60,6 +64,7 @@ func (h *StepHandler) UpdateStep(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -68,6 +73,7 @@ func (h *StepHandler) UpdateStep(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid step ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -76,6 +82,7 @@ func (h *StepHandler) UpdateStep(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid workflow ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -83,6 +90,7 @@ func (h *StepHandler) UpdateStep(c fiber.Ctx) error {
 	if err := c.Bind().JSON(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -97,6 +105,7 @@ func (h *StepHandler) UpdateStep(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to update step",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -110,6 +119,7 @@ func (h *StepHandler) DeleteStep(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -118,6 +128,7 @@ func (h *StepHandler) DeleteStep(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid step ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -126,6 +137,7 @@ func (h *StepHandler) DeleteStep(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid workflow ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -133,6 +145,7 @@ func (h *StepHandler) DeleteStep(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to delete step",
+			"errors":  err.Error(),
 		})
 	}
 

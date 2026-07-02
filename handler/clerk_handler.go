@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	clerkdto "flowforge-api/infrastructure/clerk"
 	"flowforge-api/usecase/organization"
 	"flowforge-api/usecase/user"
@@ -43,16 +44,21 @@ func (h *ClerkHandler) Execute(c fiber.Ctx) error {
 		if err := json.Unmarshal(clerkEvent.Data, &data); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "Invalid request body",
+				"errors":  err.Error(),
 			})
 		}
 
 		if err := validate.Struct(data); err != nil {
-			return err
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "Invalid request body",
+				"errors":  err.Error(),
+			})
 		}
 
 		if err := h.CreateUser(c, data); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "Failed to create user",
+				"errors":  err.Error(),
 			})
 		}
 
@@ -63,16 +69,21 @@ func (h *ClerkHandler) Execute(c fiber.Ctx) error {
 		if err := json.Unmarshal(clerkEvent.Data, &data); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "Invalid request body",
+				"errors":  err.Error(),
 			})
 		}
 
 		if err := validate.Struct(data); err != nil {
-			return err
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "Invalid request body",
+				"errors":  err.Error(),
+			})
 		}
 
 		if err := h.UpdateUser(c, data); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "Failed to update user",
+				"errors":  err.Error(),
 			})
 		}
 
@@ -83,16 +94,21 @@ func (h *ClerkHandler) Execute(c fiber.Ctx) error {
 		if err := json.Unmarshal(clerkEvent.Data, &data); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "Invalid request body",
+				"errors":  err.Error(),
 			})
 		}
 
 		if err := validate.Struct(data); err != nil {
-			return err
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "Invalid request body",
+				"errors":  err.Error(),
+			})
 		}
 
 		if err := h.DeleteUser(c, data); err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "Failed to delete user",
+				"errors":  err.Error(),
 			})
 		}
 
@@ -110,6 +126,7 @@ func (h *ClerkHandler) CreateUser(c fiber.Ctx, data clerkdto.ClerkUserCreated) e
 		log.Printf("Error finding user by Clerk ID %s: %v", data.ID, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to create user",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -124,6 +141,7 @@ func (h *ClerkHandler) CreateUser(c fiber.Ctx, data clerkdto.ClerkUserCreated) e
 			log.Printf("Error creating user with Clerk ID %s: %v", data.ID, err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "Failed to create user",
+				"errors":  err.Error(),
 			})
 		}
 
@@ -132,6 +150,7 @@ func (h *ClerkHandler) CreateUser(c fiber.Ctx, data clerkdto.ClerkUserCreated) e
 			log.Printf("Error creating default organization for user %s: %v", user.ID, err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "Failed to create default organization",
+				"errors":  err.Error(),
 			})
 		}
 
@@ -140,6 +159,7 @@ func (h *ClerkHandler) CreateUser(c fiber.Ctx, data clerkdto.ClerkUserCreated) e
 			log.Printf("Error updating user %s with active organization: %v", user.ID, err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 				"message": "Failed to update user",
+				"errors":  err.Error(),
 			})
 		}
 
@@ -160,6 +180,7 @@ func (h *ClerkHandler) UpdateUser(c fiber.Ctx, data clerkdto.ClerkUserUpdated) e
 		log.Printf("Error finding user by Clerk ID %s: %v", data.ID, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to find user",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -167,6 +188,7 @@ func (h *ClerkHandler) UpdateUser(c fiber.Ctx, data clerkdto.ClerkUserUpdated) e
 		log.Printf("User with Clerk ID %s not found for update", data.ID)
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"message": "User not found",
+			"errors":  errors.New("user not found").Error(),
 		})
 	}
 
@@ -178,6 +200,7 @@ func (h *ClerkHandler) UpdateUser(c fiber.Ctx, data clerkdto.ClerkUserUpdated) e
 		log.Printf("Error updating user with Clerk ID %s: %v", data.ID, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to update user",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -190,6 +213,7 @@ func (h *ClerkHandler) DeleteUser(c fiber.Ctx, data clerkdto.ClerkUserDeleted) e
 		log.Printf("Error deleting user with Clerk ID %s: %v", data.ID, err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to delete user",
+			"errors":  err.Error(),
 		})
 	}
 

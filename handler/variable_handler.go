@@ -45,6 +45,7 @@ func (h *VariableHandler) GetVariablesByWorkflowID(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -53,6 +54,7 @@ func (h *VariableHandler) GetVariablesByWorkflowID(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid workflow ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -60,6 +62,7 @@ func (h *VariableHandler) GetVariablesByWorkflowID(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Internal server error",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -67,6 +70,7 @@ func (h *VariableHandler) GetVariablesByWorkflowID(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Internal server error",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -78,6 +82,7 @@ func (h *VariableHandler) CreateVariable(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -86,6 +91,7 @@ func (h *VariableHandler) CreateVariable(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid workflow ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -136,6 +142,7 @@ func (h *VariableHandler) SearchVariablesPath(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -144,6 +151,7 @@ func (h *VariableHandler) SearchVariablesPath(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid workflow ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -151,6 +159,7 @@ func (h *VariableHandler) SearchVariablesPath(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Internal server error",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -158,12 +167,14 @@ func (h *VariableHandler) SearchVariablesPath(c fiber.Ctx) error {
 	if err := c.Bind().JSON(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
+			"errors":  err.Error(),
 		})
 	}
 
 	if err := c.Bind().Query(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid query parameters",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -180,6 +191,7 @@ func (h *VariableHandler) SearchVariablesPath(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Internal server error",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -199,6 +211,7 @@ func (h *VariableHandler) GetVariableByID(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -207,6 +220,7 @@ func (h *VariableHandler) GetVariableByID(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid workflow ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -214,6 +228,7 @@ func (h *VariableHandler) GetVariableByID(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Internal server error",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -222,6 +237,7 @@ func (h *VariableHandler) GetVariableByID(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid variable ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -229,6 +245,7 @@ func (h *VariableHandler) GetVariableByID(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Internal server error",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -240,6 +257,7 @@ func (h *VariableHandler) UpdateVariable(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -248,6 +266,7 @@ func (h *VariableHandler) UpdateVariable(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid workflow ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -255,6 +274,7 @@ func (h *VariableHandler) UpdateVariable(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Internal server error",
+			"errors":  err.Error(),
 		})
 	}
 

@@ -40,6 +40,7 @@ func (h *OrganizationHandler) GetOrganizations(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -47,6 +48,7 @@ func (h *OrganizationHandler) GetOrganizations(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -54,6 +56,7 @@ func (h *OrganizationHandler) GetOrganizations(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to list organizations",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -65,6 +68,7 @@ func (h *OrganizationHandler) CreateOrganization(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -72,6 +76,7 @@ func (h *OrganizationHandler) CreateOrganization(c fiber.Ctx) error {
 	if err := c.Bind().JSON(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -86,6 +91,7 @@ func (h *OrganizationHandler) CreateOrganization(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to create organization",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -99,6 +105,7 @@ func (h *OrganizationHandler) GetOrganizationByID(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -107,6 +114,7 @@ func (h *OrganizationHandler) GetOrganizationByID(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid organization ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -114,6 +122,7 @@ func (h *OrganizationHandler) GetOrganizationByID(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to get organization",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -125,6 +134,7 @@ func (h *OrganizationHandler) UpdateOrganization(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -133,6 +143,7 @@ func (h *OrganizationHandler) UpdateOrganization(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid organization ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -140,6 +151,7 @@ func (h *OrganizationHandler) UpdateOrganization(c fiber.Ctx) error {
 	if err := c.Bind().JSON(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -154,6 +166,7 @@ func (h *OrganizationHandler) UpdateOrganization(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to update organization",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -165,6 +178,7 @@ func (h *OrganizationHandler) ActivateOrganization(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -173,6 +187,7 @@ func (h *OrganizationHandler) ActivateOrganization(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid organization ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -180,6 +195,7 @@ func (h *OrganizationHandler) ActivateOrganization(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to activate organization",
+			"errors":  err.Error(),
 		})
 	}
 

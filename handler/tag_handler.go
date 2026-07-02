@@ -25,6 +25,7 @@ func (h *TagHandler) GetTags(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -32,6 +33,7 @@ func (h *TagHandler) GetTags(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Internal server error",
+			"errors":  err.Error(),
 		})
 	}
 

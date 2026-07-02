@@ -31,6 +31,7 @@ func (h *ConnexionHandler) CreateConnexion(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -38,6 +39,7 @@ func (h *ConnexionHandler) CreateConnexion(c fiber.Ctx) error {
 	if err := c.Bind().JSON(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid request body",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -52,6 +54,7 @@ func (h *ConnexionHandler) CreateConnexion(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to create connexion",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -63,6 +66,7 @@ func (h *ConnexionHandler) DeleteConnexion(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -71,6 +75,7 @@ func (h *ConnexionHandler) DeleteConnexion(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Invalid endpoint ID",
+			"errors":  err.Error(),
 		})
 	}
 
@@ -78,6 +83,7 @@ func (h *ConnexionHandler) DeleteConnexion(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to delete connexion",
+			"errors":  err.Error(),
 		})
 	}
 
