@@ -161,7 +161,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	createVariableUseCase := variable.NewCreateVariableUseCase(&variableRepo, &workflowRepo)
 	searchVariablesPathUseCase := variable.NewSearchVariablesPathUseCase(&variableRepo, &workflowRepo, &stepRunRepo)
 	getVariableByIDUseCase := variable.NewGetVariableByIDUseCase(&variableRepo)
-	updateVariableUseCase := variable.NewUpdateVariableUseCase(&variableRepo)
+	updateVariableUseCase := variable.NewUpdateVariableUseCase(&variableRepo, &stepRepo)
 
 	clerkMiddleware := middleware.NewClerkMiddleware(env.ClerkWebhookSecret)
 	authenticateMiddleware := middleware.NewAuthenticateMiddleware(
