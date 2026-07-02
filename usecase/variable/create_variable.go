@@ -26,6 +26,7 @@ func (u *CreateVariableUseCase) Execute(ctx context.Context, workflowID uuid.UUI
 
 	variable := &entity.Variable{
 		Name:        request.Name,
+		Key:         request.Key,
 		Description: request.Description,
 		Path:        request.Path,
 		StepID:      request.StepID,

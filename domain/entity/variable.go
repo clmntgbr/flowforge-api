@@ -10,6 +10,7 @@ type Variable struct {
 	ID uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 
 	Name        string    `gorm:"type:varchar(255);not null" json:"name"`
+	Key         string    `gorm:"type:varchar(255);not null" json:"key"`
 	Description string    `gorm:"type:varchar(255);null" json:"description"`
 	Path        string    `gorm:"type:varchar(255);not null" json:"path"`
 	StepID      uuid.UUID `gorm:"type:uuid;not null;index:idx_variable_step" json:"step_id"`

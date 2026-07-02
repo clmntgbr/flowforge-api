@@ -7,6 +7,7 @@ import (
 type VariableResponse struct {
 	ID           string             `json:"id"`
 	Name         string             `json:"name"`
+	Key          string             `json:"key"`
 	Path         string             `json:"path"`
 	StepID       string             `json:"stepId"`
 	Step         StepDetailResponse `json:"step"`
@@ -27,6 +28,7 @@ func NewVariableResponse(variable entity.Variable) VariableResponse {
 	return VariableResponse{
 		ID:           variable.ID.String(),
 		Name:         variable.Name,
+		Key:          variable.Key,
 		Path:         variable.Path,
 		StepID:       variable.StepID.String(),
 		Step:         NewStepDetailResponse(variable.Step),

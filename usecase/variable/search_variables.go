@@ -70,7 +70,7 @@ func extractPaths(data interface{}, currentPath string, query string) []string {
 				newPath = currentPath + "." + key
 			}
 
-			if query == "" || strings.Contains(strings.ToLower(key), strings.ToLower(query)) {
+			if query == "" || strings.Contains(strings.ToLower(key), strings.ToLower(query)) || strings.Contains(strings.ToLower(newPath), strings.ToLower(query)) {
 				paths = append(paths, newPath)
 			}
 
@@ -89,7 +89,10 @@ func extractPaths(data interface{}, currentPath string, query string) []string {
 			} else {
 				indexPath = currentPath + "[" + strconv.Itoa(i) + "]"
 			}
-			paths = append(paths, extractPaths(v[i], indexPath, query)...)
+			
+			if query == "" || strings.Contains(strings.ToLower(indexPath), strings.ToLower(query)) {
+				paths = append(paths, extractPaths(v[i], indexPath, query)...)
+			}
 		}
 	}
 

@@ -57,7 +57,7 @@ func (u *ReplaceVariablesUseCase) Execute(ctx context.Context, step *entity.Step
 
 	for _, variable := range updatedVariables {
 		if err := (*u.variableRepo).Update(ctx, variable); err != nil {
-			log.Printf("⚠️ Failed to update LastValue for variable '%s': %v", variable.Name, err)
+			log.Printf("⚠️ Failed to update LastValue for variable key='%s': %v", variable.Key, err)
 		}
 	}
 
@@ -73,7 +73,7 @@ func (u *ReplaceVariablesUseCase) replaceInStringWithTracking(ctx context.Contex
 
 		var targetVariable *entity.Variable
 		for i := range variables {
-			if variables[i].Name == variableName {
+			if variables[i].Key == variableName {
 				targetVariable = &variables[i]
 				break
 			}
@@ -82,12 +82,12 @@ func (u *ReplaceVariablesUseCase) replaceInStringWithTracking(ctx context.Contex
 		if targetVariable == nil {
 			log.Printf("❌ Variable '%s' not found in workflow variables (available: %d variables)", variableName, len(variables))
 			for _, v := range variables {
-				log.Printf("   - Available variable: '%s' (StepID: %s, Path: %s)", v.Name, v.StepID, v.Path)
+				log.Printf("   - Available variable: '%s' (Name: '%s', StepID: %s, Path: %s)", v.Key, v.Name, v.StepID, v.Path)
 			}
 			return match
 		}
 
-		log.Printf("✅ Variable '%s' found: StepID=%s, Path=%s", variableName, targetVariable.StepID, targetVariable.Path)
+		log.Printf("✅ Variable '%s' found: Name='%s', StepID=%s, Path=%s", variableName, targetVariable.Name, targetVariable.StepID, targetVariable.Path)
 
 		stepRuns, err := (*u.stepRunRepo).GetAllByWorkflowRunID(ctx, workflowRunID)
 		if err != nil {
@@ -129,7 +129,7 @@ func (u *ReplaceVariablesUseCase) replaceInStringWithTracking(ctx context.Contex
 		if _, exists := updatedVariables[targetVariable.ID]; !exists {
 			targetVariable.LastValue = value
 			updatedVariables[targetVariable.ID] = targetVariable
-			log.Printf("💾 Tracking LastValue update for variable '%s'", variableName)
+			log.Printf("💾 Tracking LastValue update for variable key='%s' (name='%s')", targetVariable.Key, targetVariable.Name)
 		}
 
 		return value

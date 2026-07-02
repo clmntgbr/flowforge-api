@@ -25,6 +25,7 @@ func (u *UpdateVariableUseCase) Execute(ctx context.Context, workflowID uuid.UUI
 	}
 
 	variable.Name = request.Name
+	variable.Key = request.Key
 	variable.Path = request.Path
 	variable.Description = request.Description
 	variable.StepID = request.StepID
