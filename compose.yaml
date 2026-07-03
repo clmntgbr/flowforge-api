@@ -123,7 +123,7 @@ services:
       - GLOBAL_OPTIONS=auto_https off
       - MERCURE_PUBLISHER_JWT_KEY=${MERCURE_PUBLISHER_JWT_KEY:?MERCURE_PUBLISHER_JWT_KEY is required}
       - MERCURE_SUBSCRIBER_JWT_KEY=${MERCURE_SUBSCRIBER_JWT_KEY:?MERCURE_SUBSCRIBER_JWT_KEY is required}
-      - MERCURE_EXTRA_DIRECTIVES=cors_origins http://localhost:3001
+      - MERCURE_EXTRA_DIRECTIVES=cors_origins http://localhost:3001 http://127.0.0.1:3001
     ports:
       - "4001:80"
       - "4002:443"

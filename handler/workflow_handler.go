@@ -157,6 +157,7 @@ func (h *WorkflowHandler) UpdateWorkflow(c fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "Unauthorized",
 			"errors":  err.Error(),
+			"code":    "UNAUTHORIZED",
 		})
 	}
 
@@ -190,6 +191,7 @@ func (h *WorkflowHandler) UpdateWorkflow(c fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to update workflow",
 			"errors":  err.Error(),
+			"code":    "FAILED_TO_UPDATE_WORKFLOW",
 		})
 	}
 
