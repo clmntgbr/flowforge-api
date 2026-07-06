@@ -4,6 +4,15 @@ import (
 	"flowforge-api/domain/entity"
 )
 
+type VariableListResponse struct {
+	ID     string           `json:"id"`
+	Name   string           `json:"name"`
+	Key    string           `json:"key"`
+	Path   string           `json:"path"`
+	StepID string           `json:"stepId"`
+	Step   StepListResponse `json:"step"`
+}
+
 type VariableResponse struct {
 	ID           string             `json:"id"`
 	Name         string             `json:"name"`
@@ -16,15 +25,30 @@ type VariableResponse struct {
 	LastValue    string             `gorm:"null" json:"lastValue"`
 }
 
-func NewVariableResponses(variables []entity.Variable) []VariableResponse {
-	responses := make([]VariableResponse, len(variables))
+func NewVariableListResponses(variables []entity.Variable) []VariableListResponse {
+	responses := make([]VariableListResponse, len(variables))
 	for i, variable := range variables {
-		responses[i] = NewVariableResponse(variable)
+		responses[i] = NewVariableListResponse(variable)
 	}
 	return responses
 }
 
-func NewVariableResponse(variable entity.Variable) VariableResponse {
+func NewVariableListResponse(variable entity.Variable) VariableListResponse {
+	return VariableListResponse{
+		ID:     variable.ID.String(),
+		Name:   variable.Name,
+		Key:    variable.Key,
+		Path:   variable.Path,
+		StepID: variable.StepID.String(),
+		Step:   NewStepListResponse(variable.Step),
+	}
+}
+
+func NewVariableDetailResponses(variable entity.Variable) VariableResponse {
+	return NewVariableDetailResponse(variable)
+}
+
+func NewVariableDetailResponse(variable entity.Variable) VariableResponse {
 	return VariableResponse{
 		ID:           variable.ID.String(),
 		Name:         variable.Name,

@@ -6,6 +6,16 @@ import (
 	"time"
 )
 
+type StepListResponse struct {
+	ID             string               `json:"id"`
+	Name           string               `json:"name"`
+	Position       entity.Position      `json:"position"`
+	Index          string               `json:"index"`
+	ExecutionOrder int                  `json:"order"`
+	TreeIndex      int                  `json:"treeIndex"`
+	Endpoint       EndpointListResponse `json:"endpoint"`
+}
+
 type StepDetailResponse struct {
 	ID             string                 `json:"id"`
 	Name           string                 `json:"name"`
@@ -49,6 +59,18 @@ func NewStepDetailResponse(step entity.Step) StepDetailResponse {
 		RetryDelay:     step.RetryDelay,
 		CreatedAt:      step.CreatedAt,
 		UpdatedAt:      step.UpdatedAt,
+	}
+}
+
+func NewStepListResponse(step entity.Step) StepListResponse {
+	return StepListResponse{
+		ID:             step.ID.String(),
+		Name:           step.Name,
+		Position:       step.Position,
+		Index:          step.Index,
+		ExecutionOrder: step.ExecutionOrder,
+		TreeIndex:      step.TreeIndex,
+		Endpoint:       NewEndpointListResponse(step.Endpoint),
 	}
 }
 

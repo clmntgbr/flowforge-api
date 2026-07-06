@@ -78,7 +78,7 @@ func (h *VariableHandler) GetVariablesByWorkflowID(c fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(presenter.NewVariableResponses(variables))
+	return c.JSON(presenter.NewVariableListResponses(variables))
 }
 
 func (h *VariableHandler) CreateVariable(c fiber.Ctx) error {
@@ -253,7 +253,7 @@ func (h *VariableHandler) GetVariableByID(c fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(presenter.NewVariableResponse(variable))
+	return c.JSON(presenter.NewVariableDetailResponses(variable))
 }
 
 func (h *VariableHandler) UpdateVariable(c fiber.Ctx) error {
