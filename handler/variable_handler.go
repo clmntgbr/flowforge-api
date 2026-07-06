@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"flowforge-api/handler/context"
 	variableDTO "flowforge-api/infrastructure/variable"
 	"flowforge-api/presenter"
@@ -20,6 +21,7 @@ type VariableHandler struct {
 	searchVariablesPathUseCase      *variable.SearchVariablesPathUseCase
 	getVariableByIDUseCase          *variable.GetVariableByIDUseCase
 	updateVariableUseCase           *variable.UpdateVariableUseCase
+	deleteVariableUseCase           *variable.DeleteVariableUseCase
 }
 
 func NewVariableHandler(
@@ -29,6 +31,7 @@ func NewVariableHandler(
 	searchVariablesPathUseCase *variable.SearchVariablesPathUseCase,
 	getVariableByIDUseCase *variable.GetVariableByIDUseCase,
 	updateVariableUseCase *variable.UpdateVariableUseCase,
+	deleteVariableUseCase *variable.DeleteVariableUseCase,
 ) *VariableHandler {
 	return &VariableHandler{
 		getVariablesByWorkflowIDUseCase: getVariablesByWorkflowIDUseCase,
@@ -37,6 +40,7 @@ func NewVariableHandler(
 		searchVariablesPathUseCase:      searchVariablesPathUseCase,
 		getVariableByIDUseCase:          getVariableByIDUseCase,
 		updateVariableUseCase:           updateVariableUseCase,
+		deleteVariableUseCase:           deleteVariableUseCase,
 	}
 }
 
@@ -312,6 +316,62 @@ func (h *VariableHandler) UpdateVariable(c fiber.Ctx) error {
 		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to update variable",
+			"errors":  err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"success": true,
+	})
+}
+
+func (h *VariableHandler) DeleteVariable(c fiber.Ctx) error {
+	activeOrganizationID, err := context.GetOrganizationID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "Unauthorized",
+			"errors":  err.Error(),
+		})
+	}
+
+	workflowID := c.Params("id")
+	workflowUUID, err := uuid.Parse(workflowID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid workflow ID",
+			"errors":  err.Error(),
+		})
+	}
+
+	workflow, err := h.getWorkflowUseCase.Execute(c.Context(), activeOrganizationID, workflowUUID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Internal server error",
+			"errors":  err.Error(),
+		})
+	}
+
+	variableID := c.Params("variableId")
+	variableUUID, err := uuid.Parse(variableID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid variable ID",
+			"errors":  err.Error(),
+		})
+	}
+
+	err = h.deleteVariableUseCase.Execute(c.Context(), workflow.ID, variableUUID)
+	if err != nil {
+		var inUseErr *variable.VariableInUseError
+		if errors.As(err, &inUseErr) {
+			return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+				"message": "Variable is used in workflow steps",
+				"errors":  err.Error(),
+				"steps":   presenter.NewStepDetailResponses(inUseErr.Steps),
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to delete variable",
 			"errors":  err.Error(),
 		})
 	}

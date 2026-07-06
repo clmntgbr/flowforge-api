@@ -162,6 +162,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	searchVariablesPathUseCase := variable.NewSearchVariablesPathUseCase(&variableRepo, &workflowRepo, &stepRunRepo)
 	getVariableByIDUseCase := variable.NewGetVariableByIDUseCase(&variableRepo)
 	updateVariableUseCase := variable.NewUpdateVariableUseCase(&variableRepo, &stepRepo)
+	deleteVariableUseCase := variable.NewDeleteVariableUseCase(&variableRepo, &stepRepo)
 
 	clerkMiddleware := middleware.NewClerkMiddleware(env.ClerkWebhookSecret)
 	authenticateMiddleware := middleware.NewAuthenticateMiddleware(
@@ -231,6 +232,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 			searchVariablesPathUseCase,
 			getVariableByIDUseCase,
 			updateVariableUseCase,
+			deleteVariableUseCase,
 		),
 	}
 }
