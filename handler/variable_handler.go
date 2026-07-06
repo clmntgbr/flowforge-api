@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flowforge-api/handler/context"
 	variableDTO "flowforge-api/infrastructure/variable"
+	"flowforge-api/infrastructure/paginate"
 	"flowforge-api/presenter"
 	"flowforge-api/usecase/variable"
 	"flowforge-api/usecase/workflow"
@@ -70,7 +71,16 @@ func (h *VariableHandler) GetVariablesByWorkflowID(c fiber.Ctx) error {
 		})
 	}
 
-	variables, err := h.getVariablesByWorkflowIDUseCase.Execute(c.Context(), workflow.ID)
+	var query paginate.PaginateQuery
+	if err := c.Bind().Query(&query); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid request body",
+			"errors":  err.Error(),
+		})
+	}
+	query.Normalize()
+
+	variables, total, err := h.getVariablesByWorkflowIDUseCase.Execute(c.Context(), workflow.ID, query)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Internal server error",
@@ -78,7 +88,7 @@ func (h *VariableHandler) GetVariablesByWorkflowID(c fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(presenter.NewVariableListResponses(variables))
+	return c.JSON(paginate.NewPaginateResponse(presenter.NewVariableListResponses(variables), int(total), query))
 }
 
 func (h *VariableHandler) CreateVariable(c fiber.Ctx) error {

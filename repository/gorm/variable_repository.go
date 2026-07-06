@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flowforge-api/domain/entity"
 	"flowforge-api/domain/repository"
+	"flowforge-api/infrastructure/paginate"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -44,6 +45,31 @@ func (r *variableRepository) GetVariablesByWorkflowID(ctx context.Context, workf
 	}
 
 	return variables, nil
+}
+
+func (r *variableRepository) ListByWorkflowID(ctx context.Context, workflowID uuid.UUID, query paginate.PaginateQuery) ([]entity.Variable, int64, error) {
+	var variables []entity.Variable
+
+	db := dbWithContext(ctx, r.db).Model(&entity.Variable{}).
+		Where("variables.workflow_id = ?", workflowID).
+		Preload("Step").
+		Preload("Step.Endpoint")
+
+	if query.Search != "" {
+		db = db.Where("variables.name ILIKE ? OR variables.key ILIKE ?", "%"+query.Search+"%", "%"+query.Search+"%")
+	}
+
+	db, total, err := Paginate(db, query)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	err = db.Find(&variables).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return variables, total, nil
 }
 
 func (r *variableRepository) GetVariableByIDAndWorkflowID(ctx context.Context, workflowID uuid.UUID, variableID uuid.UUID) (entity.Variable, error) {
