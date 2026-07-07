@@ -64,10 +64,13 @@ type OpenAPI struct {
 		URL string `json:"url"`
 	} `json:"servers"`
 	Paths map[string]map[string]struct {
-		OperationID string   `json:"operationId"`
-		Tags        []string `json:"tags"`
-		Summary     string   `json:"summary"`
-		Description string   `json:"description"`
+		OperationID string       `json:"operationId"`
+		Tags        []string     `json:"tags"`
+		Summary     string       `json:"summary"`
+		Description string       `json:"description"`
+		Query       types.Query  `json:"query"`
+		Header      types.Header `json:"header"`
+		Body        types.Body   `json:"body"`
 	} `json:"paths"`
 }
 
@@ -83,4 +86,7 @@ type ImportEndpointsInput struct {
 	RetryDelay     int                   `form:"retryDelay" validate:"min=0,max=600,number"`
 	File           *multipart.FileHeader `form:"file" validate:"required"`
 	Tags           tag.TagInputs         `form:"tags"`
+	Query          types.Query           `form:"query"`
+	Header         types.Header          `form:"header"`
+	Body           types.Body            `form:"body"`
 }

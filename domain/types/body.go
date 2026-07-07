@@ -2,8 +2,11 @@ package types
 
 import (
 	"database/sql/driver"
+	"encoding"
 	"encoding/json"
 )
+
+var _ encoding.TextUnmarshaler = (*Body)(nil)
 
 type Body json.RawMessage
 
@@ -18,6 +21,15 @@ func (b *Body) UnmarshalJSON(data []byte) error {
 	return (*json.RawMessage)(b).UnmarshalJSON(data)
 }
 
+func (b *Body) UnmarshalText(text []byte) error {
+	if len(text) == 0 {
+		*b = Body("[]")
+		return nil
+	}
+
+	return json.Unmarshal(text, (*json.RawMessage)(b))
+}
+
 func (b Body) Value() (driver.Value, error) {
 	if len(b) == 0 {
 		return "[]", nil
@@ -30,10 +42,17 @@ func (b *Body) Scan(value interface{}) error {
 		*b = Body("[]")
 		return nil
 	}
-	bytes, ok := value.([]byte)
-	if !ok {
+
+	var bytes []byte
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	default:
 		return nil
 	}
+
 	*b = Body(bytes)
 	return nil
 }

@@ -70,6 +70,21 @@ func (u *ImportFromOpenAPIUseCase) Execute(ctx context.Context, organizationID u
 				continue
 			}
 
+			query := op.Query
+			if len(query) == 0 {
+				query = input.Query
+			}
+
+			header := op.Header
+			if len(header) == 0 {
+				header = input.Header
+			}
+
+			body := op.Body
+			if !hasBodyContent(body) {
+				body = input.Body
+			}
+
 			u.createEndpointUseCase.Execute(ctx, organizationID, endpointDTO.CreateEndpointInput{
 				Name:           op.Summary,
 				Description:    op.Description,
@@ -80,13 +95,22 @@ func (u *ImportFromOpenAPIUseCase) Execute(ctx context.Context, organizationID u
 				RetryOnFailure: input.RetryOnFailure,
 				RetryCount:     input.RetryCount,
 				RetryDelay:     input.RetryDelay,
-				Query:          types.Query{},
-				Header:         types.Header{},
-				Body:           types.Body{},
+				Query:          query,
+				Header:         header,
+				Body:           body,
 				Tags:           input.Tags,
 			})
 		}
 	}
 
 	return nil
+}
+
+func hasBodyContent(body types.Body) bool {
+	if len(body) == 0 {
+		return false
+	}
+
+	bodyStr := string(body)
+	return bodyStr != "null" && bodyStr != "[]" && bodyStr != "{}" && bodyStr != ""
 }
