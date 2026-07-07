@@ -16,4 +16,5 @@ type VariableRepository interface {
 	ListByWorkflowID(ctx context.Context, workflowID uuid.UUID, query paginate.PaginateQuery) ([]entity.Variable, int64, error)
 	GetVariableByIDAndWorkflowID(ctx context.Context, workflowID uuid.UUID, variableID uuid.UUID) (entity.Variable, error)
 	GetVariableByWorkflowIDAndKey(ctx context.Context, workflowID uuid.UUID, key string) (*entity.Variable, error)
+	GetVariablesByStepID(ctx context.Context, stepID uuid.UUID) ([]entity.Variable, error)
 }

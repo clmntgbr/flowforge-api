@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"flowforge-api/handler/context"
 	stepDTO "flowforge-api/infrastructure/step"
 	"flowforge-api/presenter"
@@ -143,6 +144,14 @@ func (h *StepHandler) DeleteStep(c fiber.Ctx) error {
 
 	err = h.deleteStepUseCase.Execute(c.Context(), activeOrganizationID, workflowUUID, stepUUID)
 	if err != nil {
+		var inUseErr *step.StepInUseError
+		if errors.As(err, &inUseErr) {
+			return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+				"message":   "Step is used in workflow variables",
+				"errors":    err.Error(),
+				"variables": presenter.NewVariableDetailResponsesList(inUseErr.Variables),
+			})
+		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to delete step",
 			"errors":  err.Error(),

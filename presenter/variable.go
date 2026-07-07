@@ -48,6 +48,14 @@ func NewVariableDetailResponses(variable entity.Variable) VariableResponse {
 	return NewVariableDetailResponse(variable)
 }
 
+func NewVariableDetailResponsesList(variables []entity.Variable) []VariableResponse {
+	responses := make([]VariableResponse, len(variables))
+	for i, variable := range variables {
+		responses[i] = NewVariableDetailResponse(variable)
+	}
+	return responses
+}
+
 func NewVariableDetailResponse(variable entity.Variable) VariableResponse {
 	return VariableResponse{
 		ID:           variable.ID.String(),

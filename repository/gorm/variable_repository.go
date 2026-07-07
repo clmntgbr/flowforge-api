@@ -105,3 +105,18 @@ func (r *variableRepository) GetVariableByWorkflowIDAndKey(ctx context.Context, 
 
 	return &variable, nil
 }
+
+func (r *variableRepository) GetVariablesByStepID(ctx context.Context, stepID uuid.UUID) ([]entity.Variable, error) {
+	var variables []entity.Variable
+
+	err := dbWithContext(ctx, r.db).Model(&entity.Variable{}).
+		Where("variables.step_id = ?", stepID).
+		Preload("Step").
+		Preload("Step.Endpoint").
+		Find(&variables).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return variables, nil
+}

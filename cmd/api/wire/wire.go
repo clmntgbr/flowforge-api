@@ -95,7 +95,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	createStepUseCase := step.NewCreateStepUseCase(&stepRepo)
 	getStepUseCase := step.NewGetStepUseCase(&stepRepo)
 	updateStepUseCase := step.NewUpdateStepUseCase(&stepRepo)
-	deleteStepUseCase := step.NewDeleteStepUseCase(&stepRepo, &connexionRepo, &workflowRepo)
+	deleteStepUseCase := step.NewDeleteStepUseCase(&stepRepo, &connexionRepo, &workflowRepo, &variableRepo)
 	calculateExecutionOrderUseCase := step.NewCalculateExecutionOrderUseCase()
 
 	hasStepRunUseCase := step_run.NewHasStepRunUseCase(&stepRunRepo)
