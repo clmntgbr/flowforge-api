@@ -85,8 +85,7 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 	updateEndpointUseCase := endpoint.NewUpdateEndpointUseCase(&endpointRepo, getTagOrCreateUseCase)
 	getEndpointUseCase := endpoint.NewGetEndpointUseCase(&endpointRepo)
 	importFromOpenAPIUseCase := endpoint.NewImportFromOpenAPIUseCase(&endpointRepo, createEndpointUseCase, getTagOrCreateUseCase)
-	endpointHasStepUseCase := endpoint.NewEndpointHasStepUseCase(&stepRepo)
-	deleteEndpointUseCase := endpoint.NewDeleteEndpointUseCase(&endpointRepo)
+	deleteEndpointUseCase := endpoint.NewDeleteEndpointUseCase(&endpointRepo, &stepRepo)
 
 	assignTreeIndicesUseCase := step.NewAssignTreeIndicesUseCase(&stepRepo, &connexionRepo)
 	createConnexionUseCase := connexion.NewCreateConnexionUseCase(&connexionRepo, assignTreeIndicesUseCase)
@@ -197,7 +196,6 @@ func NewContainer(db *gorm.DB, env *config.Config) *Container {
 			updateEndpointUseCase,
 			getEndpointUseCase,
 			importFromOpenAPIUseCase,
-			endpointHasStepUseCase,
 			deleteEndpointUseCase,
 		),
 		ConnexionHandler: handler.NewConnexionHandler(

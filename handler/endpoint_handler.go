@@ -20,7 +20,6 @@ type EndpointHandler struct {
 	updateEndpointUseCase    *endpoint.UpdateEndpointUseCase
 	getEndpointUseCase       *endpoint.GetEndpointUseCase
 	importFromOpenAPIUseCase *endpoint.ImportFromOpenAPIUseCase
-	endpointHasStepUseCase   *endpoint.EndpointHasStepUseCase
 	deleteEndpointUseCase    *endpoint.DeleteEndpointUseCase
 }
 
@@ -30,7 +29,6 @@ func NewEndpointHandler(
 	updateEndpointUseCase *endpoint.UpdateEndpointUseCase,
 	getEndpointUseCase *endpoint.GetEndpointUseCase,
 	importFromOpenAPIUseCase *endpoint.ImportFromOpenAPIUseCase,
-	endpointHasStepUseCase *endpoint.EndpointHasStepUseCase,
 	deleteEndpointUseCase *endpoint.DeleteEndpointUseCase,
 ) *EndpointHandler {
 	return &EndpointHandler{
@@ -39,7 +37,6 @@ func NewEndpointHandler(
 		updateEndpointUseCase:    updateEndpointUseCase,
 		getEndpointUseCase:       getEndpointUseCase,
 		importFromOpenAPIUseCase: importFromOpenAPIUseCase,
-		endpointHasStepUseCase:   endpointHasStepUseCase,
 		deleteEndpointUseCase:    deleteEndpointUseCase,
 	}
 }
@@ -242,23 +239,16 @@ func (h *EndpointHandler) DeleteEndpoint(c fiber.Ctx) error {
 		})
 	}
 
-	hasSteps, err := h.endpointHasStepUseCase.Execute(c.Context(), endpointUUID)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "Failed to check if endpoint has steps",
-			"errors":  err.Error(),
-		})
-	}
-
-	if hasSteps {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Endpoint has steps",
-			"errors":  errors.New("endpoint has steps").Error(),
-		})
-	}
-
 	err = h.deleteEndpointUseCase.Execute(c.Context(), endpointUUID)
 	if err != nil {
+		var inUseErr *endpoint.EndpointInUseError
+		if errors.As(err, &inUseErr) {
+			return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+				"message": "Endpoint is used in workflow steps",
+				"errors":  err.Error(),
+				"steps":   presenter.NewStepDetailResponses(inUseErr.Steps),
+			})
+		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Failed to delete endpoint",
 			"errors":  err.Error(),

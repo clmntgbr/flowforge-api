@@ -21,5 +21,5 @@ type StepRepository interface {
 	GetNextStepByWorkflowID(ctx context.Context, workflowID uuid.UUID, minTreeIndexExclusive int, executedStepIDs []string) (*entity.Step, error)
 	GetFirstStepAtLevel(ctx context.Context, workflowID uuid.UUID, treeIndex int, majorLevel int, minExecutionOrderExclusive int, excludedStepIDs []string) (*entity.Step, error)
 	UpdateTreeIndices(ctx context.Context, indices map[uuid.UUID]int) error
-	HasStepsByEndpointID(ctx context.Context, endpointID uuid.UUID) (bool, error)
+	GetEnabledStepsByEndpointID(ctx context.Context, endpointID uuid.UUID) ([]entity.Step, error)
 }

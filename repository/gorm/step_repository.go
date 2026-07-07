@@ -187,11 +187,16 @@ func (r *stepRepository) UpdateTreeIndices(ctx context.Context, indices map[uuid
 	return nil
 }
 
-func (r *stepRepository) HasStepsByEndpointID(ctx context.Context, endpointID uuid.UUID) (bool, error) {
-	var count int64
-	err := r.db.WithContext(ctx).
-		Model(&entity.Step{}).
-		Where("endpoint_id = ?", endpointID).
-		Count(&count).Error
-	return count > 0, err
+func (r *stepRepository) GetEnabledStepsByEndpointID(ctx context.Context, endpointID uuid.UUID) ([]entity.Step, error) {
+	var steps []entity.Step
+
+	err := dbWithContext(ctx, r.db).Model(&entity.Step{}).
+		Where("endpoint_id = ? AND is_enabled = ?", endpointID, true).
+		Preload("Endpoint").
+		Find(&steps).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return steps, nil
 }
